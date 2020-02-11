@@ -1,0 +1,25 @@
+﻿{
+  "RegisterStep1Title": "Шаг 1: Тип кошелька",
+  "RegisterStep2Title": "Шаг 2: Название кошелька",
+  "RegisterStep3Title": "Step 3: Mnemonic phrase",
+  "RegisterStep4Title": "Step 4: Derived key password (optional)",
+  "RegisterStep5Title": "Step 5: Storage password",
+  "RegisterStep1Description": "Please select your wallet type.",
+  "RegisterStep2Description": "Please enter a name for your wallet.",
+  "RegisterStep3Description": "Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in in safe place.",
+  "RegisterStep4Description": "This password can be used for secret key additional protection. To restore a secret key, you will need to enter a mnemonic phrase and this password.",
+  "RegisterStep5Description": "This password is used to protect the stored secret keys and will be needed every time you start youe wallet application.",
+
+  "EnterPasswordPlaceholder": "Enter password:",
+  "ConfirmPasswordPlaceholder": "Confirm password:",
+  "EnterWalletName": "Enter wallet name:",
+  "EmptyWalletName": "Wallet name could not be emty",
+  "Language": "Language",
+  "WordCount": "Word count",
+  "Next": "Next",
+  "Previous": "Previous",
+  "Finish": "Finish",
+  "PasswordMismatchError": "Passwords mismatch",
+  "PasswordEmpty": "Passwords could not be empty",
+  "PasswordWeak": "Create at least \"Meduim\" strongness password"
+}

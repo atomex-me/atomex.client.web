@@ -1,0 +1,62 @@
+﻿<div>
+    <div class="@(Error ? "error-input" : "")">
+        <div class="@((string.IsNullOrEmpty(Description) ?
+                  "atomex-select-container" :
+                  "atomex-select-container with-description"))">
+            @if (Description != null)
+            {
+                <div class="select-description">
+                    <span>@Description</span>
+                </div>
+            }
+            <select @onchange="handleChange">
+                @for (int x = 0; x < Options.Length; x++)
+                {
+                    @if (x == getSelectedOptionIndex())
+                    {
+                        <option selected="selected" value="@Options[x]">@Options[x]</option>
+                    }
+                    else
+                    {
+                        <option value="@Options[x]">@Options[x]</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    @if (!String.IsNullOrEmpty(ErrorDescription))
+    {
+        <div class="error-description">
+            @ErrorDescription
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<string> OnChange { get; set; }
+
+    [Parameter]
+    public string[] Options { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
+
+    [Parameter]
+    public string CurrentValue { get; set; }
+
+    [Parameter]
+    public bool Error { get; set; }
+
+    [Parameter]
+    public string ErrorDescription { get; set; }
+
+
+    protected async void handleChange(ChangeEventArgs e) {
+        await OnChange.InvokeAsync(e.Value.ToString());
+    }
+
+    protected int getSelectedOptionIndex() {
+        return Array.FindIndex(Options, option => option.Equals(CurrentValue));
+    }
+}

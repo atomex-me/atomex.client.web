@@ -1,0 +1,29 @@
+﻿<div class="steps-container">
+    @for (int x = 1; x <= NumberSteps; x++)
+    {
+        <span class="@((x <= CurrentStep) ? "step filled" : "step")">
+            @x
+        </span>
+    }
+    <div class="steps-connector"></div>
+    <div class="steps-connector filled" style="width: @(GetCurrentProcentProgress())%"></div>
+</div>
+
+@code {
+    [Parameter]
+    public int NumberSteps { get; set; }
+
+    [Parameter]
+    public string Variant { get; set; }
+
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public int CurrentStep { get; set; }
+
+    private int GetCurrentProcentProgress() {
+        double result = ((CurrentStep - 1f) / (NumberSteps - 1f)) * 95;
+        return (int)result;
+    }
+}

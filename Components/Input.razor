@@ -1,0 +1,46 @@
+﻿<div class="atomex-input">
+    <div class="@(Error ? "error-input" : "")">
+        @if (InputType == "password")
+        {
+            <i class="icon-input lock"></i>
+        }
+        <input type="@InputType"
+               value="@Value"
+               placeholder="@InputPlaceholder"
+               name="@InputName"
+               @oninput="HandleChange" />
+    </div>
+    @if (!String.IsNullOrEmpty(ErrorDescription)) {
+        <div class="error-description">
+            @ErrorDescription
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string InputName { get; set; }
+
+    [Parameter]
+    public string InputPlaceholder { get; set; }
+
+    [Parameter]
+    public string InputType { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnChange { get; set; }
+
+    [Parameter]
+    public string Value { get; set; }
+
+    [Parameter]
+    public bool Error { get; set; }
+
+    [Parameter]
+    public string ErrorDescription { get; set; }
+
+
+    protected async void HandleChange(ChangeEventArgs evt) {
+        await OnChange.InvokeAsync(evt.Value.ToString());
+    }
+}
