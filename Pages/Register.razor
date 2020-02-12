@@ -1,6 +1,7 @@
 ﻿@page "/register"
 @inject RegisterStorage RegisterStorage
 @inject UserStorage UserStorage
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <div class="register">
     <div class="register-splash">
@@ -11,7 +12,7 @@
             @if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType)
             {
                 <Dropdown OnChange="@RegisterStorage.SetSelectedNetType"
-                          Options="@RegisterStorage.NetOptions"
+                          Options="@GetNetOptions"
                           Description="Type"
                           CurrentValue="@RegisterStorage.SelectedNetType" />
             }
@@ -28,18 +29,18 @@
             else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.MnemonicPhrase)
             {
                 <div class="register-row-container">
-                    <Dropdown OnChange="@UserStorage.SetSelectedLanguage"
-                              Options="@UserStorage.LanguageOptions"
+                    <Dropdown OnChange="@RegisterStorage.SetSelectedLanguage"
+                              Options="@GetLangsList"
                               Description="@Translations.Language"
-                              CurrentValue="@UserStorage.SelectedLanguage" />
+                              CurrentValue="@GetCurrentMnemonicLang" />
 
                     <Dropdown OnChange="@RegisterStorage.SetMnemonicWordCount"
-                              Options="@RegisterStorage.MnemonicWordOptions"
+                              Options="@GetMnemonicWordOptions"
                               Description="@Translations.WordCount"
                               CurrentValue="@RegisterStorage.MnemonicWordCount" />
 
-                    <MnemonicOutput OnClick="@OnGenerateMnemonicClick"
-                                    MnemonicPhrases="@RegisterStorage.MnemonicPhrases" />
+                    <MnemonicOutput OnClick="@RegisterStorage.GenerateMnemonic"
+                                    MnemonicPhrases="@RegisterStorage.MnemonicString" />
                 </div>
             }
             else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
@@ -86,19 +87,19 @@
 
         <div>
             <div class="buttons-container">
-                <NavigateButton
-                                Variant="left"
+                <NavigateButton Variant="left"
                                 OnClick="RegisterStorage.DecrementCurrentStep"
                                 Disabled="@(RegisterStorage.CurrentStep ==RegisterStorage.Steps.WalletType)">
                     @Translations.Previous
                 </NavigateButton>
-                <NavigateButton
-                                Variant="right"
+                <NavigateButton Variant="right"
                                 OnClick="RegisterStorage.IncrementCurrentStep"
-                                Disabled="@GetCurrentStepIsError" >
+                                Disabled="@GetCurrentStepIsError">
                     @(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword ? Translations.Finish :
-                        Translations.Next)
+                                Translations.Next)
                 </NavigateButton>
+
+                <NavigateButton OnClick="CreateWallet">Save TO LS</NavigateButton>
             </div>
             <Steps NumberSteps="@RegisterStorage.TotalSteps" CurrentStep="@((int)RegisterStorage.CurrentStep)" />
         </div>
@@ -106,46 +107,103 @@
 </div>
 
 @code {
-    string GetDerivedPasswordError {
+    string GetDerivedPasswordError
+    {
         get { return PasswordError(RegisterStorage.DerivedPasswordsError); }
         set { }
     }
 
-    string GetStoragePasswordError {
+    string GetStoragePasswordError
+    {
         get { return PasswordError(RegisterStorage.StoragePasswordsError); }
         set { }
     }
 
-    string GetWalletNameError {
-        get {
+    string GetWalletNameError
+    {
+        get
+        {
             return RegisterStorage.WalletNameError == RegisterStorage.WalletNameErrors.Empty ?
-                Translations.EmptyWalletName : ""; 
+                Translations.EmptyWalletName : "";
         }
         set { }
     }
 
-    bool GetCurrentStepIsError {
+    bool GetCurrentStepIsError
+    {
         get { return CurrentStepIsError(); }
         set { }
     }
 
-    private bool CurrentStepIsError() {
-        if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletName) {
+    string[] GetLangsList
+    {
+        get { return RegisterStorage.AvailableMnemonicLangs.Keys.ToArray<string>(); }
+        set { }
+    }
+
+    string GetCurrentMnemonicLang
+    {
+        get
+        {
+            return RegisterStorage.AvailableMnemonicLangs
+              .FirstOrDefault(x => x.Value == RegisterStorage.CurrentMnemonicLang).Key;
+        }
+        set { }
+    }
+
+    string[] GetMnemonicWordOptions
+    {
+        get
+        {
+            return new string[] { RegisterStorage.MnemonicWordsAmount.Twelve.ToName(),
+                RegisterStorage.MnemonicWordsAmount.Fifteen.ToName(),
+                RegisterStorage.MnemonicWordsAmount.Eighteen.ToName(),
+                RegisterStorage.MnemonicWordsAmount.TwentyOne.ToName(),
+                RegisterStorage.MnemonicWordsAmount.TwentyFour.ToName() };
+        }
+        set { }
+    }
+
+    string[] GetNetOptions
+    {
+        get { return new string[] { RegisterStorage.Nets.MainNet.ToName(), RegisterStorage.Nets.TestNet.ToName() }; }
+        set { }
+    }
+
+    protected async void CreateWallet()
+    {
+        byte[] walletBytes = System.IO.File.ReadAllBytes("/created.wallet");
+        await localStorage.SetItemAsync("wallet", Convert.ToBase64String(walletBytes));
+
+    }
+
+    private bool CurrentStepIsError()
+    {
+        if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletName)
+        {
             return RegisterStorage.WalletName.Length == 0;
         }
 
-        if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword) {
+        if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
+        {
             return GetDerivedPasswordError.Length > 0;
         }
 
-        if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword) {
+        if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)
+        {
             return GetStoragePasswordError.Length > 0;
+        }
+
+        if (RegisterStorage.CurrentStep == RegisterStorage.Steps.MnemonicPhrase)
+        {
+            return RegisterStorage.MnemonicString.Length == 0;
         }
 
         return false;
     }
 
-    private string PasswordError(RegisterStorage.PasswordErrors ErrorCode) {
+    private string PasswordError(RegisterStorage.PasswordErrors ErrorCode)
+    {
         if (ErrorCode == RegisterStorage.PasswordErrors.Empty)
         {
             return Translations.PasswordEmpty;
@@ -158,15 +216,11 @@
         {
             return Translations.PasswordWeak;
         }
-        else if (ErrorCode == RegisterStorage.PasswordErrors.None) {
+        else if (ErrorCode == RegisterStorage.PasswordErrors.None)
+        {
             return "";
         }
         return "";
-    }
-
-    protected void OnGenerateMnemonicClick()
-    {
-        Console.WriteLine("Generating mnemonic");
     }
 
     I18nText.Translations Translations = new I18nText.Translations();

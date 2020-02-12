@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NBitcoin;
 
 namespace atomex_frontend.Storages
 {
@@ -32,6 +33,8 @@ namespace atomex_frontend.Storages
             ru
         }
 
+
+
         private Dictionary<string, string> LanguageCode;
 
         public string[] LanguageOptions = new string[] {
@@ -48,6 +51,8 @@ namespace atomex_frontend.Storages
 
         public void SetSelectedLanguage(string language) {
             SelectedLanguage = language;
+            Wordlist english = Wordlist.English;
+            Console.Write(english);
         }
     }
 }

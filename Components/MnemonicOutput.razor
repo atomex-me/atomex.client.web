@@ -1,6 +1,6 @@
 ﻿<div class="mnemonic-output__container">
     <div>
-        @string.Join(" ", MnemonicPhrases);
+        @MnemonicPhrases
     </div>
     <button @onclick="OnClick">
         Generate
@@ -10,7 +10,7 @@
 
 @code {
     [Parameter]
-    public string[] MnemonicPhrases { get; set; }
+    public string MnemonicPhrases { get; set; }
 
     [Parameter]
     public EventCallback OnClick { get; set; }

@@ -55,7 +55,7 @@
             Console.WriteLine("Wallet Found");
             Byte[] walletBytesNew = Convert.FromBase64String(wallet);
             System.IO.File.WriteAllBytes(@"/atomex.wallet", walletBytesNew);
-            account = Account.LoadFromFile(@"/atomex.wallet", "12345678".ToSecureString(), currenciesProvider, symbolsProvider);
+            account = Account.LoadFromFile(@"/atomex.wallet", "1234".ToSecureString(), currenciesProvider, symbolsProvider);
 
             var AtomexApp = new AtomexApp()
                     .UseCurrenciesProvider(currenciesProvider)
@@ -70,6 +70,7 @@
         else
         {
             Console.WriteLine("No wallet found");
+            Console.WriteLine(string.Join("", Directory.GetDirectories("/")));
             NavigationManager.NavigateTo("register");
         }
     }
