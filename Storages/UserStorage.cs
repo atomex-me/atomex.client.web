@@ -37,6 +37,10 @@ namespace atomex_frontend.Storages
 
         private Dictionary<string, string> LanguageCode;
 
+        public void TestServiceInjection(string param) {
+            Console.WriteLine(param);
+        }
+
         public string[] LanguageOptions = new string[] {
             Languages.English.ToName(), Languages.China.ToName(),
             Languages.Spanish.ToName(), Languages.Russian.ToName()

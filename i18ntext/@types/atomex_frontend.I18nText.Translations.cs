@@ -19,6 +19,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Enter wallet name:"</summary>
         public string EnterWalletName;
 
+        /// <summary>"Wallet with this name already exist"</summary>
+        public string ErrorWalletNameExist;
+
         /// <summary>"Finish"</summary>
         public string Finish;
 

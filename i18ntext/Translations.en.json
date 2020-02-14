@@ -21,5 +21,6 @@
   "Finish": "Finish",
   "PasswordMismatchError": "Passwords mismatch",
   "PasswordEmpty": "Passwords could not be empty",
-  "PasswordWeak":  "Create at least \"Meduim\" strongness password"
+  "PasswordWeak": "Create at least \"Meduim\" strongness password",
+  "ErrorWalletNameExist":  "Wallet with this name already exist"
 }

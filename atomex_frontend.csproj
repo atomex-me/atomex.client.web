@@ -30,5 +30,6 @@
     <Folder Include="wwwroot\css\fonts\" />
     <Folder Include="wwwroot\css\icons\" />
     <Folder Include="wwwroot\conf\" />
+    <Folder Include="wwwroot\css\animations\" />
   </ItemGroup>
 </Project>

@@ -1,4 +1,5 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+@import url('animations/spinner.css');
 
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -188,11 +189,17 @@ app {
         background-image: url(icons/lock.svg);
     }
 
+.dark-background {
+    background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color));
+}
+
+.light-background {
+    background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color));
+}
 
 .main .register {
     height: 100%;
     font-family: RobotoRegular;
-    background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -200,7 +207,6 @@ app {
 
 .register-splash {
     font-family: RobotoLight;
-    background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color));
     width: 800px;
     height: 620px;
     border-radius: 10px;
@@ -210,6 +216,12 @@ app {
     flex-direction: column;
     justify-content: space-between;
 }
+
+    .register-splash.loading {
+        opacity: 0.5;
+        position: relative;
+        pointer-events: none;
+    }
 
     .register-splash h2 {
         margin-bottom: 22px;

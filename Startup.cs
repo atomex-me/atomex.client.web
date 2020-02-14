@@ -14,6 +14,7 @@ namespace atomex_frontend
         {
             services.AddI18nText();
             services.AddBlazoredLocalStorage();
+            services.AddSingleton<AccountStorage, AccountStorage>();
             services.AddSingleton<UserStorage, UserStorage>();
             services.AddSingleton<RegisterStorage, RegisterStorage>();
         }

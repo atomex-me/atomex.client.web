@@ -3,9 +3,9 @@
 @inject UserStorage UserStorage
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 
-<div class="register">
-    <div class="register-splash">
-        @if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType) { }
+<div class="register dark-background">
+    <div class="light-background register-splash @(RegisterStorage.Loading ?  "loading" : "")">
+        @if (RegisterStorage.Loading) { <Loader />}
         <div>
             <h2 class="text-center">@Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Title"]</h2>
             <p class="text-center">@Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Description"]</p>
@@ -98,8 +98,6 @@
                     @(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword ? Translations.Finish :
                                 Translations.Next)
                 </NavigateButton>
-
-                <NavigateButton OnClick="CreateWallet">Save TO LS</NavigateButton>
             </div>
             <Steps NumberSteps="@RegisterStorage.TotalSteps" CurrentStep="@((int)RegisterStorage.CurrentStep)" />
         </div>
@@ -124,7 +122,8 @@
         get
         {
             return RegisterStorage.WalletNameError == RegisterStorage.WalletNameErrors.Empty ?
-                Translations.EmptyWalletName : "";
+                Translations.EmptyWalletName : RegisterStorage.WalletNameError == RegisterStorage.WalletNameErrors.Exist
+                ? Translations.ErrorWalletNameExist : "";
         }
         set { }
     }
@@ -170,18 +169,11 @@
         set { }
     }
 
-    protected async void CreateWallet()
-    {
-        byte[] walletBytes = System.IO.File.ReadAllBytes("/created.wallet");
-        await localStorage.SetItemAsync("wallet", Convert.ToBase64String(walletBytes));
-
-    }
-
     private bool CurrentStepIsError()
     {
         if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletName)
         {
-            return RegisterStorage.WalletName.Length == 0;
+            return GetWalletNameError.Length > 0 || RegisterStorage.WalletName.Length == 0 ;
         }
 
         if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
