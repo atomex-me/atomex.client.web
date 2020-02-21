@@ -18,9 +18,15 @@
   "WordCount": "Word count",
   "Next": "Next",
   "Previous": "Previous",
+  "Cancel": "Cancel",
+  "Unlock": "Unlock",
   "Finish": "Finish",
   "PasswordMismatchError": "Passwords mismatch",
   "PasswordEmpty": "Passwords could not be empty",
   "PasswordWeak": "Create at least \"Meduim\" strongness password",
-  "ErrorWalletNameExist": "Wallet with this name already exist"
+  "ErrorWalletNameExist": "Wallet with this name already exist",
+  "InvalidPassword": "Invalid password",
+  "Portfolio": "Portfolio",
+  "Wallets": "Wallets",
+  "Conversion": "Conversion"
 }

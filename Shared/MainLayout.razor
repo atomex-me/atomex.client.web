@@ -1,6 +1,5 @@
 ﻿@inherits LayoutComponentBase
 @inject HttpClient Http
-@inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject NavigationManager NavigationManager
 @inject AccountStorage AccountStorage
 
@@ -14,67 +13,4 @@
 
 @code {
 
-    protected override async Task OnInitializedAsync()
-    {
-        //var coreAssembly = AppDomain.CurrentDomain
-        //    .GetAssemblies()
-        //    .FirstOrDefault(a => a.GetName().Name == "Atomex.Client.Core");
-
-        //var currenciesConfiguration = new ConfigurationBuilder()
-        //    .AddEmbeddedJsonFile(coreAssembly, "currencies.json")
-        //    .Build();
-
-        //var symbolsConfiguration = new ConfigurationBuilder()
-        //    .AddEmbeddedJsonFile(coreAssembly, "symbols.json")
-        //    .Build();
-
-        //var confJson = await Http.GetJsonAsync<dynamic>("conf/configuration.json");
-        //Stream confStream = GenerateStreamFromString(confJson.ToString());
-
-        //var configuration = new ConfigurationBuilder()
-        //    .AddJsonStream(confStream)
-        //    .Build();
-
-        //var currenciesProvider = new CurrenciesProvider(currenciesConfiguration);
-        //var symbolsProvider = new SymbolsProvider(symbolsConfiguration, currenciesProvider);
-
-        //var wallet = await localStorage.GetItemAsync<string>("wallet");
-
-        //if (wallet != null && wallet.Length > 0)
-        //{
-        //    Console.WriteLine("Wallet Found");
-        //    Byte[] walletBytesNew = Convert.FromBase64String(wallet);
-        //    System.IO.File.WriteAllBytes(@"/atomex.wallet", walletBytesNew);
-        //    account = Account.LoadFromFile(@"/atomex.wallet", "1234".ToSecureString(), currenciesProvider, symbolsProvider);
-
-        //    var AtomexApp = new AtomexApp()
-        //            .UseCurrenciesProvider(currenciesProvider)
-        //            .UseSymbolsProvider(symbolsProvider)
-        //            .UseQuotesProvider(new BitfinexQuotesProvider(
-        //                currencies: currenciesProvider.GetCurrencies(Network.TestNet),
-        //                baseCurrency: BitfinexQuotesProvider.Usd))
-        //            .UseTerminal(new Terminal(configuration, account));
-
-        //    AtomexApp.Start();
-        //}
-        //else
-        //{
-        //    Console.WriteLine("No wallet found");
-        //    Console.WriteLine(string.Join("", Directory.GetDirectories("/")));
-        //    NavigationManager.NavigateTo("register");
-        //}
-
-        AccountStorage.ConnectToWallet("123", "yecgaa123".ToSecureString());
-    }
-
-    async void onclick()
-    {
-        //if (account != null)
-        //{
-        //    await new HdWalletScanner(account).ScanAsync("XTZ");
-
-        //    var bl = await account.GetBalanceAsync("XTZ");
-        //    Console.WriteLine(bl.Available);
-        //}
-    }
 }

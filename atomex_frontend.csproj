@@ -32,4 +32,7 @@
     <Folder Include="wwwroot\conf\" />
     <Folder Include="wwwroot\css\animations\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Remove="Pages\WalletPage.razor" />
+  </ItemGroup>
 </Project>

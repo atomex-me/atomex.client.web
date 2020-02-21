@@ -1,12 +1,11 @@
 ﻿<div class="steps-container">
-    @for (int x = 1; x <= NumberSteps; x++)
-    {
-        <span class="@((x <= CurrentStep) ? "step filled" : "step")">
-            @x
+    @for (int x = 1; x <= NumberSteps; x++) {
+        <span class="@((x <= CurrentStep) ? " step filled" : "step" )">
+        @x
         </span>
-    }
-    <div class="steps-connector"></div>
-    <div class="steps-connector filled" style="width: @(GetCurrentProcentProgress())%"></div>
+        }
+        <div class="steps-connector"></div>
+        <div class="steps-connector filled" style="width: @(GetCurrentProcentProgress())%"></div>
 </div>
 
 @code {

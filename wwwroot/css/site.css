@@ -1,7 +1,9 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 @import url('animations/spinner.css');
+@import url('pie-chart/pie.css');
 
-html, body {
+html,
+body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
@@ -22,61 +24,61 @@ app {
     flex: 1;
 }
 
-    .main .top-row {
-        background-color: #e6e6e6;
-        border-bottom: 1px solid #d6d5d5;
-    }
+.main .top-row {
+    background-color: #e6e6e6;
+    border-bottom: 1px solid #d6d5d5;
+}
 
 .sidebar {
     background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
 }
 
-    .sidebar .top-row {
-        background-color: rgba(0,0,0,0.4);
-    }
+.sidebar .top-row {
+    background-color: rgba(0, 0, 0, 0.4);
+}
 
-    .sidebar .navbar-brand {
-        font-size: 1.1rem;
-    }
+.sidebar .navbar-brand {
+    font-size: 1.1rem;
+}
 
-    .sidebar .oi {
-        width: 2rem;
-        font-size: 1.1rem;
-        vertical-align: text-top;
-        top: -2px;
-    }
+.sidebar .oi {
+    width: 2rem;
+    font-size: 1.1rem;
+    vertical-align: text-top;
+    top: -2px;
+}
 
 .nav-item {
     font-size: 0.9rem;
     padding-bottom: 0.5rem;
 }
 
-    .nav-item:first-of-type {
-        padding-top: 1rem;
-    }
+.nav-item:first-of-type {
+    padding-top: 1rem;
+}
 
-    .nav-item:last-of-type {
-        padding-bottom: 1rem;
-    }
+.nav-item:last-of-type {
+    padding-bottom: 1rem;
+}
 
-    .nav-item a {
-        color: #d7d7d7;
-        border-radius: 4px;
-        height: 3rem;
-        display: flex;
-        align-items: center;
-        line-height: 3rem;
-    }
+.nav-item a {
+    color: #d7d7d7;
+    border-radius: 4px;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    line-height: 3rem;
+}
 
-        .nav-item a.active {
-            background-color: rgba(255,255,255,0.25);
-            color: white;
-        }
+.nav-item a.active {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: white;
+}
 
-        .nav-item a:hover {
-            background-color: rgba(255,255,255,0.1);
-            color: white;
-        }
+.nav-item a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
 
 .content {
     padding-top: 1.1rem;
@@ -145,6 +147,8 @@ app {
     --dark-blue-background: #172B50;
     --light-blue-background: #2B51AE;
     --error-color: #dc3545;
+    --very-dark-blue: #0F203D;
+    --light-gray: #B8B8BA;
 }
 
 @font-face {
@@ -153,7 +157,7 @@ app {
 }
 
 @font-face {
-    font-family: RobotoLight;   
+    font-family: RobotoLight;
     src: url('fonts/Roboto-Light.ttf');
 }
 
@@ -185,9 +189,9 @@ app {
     background-position: center;
 }
 
-    .icon-input.lock{
-        background-image: url(icons/lock.svg);
-    }
+.icon-input.lock {
+    background-image: url(icons/lock.svg);
+}
 
 .dark-background {
     background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color));
@@ -210,94 +214,94 @@ app {
     width: 800px;
     height: 620px;
     border-radius: 10px;
-    box-shadow: 0 0 13px rgba(0,0,0,0.5);
+    box-shadow: 0 0 13px rgba(0, 0, 0, 0.5);
     padding: 25px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
 }
 
-    .register-splash.loading {
-        opacity: 0.5;
-        position: relative;
-        pointer-events: none;
-    }
+.loading {
+    opacity: 0.5;
+    position: relative;
+    pointer-events: none;
+}
 
-    .register-splash h2 {
-        margin-bottom: 22px;
-    }
+.register-splash h2 {
+    margin-bottom: 22px;
+}
 
-    .register-splash p {
-        font-size: 18px;
-        margin-bottom: 22px;
-    }
+.register-splash p {
+    font-size: 18px;
+    margin-bottom: 22px;
+}
 
-    .register-splash .buttons-container {
-        margin-bottom: 20px;
-        display: flex;
-        justify-content: center;
-    }
+.register-splash .buttons-container {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
 
-    .register-splash .buttons-container > button {
-        margin-right: 5px;
-    }
+.register-splash .buttons-container>button {
+    margin-right: 5px;
+}
 
-    .register-splash .buttons-container > button:last-child {
-        margin: 0;
-    }
-
-
-    .atomex-select-container {
-        font-family: RobotoRegular;
-        font-size: 16px;
-        font-weight: 700;
-        position: relative;
-    }
-
-    .atomex-select-container::after {
-        content: '';
-        background-image: url(icons/triangle.svg);
-        position: absolute;
-        right: 30px;
-        top: 40%;
-        height: 12px;
-        width: 12px;
-        transform: rotate(180deg);
-    }
-
-    .atomex-select-container > select {
-        position: relative;
-        height: 50px;
-        display: block;
-        color: var(--dark-blue);
-        line-height: 1.3;
-        padding: .6em 1.4em .5em 1.7em;
-        width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        margin: 0;
-        border: none;
-        border-radius: 2em;
-        background-color: var(--light-blue);
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        cursor: pointer;
-    }
-
-        .atomex-select-container > select:focus {
-            border-color: none;
-            box-shadow: none;
-        }
+.register-splash .buttons-container>button:last-child {
+    margin: 0;
+}
 
 
-    .atomex-select-container.with-description {
-        display: flex;
-    }
+.atomex-select-container {
+    font-family: RobotoRegular;
+    font-size: 16px;
+    font-weight: 700;
+    position: relative;
+}
 
-    .atomex-select-container.with-description > select {
-        border-top-left-radius: unset;
-        border-bottom-left-radius: unset;
-    }
+.atomex-select-container::after {
+    content: '';
+    background-image: url(icons/triangle.svg);
+    position: absolute;
+    right: 30px;
+    top: 40%;
+    height: 12px;
+    width: 12px;
+    transform: rotate(180deg);
+}
+
+.atomex-select-container>select {
+    position: relative;
+    height: 50px;
+    display: block;
+    color: var(--dark-blue);
+    line-height: 1.3;
+    padding: .6em 1.4em .5em 1.7em;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    border: none;
+    border-radius: 2em;
+    background-color: var(--light-blue);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+.atomex-select-container>select:focus {
+    border-color: none;
+    box-shadow: none;
+}
+
+
+.atomex-select-container.with-description {
+    display: flex;
+}
+
+.atomex-select-container.with-description>select {
+    border-top-left-radius: unset;
+    border-bottom-left-radius: unset;
+}
 
 .select-description {
     color: white;
@@ -337,10 +341,14 @@ button:hover {
     border-bottom-right-radius: 50px;
 }
 
-    .navigate-button.left {
-        border-top-left-radius: 50px;
-        border-bottom-left-radius: 50px;
-    }
+.navigate-button.left {
+    border-top-left-radius: 50px;
+    border-bottom-left-radius: 50px;
+}
+
+.navigate-button.center {
+    border-radius: 50px;
+}
 
 .steps-container {
     display: flex;
@@ -348,51 +356,52 @@ button:hover {
     position: relative;
 }
 
-    .steps-container .step {
-        width: 50px;
-        height: 50px;
-        background-color: var(--dark-blue-background);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: RobotoRegular;
-        font-size: 18px;
-        color: white;
-        z-index: 2;
-        border: 3px solid var(--light-blue-background);
-    }
+.steps-container .step {
+    width: 50px;
+    height: 50px;
+    background-color: var(--dark-blue-background);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: RobotoRegular;
+    font-size: 18px;
+    color: white;
+    z-index: 2;
+    border: 3px solid var(--light-blue-background);
+}
 
-        .steps-container .step.filled {
-            background-color: var(--light-blue-background);
-        }
+.steps-container .step.filled {
+    background-color: var(--light-blue-background);
+}
 
-    .steps-connector {
-        position: absolute;
-        z-index: 1;
-        width: 95%;
-        left: 2px;
-        background-color: var(--dark-blue-background);
-        height: 10px;
-        top: calc(50% - 5px);
-        border-top: 3px solid var(--light-blue-background);
-        border-bottom: 3px solid var(--light-blue-background);
-    }
+.steps-connector {
+    position: absolute;
+    z-index: 1;
+    width: 95%;
+    left: 2px;
+    background-color: var(--dark-blue-background);
+    height: 10px;
+    top: calc(50% - 5px);
+    border-top: 3px solid var(--light-blue-background);
+    border-bottom: 3px solid var(--light-blue-background);
+}
 
-        .steps-connector.filled {
-            position: absolute;
-            z-index: 1;
-            left: 2px;
-            background-color: var(--light-blue-background);
-            height: 10px;
-            top: calc(50% - 5px);
-        }
+.steps-connector.filled {
+    position: absolute;
+    z-index: 1;
+    left: 2px;
+    background-color: var(--light-blue-background);
+    height: 10px;
+    top: calc(50% - 5px);
+}
 
 .atomex-input {
     position: relative;
+    width: 100%;
 }
 
-.atomex-input  input {
+.atomex-input input {
     width: 100%;
     height: 50px;
     border-radius: 50px;
@@ -404,51 +413,51 @@ button:hover {
     color: var(--dark-blue);
 }
 
-    .atomex-input  input[type=password] {
-        padding-left: 52px;
-    }
+.atomex-input input[type=password] {
+    padding-left: 52px;
+}
 
-.register-row-container > * {
+.register-row-container>* {
     margin-bottom: 15px;
 }
 
-    .register-row-container > *:last-child {
-        margin-bottom: 0;
-    }
+.register-row-container>*:last-child {
+    margin-bottom: 0;
+}
 
 .mnemonic-output__container {
     display: flex;
 }
 
-    .mnemonic-output__container > div {
-        flex-basis: 85%;
-        margin-top: 0px;
-        margin-bottom: 0px;
-        background-color: white;
-        color: black;
-        min-height: 50px;
-        padding: 15px 22px;
-        border-top-left-radius: 30px;
-        border-bottom-left-radius: 30px;
-        background-color: var(--light-blue);
-        font-family: RobotoRegular;
-        color: var(--dark-blue);
-    }
+.mnemonic-output__container>div {
+    flex-basis: 85%;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    background-color: white;
+    color: black;
+    min-height: 50px;
+    padding: 15px 22px;
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+    background-color: var(--light-blue);
+    font-family: RobotoRegular;
+    color: var(--dark-blue);
+}
 
-    .mnemonic-output__container > button {
-        flex-basis: 15%;
-        border: none;
-        font-family: RobotoRegular;
-        font-size: 18px;
-        color: white;
-        background-color: var(--dark-blue-background);
-        border-top-right-radius: 30px;
-        border-bottom-right-radius: 30px;
-    }
+.mnemonic-output__container>button {
+    flex-basis: 15%;
+    border: none;
+    font-family: RobotoRegular;
+    font-size: 18px;
+    color: white;
+    background-color: var(--dark-blue-background);
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+}
 
-        .mnemonic-output__container > button:hover {
-            background-color: var(--dark-blue);
-        }
+.mnemonic-output__container>button:hover {
+    background-color: var(--dark-blue);
+}
 
 
 .password-strongness {
@@ -460,4 +469,176 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.wallets-list__page {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: RobotoLight;
+    font-size: 16px;
+}
+
+.wallets-list__container {
+    width: 360px;
+    background-color: var(--very-dark-blue);
+    border-radius: 10px;
+    min-height: 40px;
+    padding: 10px;
+    margin-bottom: 1rem;
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
+.wallet-icon {
+    display: block;
+    width: 50px;
+    height: 50px;
+    background-position: center;
+    background-image: url('icons/wallet.svg');
+}
+
+.wallet-item {
+    display: flex;
+    align-items: center;
+    color: #D1E6F9;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.wallet-item:last-child {
+    margin: 0;
+}
+
+.wallet-item:hover {
+    color: white;
+}
+
+.wallet-item:hover .wallet-icon {
+    background-image: url('icons/wallet-selected.svg');
+}
+
+.wallet-item>*:last-child {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 85%;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+
+.wallets-list__unlock-container {
+    width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.wallets-list__unlock-container>*:last-child {
+    margin-top: 20px;
+}
+
+.loading-container {
+    position: relative;
+}
+
+.wallet-page {
+    height: 96vh;
+    display: flex;
+}
+
+.wallet-page__container {
+    flex-basis: 85%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.wallet-page__left-nav {
+    flex-basis: 15%;
+    height: 100%;
+}
+
+.wallet-page__footer {
+    height: 4vh;
+    background-color: var(--dark-gradient-color);
+}
+
+.donut-chart__container {
+    display: flex;
+    width: 100%;
+}
+
+.donut-chart__container figure {
+    margin: 0 auto;
+}
+
+table {
+    width: 100%;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    width: fill-available;
+    margin: 0 20px 20px;
+    font-family: RobotoRegular;
+    font-size: 16px;
+    text-transform: uppercase;
+}
+
+table>tbody>tr>th:last-child {
+    border-right: none;
+}
+
+table>tbody>tr:nth-child(2n) {
+    background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color));
+}
+
+table>tbody>tr:nth-child(2n + 1) {
+    background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color));
+}
+
+table>tbody>tr>td {
+    padding-left: 15px;
+}
+
+table>tbody>tr>th {
+    padding: 6px;
+    padding-left: 15px;
+    color: white;
+    background-color: var(--dark-gradient-color);
+    border-bottom: 3px solid var(--light-gray);
+    border-right: 1px solid var(--light-gray);
+}
+
+.currency-container {
+    display: flex;
+    align-items: center;
+}
+
+.currency-icon {
+    display: inline-block;
+    background-position: center;
+    background-size: 50px;
+    background-repeat: no-repeat;
+    width: 55px;
+    height: 55px;
+}
+
+.bitcoin {
+    background-image: url('images/bitcoin_90x90.png');
+}
+
+.ethereum {
+    background-image: url('images/ethereum_90x90.png');
+}
+
+.litecoin {
+    background-image: url('images/litecoin_90x90.png');
+}
+
+.tezos {
+    background-image: url('images/tezos_90x90.png');
+}
+
+.currency-name {
+    margin-left: 10px;
 }

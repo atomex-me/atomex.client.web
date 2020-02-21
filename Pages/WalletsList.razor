@@ -1,5 +1,117 @@
 ﻿@page "/wallets-list"
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject AccountStorage AccountStorage
 
-<div class="light-background">
-    Wallet List here
+<div class="wallets-list__page light-background">
+    @if (AvailableWallets != null)
+    {
+        if (SelectedWalletIndex == -1)
+        {
+            <div>
+                <p class="text-center">
+                    Select your wallet:
+                </p>
+                <div class="wallets-list__container">
+                    @for (int i = 0; i < AvailableWallets.Length; i++)
+                    {
+                        var walletIndex = i;
+                        <div class="wallet-item" @onclick="@(e => OnWalletClick(walletIndex))">
+                            <i class="wallet-icon" />
+                            <span>@AvailableWallets[walletIndex]</span>
+                        </div>
+                    }
+                </div>
+                <div class="text-center">
+                    <NavigateButton Variant="center">Cancel</NavigateButton>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="loading-container">
+                @if (Loading)
+                {
+                    <Loader />
+                }
+                <div class="wallets-list__unlock-container @(Loading ? "loading" : "")">
+                    <p>Please enter password to unlock "@AvailableWallets[SelectedWalletIndex]"</p>
+                    <Input InputType="password"
+                            InputName="walletPassword"
+                            Value="@WalletPassword"
+                            OnChange="@OnWalletPasswordChange"
+                            InputPlaceholder="@Translations.EnterPasswordPlaceholder"
+                            Error="@(WalletPasswordError.Length > 0)"
+                            ErrorDescription="@WalletPasswordError" />
+
+                    <div class="buttons-container">
+                        <NavigateButton Variant="left"
+                                        OnClick="OnCancelClick">
+                            @Translations.Cancel
+                        </NavigateButton>
+                        <NavigateButton Variant="right"
+                                        OnClick="OnUlockClick">
+                            @Translations.Unlock
+                        </NavigateButton>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div>No wallets founded</div>
+    }
 </div>
+
+@code {
+    string[] AvailableWallets { get; set; }
+    int SelectedWalletIndex { get; set; }
+    string WalletPassword { get; set; }
+    string WalletPasswordError { get; set; }
+    bool Loading { get; set; }
+
+    private void OnWalletClick(int index) {
+        Console.WriteLine($"{AvailableWallets[index]} {index}");
+        SelectedWalletIndex = index;
+    }
+
+    private void OnWalletPasswordChange(string pass) {
+        WalletPassword = pass;
+        if (WalletPasswordError.Length > 0) {
+            WalletPasswordError = "";
+        }
+    }
+
+    private void OnCancelClick() {
+        SelectedWalletIndex = -1;
+        WalletPassword = "";
+    }
+
+    private async Task OnUlockClick() {
+        try
+        {
+            Loading = true;
+            await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
+            Loading = false;
+        }
+        catch (Exception e) {
+            Console.WriteLine("PASS INCORRECT");
+            WalletPasswordError = Translations.InvalidPassword;
+            Loading = false;
+        }
+    }
+
+    I18nText.Translations Translations = new I18nText.Translations();
+    protected override async Task OnInitializedAsync()
+    {
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+        await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+
+        IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
+        AvailableWallets = availableWalletsList.ToArray<string>();
+        SelectedWalletIndex = -1;
+        WalletPasswordError = "";
+        Loading = false;
+    }
+}
+

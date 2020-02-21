@@ -1,0 +1,68 @@
+﻿<div class="donut-chart__container">
+    <figure>
+        <div class="figure-content">
+            <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
+                <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" opacity="0">
+                    <title id="none">100$</title>
+
+                </circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#ce4b99" stroke-width="5" stroke-dasharray="@LTCPercent @(100 - LTCPercent)" stroke-dashoffset="@START_SVG_OFFSET">
+                    <title id="ltc">LTC</title>
+
+                </circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#b1c94e" stroke-width="5" stroke-dasharray="@ETHPercent @(100 - ETHPercent)" stroke-dashoffset="@GetSecondSD">
+                    <title id="eth">ETH</title>
+
+                </circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#212D4e" stroke-width="5" stroke-dasharray="@XTZPercent @(100 - XTZPercent)" stroke-dashoffset="@GetThirdSD">
+                    <title id="xtz">XTZ</title>
+
+                </circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#377bbc" stroke-width="5" stroke-dasharray="@BTCPercent @(100 - BTCPercent)" stroke-dashoffset="@GetFourthSD">
+                    <title id="btc">BTC</title>
+
+                </circle>
+
+                <g class="chart-text">
+                    <text x="50%" y="50%" class="chart-label">
+                        $
+                    </text>
+                    <text x="50%" y="50%" class="chart-number">
+                        100
+                    </text>
+                </g>
+            </svg>
+        </div>
+    </figure>
+</div>
+
+@code {
+    [Parameter]
+    public double BTCPercent { get; set; }
+
+    [Parameter]
+    public double XTZPercent { get; set; }
+
+    [Parameter]
+    public double ETHPercent { get; set; }
+
+    [Parameter]
+    public double LTCPercent { get; set; }
+
+    double GetSecondSD {
+        get => 100 - LTCPercent + START_SVG_OFFSET;
+        set {}
+    }
+
+    double GetThirdSD {
+        get => 100 - LTCPercent - ETHPercent + START_SVG_OFFSET;
+        set {}
+    }
+
+    double GetFourthSD {
+        get => 100 - LTCPercent - ETHPercent - XTZPercent + START_SVG_OFFSET;
+        set {}
+    }
+
+    private int START_SVG_OFFSET = 25;
+}

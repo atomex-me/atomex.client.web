@@ -7,6 +7,9 @@ namespace atomex_frontend.I18nText
 
         public string this[string key] => global::Toolbelt.Blazor.I18nText.I18nTextExtensions.GetFieldValue(this, key);
 
+        /// <summary>"Cancel"</summary>
+        public string Cancel;
+
         /// <summary>"Confirm password:"</summary>
         public string ConfirmPasswordPlaceholder;
 
@@ -24,6 +27,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Finish"</summary>
         public string Finish;
+
+        /// <summary>"Invalid password"</summary>
+        public string InvalidPassword;
 
         /// <summary>"Language"</summary>
         public string Language;
@@ -72,6 +78,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Step 5: Storage password"</summary>
         public string RegisterStep5Title;
+
+        /// <summary>"Unlock"</summary>
+        public string Unlock;
 
         /// <summary>"Word count"</summary>
         public string WordCount;

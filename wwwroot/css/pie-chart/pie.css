@@ -1,0 +1,112 @@
+.chart-text {
+  font-family: RobotoRegular;
+  fill: #fff;
+  -moz-transform: translateY(0.25em);
+  -ms-transform: translateY(0.25em);
+  -webkit-transform: translateY(0.25em);
+  transform: translateY(0.25em);
+}
+
+.chart-number {
+  font-size: 0.4em;
+  line-height: 1;
+  text-anchor: middle;
+  -moz-transform: translateY(-0.25em);
+  -ms-transform: translateY(-0.25em);
+  -webkit-transform: translateY(-0.25em);
+  transform: translateY(-0.55em);
+}
+
+.chart-label {
+  font-size: 0.3em;
+  text-transform: uppercase;
+  text-anchor: middle;
+  -moz-transform: translateY(0.7em);
+  -ms-transform: translateY(0.7em);
+  -webkit-transform: translateY(0.7em);
+  transform: translateY(0.7em);
+}
+
+figure {
+  display: flex;
+  justify-content: space-around;
+  flex-direction: column;
+  height: fit-content;
+  margin: 0;
+  height: 250px;
+}
+
+@media (min-width: 768px) {
+  figure {
+    flex-direction: row;
+  }
+}
+
+.figure-content,
+.figure-key {
+  flex: 1;
+  align-self: center;
+  width: 250px;
+  margin-top: 70px;
+}
+
+.figure-content svg {
+  height: auto;
+}
+
+.figure-key {
+  min-width: calc(8 / 12);
+}
+
+.figure-key [class*="shape-"] {
+  margin-right: 6px;
+}
+
+.figure-key-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.figure-key-list li {
+  margin: 0 0 8px;
+  padding: 0;
+  font-family: RobotoRegular;
+}
+
+.shape-circle {
+  display: inline-block;
+  vertical-align: middle;
+  width: 26px;
+  height: 26px;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  border-radius: 50%;
+}
+
+.shape-fuschia {
+  background-color: #ce4b99;
+}
+
+.shape-lemon-lime {
+  background-color: #b1c94e;
+}
+
+.shape-blue {
+  background-color: #377bbc;
+}
+
+.shape-xtz {
+  background-color: #212D4e;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
