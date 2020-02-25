@@ -1,26 +1,28 @@
 <div>
   <table>
-    @if (Variant == AvailableVariants.Currencies) {
-      <tr>
-        <th>Currency</th>
-        <th>Balance</th>
-        <th>Value</th>
-        <th>% in portfolio</th>
-      </tr>
-      @foreach (CurrencyData currency in CurrenciesData) {
+    <tbody>
+      @if (Variant == AvailableVariants.Currencies) {
         <tr>
-          <td>
-            <div class="currency-container">
-              <i class="currency-icon @currency.CurrencyName.ToName().ToLower()" />
-              <span class="currency-name">@currency.CurrencyName.ToName()</span>
-            </div>
-          </td>
-          <td>@currency.Balance BTC</td>
-          <td>$@currency.DollarValue</td>
-          <td>$@currency.Percent%</td>
+          <th>Currency</th>
+          <th>Balance</th>
+          <th>Value</th>
+          <th>% in portfolio</th>
         </tr>
+        @foreach (KeyValuePair<AvailableCurrencies, CurrencyData> currency in CurrenciesData) {
+          <tr>
+            <td>
+              <div class="currency-container">
+                <i class="currency-icon @currency.Value.CurrencyName.ToName().ToLower()" />
+                <span class="currency-name">@currency.Value.CurrencyName.ToName()</span>
+              </div>
+            </td>
+            <td>@currency.Value.Balance BTC</td>
+            <td>$@currency.Value.DollarValue</td>
+            <td>$@currency.Value.Percent%</td>
+          </tr>
+        }
       }
-    }
+    </tbody>
   </table>
 </div>
 
@@ -29,7 +31,7 @@
   public AvailableVariants Variant { get; set; }
 
   [Parameter]
-  public List<CurrencyData> CurrenciesData { get; set; }
+  public Dictionary<AvailableCurrencies, CurrencyData> CurrenciesData { get; set; }
 
   public enum AvailableVariants {
     Currencies,

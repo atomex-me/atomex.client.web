@@ -1,37 +1,42 @@
-@page "/wallet"
-@using atomex_frontend.atomex_data_structures
+﻿@page "/wallet"
+@using Atomex.Blockchain.Abstract
 
 <div>
   <div class="wallet-page dark-background">
       <div class="wallet-page__left-nav dark-background">
           <div>
-              <WalletMenuButton
-                  Variant="@WalletMenuButton.ButtonVariants.Portfolio"
-                  OnClick="@WalletMenuButtonClick"
-                  IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Portfolio)" />
+            <WalletMenuButton
+                Variant="@WalletMenuButton.ButtonVariants.Portfolio"
+                OnClick="@WalletMenuButtonClick"
+                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Portfolio)" />
 
-              <WalletMenuButton
-                  Variant="@WalletMenuButton.ButtonVariants.Wallets"
-                  OnClick="@WalletMenuButtonClick"
-                  IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Wallets)" />
+            <WalletMenuButton
+                Variant="@WalletMenuButton.ButtonVariants.Wallets"
+                OnClick="@WalletMenuButtonClick"
+                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Wallets)" />
 
-              <WalletMenuButton
-                  Variant="@WalletMenuButton.ButtonVariants.Conversion"
-                  OnClick="@WalletMenuButtonClick"
-                  IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Conversion)" />
+            <WalletMenuButton
+                Variant="@WalletMenuButton.ButtonVariants.Conversion"
+                OnClick="@WalletMenuButtonClick"
+                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Conversion)" />
+
           </div>
       </div>
       <div class="wallet-page__container">
           @if (ActiveSection == WalletMenuButton.ButtonVariants.Portfolio) {
-              <DonutChart LTCPercent="15" ETHPercent="20" XTZPercent="30" BTCPercent="35" />
-              <WalletDataTable
+            <DonutChart
+                LTCPercent="@CurrenciesData[AvailableCurrencies.Litecoin].Percent"
+                ETHPercent="@CurrenciesData[AvailableCurrencies.Ethereum].Percent"
+                XTZPercent="@CurrenciesData[AvailableCurrencies.Tezos].Percent"
+                BTCPercent="@CurrenciesData[AvailableCurrencies.Bitcoin].Percent" />
+            <WalletDataTable
                 Variant="@WalletDataTable.AvailableVariants.Currencies"
                 CurrenciesData="@CurrenciesData" />
           }
 
           @if (ActiveSection == WalletMenuButton.ButtonVariants.Wallets) {
             <div>Available currencies</div>
-              <WalletDataTable Variant="@WalletDataTable.AvailableVariants.Transactions" />
+            <WalletDataTable Variant="@WalletDataTable.AvailableVariants.Transactions" />
           }
       </div>
   </div>
@@ -40,8 +45,9 @@
 
 @code {
     protected WalletMenuButton.ButtonVariants ActiveSection { get; set; }
+    protected Dictionary<AvailableCurrencies, CurrencyData> CurrenciesData { get; set; }
 
-    protected List<CurrencyData> CurrenciesData { get; set; }
+    protected List<IBlockchainTransaction> Transactions { get; set; }
 
     protected void WalletMenuButtonClick(WalletMenuButton.ButtonVariants Variant) {
         Console.WriteLine(Variant.ToName());
@@ -50,7 +56,14 @@
 
     protected override void OnInitialized() {
         ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
-        CurrenciesData = new List<CurrencyData>();
-        CurrenciesData.Add(new CurrencyData(AvailableCurrencies.Bitcoin, 0.56, 1234, 20));
+        CurrenciesData = new Dictionary<AvailableCurrencies, CurrencyData>();
+
+        // temp data
+        CurrenciesData.Add(AvailableCurrencies.Bitcoin, new CurrencyData(AvailableCurrencies.Bitcoin, 0.56, 1234, 15));
+        CurrenciesData.Add(AvailableCurrencies.Ethereum, new CurrencyData(AvailableCurrencies.Ethereum, 200, 32000, 35));
+        CurrenciesData.Add(AvailableCurrencies.Litecoin, new CurrencyData(AvailableCurrencies.Litecoin, 234, 100, 30));
+        CurrenciesData.Add(AvailableCurrencies.Tezos, new CurrencyData(AvailableCurrencies.Tezos, 600, 640, 20));
+        
+        Transactions.Add(new Transaction("1",BlockchainTransactionState.Confirmed, BlockchainTransactionType.Input, new DateTime(2008, 6, 1, 7, 47, 0), true));
     }
 }
