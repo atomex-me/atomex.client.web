@@ -2,15 +2,41 @@
 
 <div class="wallet-page dark-background">
     <div class="wallet-page__left-nav dark-background">
-        <button>Portfolio</button>
+        <div>
+            <WalletMenuButton
+                Variant="@WalletMenuButton.ButtonVariants.Portfolio"
+                OnClick="@WalletMenuButtonClick"
+                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Portfolio)" />
+
+            <WalletMenuButton
+                Variant="@WalletMenuButton.ButtonVariants.Wallets"
+                OnClick="@WalletMenuButtonClick"
+                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Wallets)" />
+
+            <WalletMenuButton
+                Variant="@WalletMenuButton.ButtonVariants.Conversion"
+                OnClick="@WalletMenuButtonClick"
+                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Conversion)" />
+        </div>
     </div>
     <div class="wallet-page__container">
-        <DonutChart LTCPercent="15" ETHPercent="20" XTZPercent="30" BTCPercent="35" />
-        <CurrenciesTable />
+        @if (ActiveSection == WalletMenuButton.ButtonVariants.Portfolio) {
+            <DonutChart LTCPercent="15" ETHPercent="20" XTZPercent="30" BTCPercent="35" />
+            <CurrenciesTable />
+        }
     </div>
 </div>
-<footer class="wallet-page__footer">footer</footer>
+<Footer />
 
 @code {
+    protected WalletMenuButton.ButtonVariants ActiveSection { get; set; }
 
+    protected void WalletMenuButtonClick(WalletMenuButton.ButtonVariants Variant) {
+        Console.WriteLine(Variant.ToName());
+        ActiveSection = Variant;
+    }
+
+    protected override void OnInitialized() {
+        ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
+    }
 }

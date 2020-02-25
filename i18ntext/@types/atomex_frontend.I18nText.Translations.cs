@@ -13,6 +13,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Confirm password:"</summary>
         public string ConfirmPasswordPlaceholder;
 
+        /// <summary>"Conversion"</summary>
+        public string Conversion;
+
         /// <summary>"Wallet name could not be emty"</summary>
         public string EmptyWalletName;
 
@@ -45,6 +48,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Create at least &quot;Meduim&quot; strongness password"</summary>
         public string PasswordWeak;
+
+        /// <summary>"Portfolio"</summary>
+        public string Portfolio;
 
         /// <summary>"Previous"</summary>
         public string Previous;
@@ -81,6 +87,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Unlock"</summary>
         public string Unlock;
+
+        /// <summary>"Wallets"</summary>
+        public string Wallets;
 
         /// <summary>"Word count"</summary>
         public string WordCount;

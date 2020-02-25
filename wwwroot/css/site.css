@@ -7,6 +7,10 @@ body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+a:hover {
+    color: white;
+}
+
 app {
     position: relative;
     display: flex;
@@ -142,13 +146,15 @@ app {
     --light-gradient-color: #18263D;
     --ligth-splashscreen-gradient-color: #214172;
     --dark-splashscreen-gradinet-color: #1D2E4D;
-    --light-blue: #B8C9DB;
+    --light-blue: #2982B4;
+    --light-blue-sky: #B8C9DB;
     --dark-blue: #40537E;
     --dark-blue-background: #172B50;
-    --light-blue-background: #2B51AE;
+    --light-blue-sky-background: #2B51AE;
     --error-color: #dc3545;
     --very-dark-blue: #0F203D;
     --light-gray: #B8B8BA;
+
 }
 
 @font-face {
@@ -282,7 +288,7 @@ app {
     margin: 0;
     border: none;
     border-radius: 2em;
-    background-color: var(--light-blue);
+    background-color: var(--light-blue-sky);
     -webkit-appearance: none;
     -moz-appearance: none;
     cursor: pointer;
@@ -368,11 +374,11 @@ button:hover {
     font-size: 18px;
     color: white;
     z-index: 2;
-    border: 3px solid var(--light-blue-background);
+    border: 3px solid var(--light-blue-sky-background);
 }
 
 .steps-container .step.filled {
-    background-color: var(--light-blue-background);
+    background-color: var(--light-blue-sky-background);
 }
 
 .steps-connector {
@@ -383,15 +389,15 @@ button:hover {
     background-color: var(--dark-blue-background);
     height: 10px;
     top: calc(50% - 5px);
-    border-top: 3px solid var(--light-blue-background);
-    border-bottom: 3px solid var(--light-blue-background);
+    border-top: 3px solid var(--light-blue-sky-background);
+    border-bottom: 3px solid var(--light-blue-sky-background);
 }
 
 .steps-connector.filled {
     position: absolute;
     z-index: 1;
     left: 2px;
-    background-color: var(--light-blue-background);
+    background-color: var(--light-blue-sky-background);
     height: 10px;
     top: calc(50% - 5px);
 }
@@ -409,7 +415,7 @@ button:hover {
     padding: 0 22px;
     font-family: RobotoRegular;
     font-size: 16px;
-    background-color: var(--light-blue);
+    background-color: var(--light-blue-sky);
     color: var(--dark-blue);
 }
 
@@ -439,7 +445,7 @@ button:hover {
     padding: 15px 22px;
     border-top-left-radius: 30px;
     border-bottom-left-radius: 30px;
-    background-color: var(--light-blue);
+    background-color: var(--light-blue-sky);
     font-family: RobotoRegular;
     color: var(--dark-blue);
 }
@@ -559,9 +565,16 @@ button:hover {
     height: 100%;
 }
 
+.wallet-page__left-nav>*:first-child {
+    margin-top: 30px
+}
+
 .wallet-page__footer {
     height: 4vh;
     background-color: var(--dark-gradient-color);
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
 }
 
 .donut-chart__container {
@@ -641,4 +654,61 @@ table>tbody>tr>th {
 
 .currency-name {
     margin-left: 10px;
+}
+
+.wallet-menu-icon {
+    display: inline-block;
+    background-position: center;
+    background-size: 30px;
+    background-repeat: no-repeat;
+    width: 30px;
+    height: 30px;
+}
+
+.wallet-menu-icon.portfolio {
+    background-image: url('icons/pie-chart.svg');
+}
+
+.wallet-menu-icon.wallets {
+    background-image: url('icons/wallet-selected.svg');
+}
+
+.wallet-menu-icon.conversion {
+    background-image: url('icons/conversion.svg');
+}
+
+.wallet-menu__button {
+    width: 100%;
+    border: none;
+    padding: 10px 15px;
+    font-family: RobotoRegular;
+    font-size: 18px;
+    color: white;
+    background: unset;
+    display: flex;
+    align-items: center;
+    outline: none !important;
+}
+
+.wallet-menu__button.active {
+    background-color: var(--light-blue);
+}
+
+.wallet-menu__button>*:last-child {
+    margin-left: 15px;
+}
+
+.footer-text {
+    font-family: RobotoLight;
+    font-size: 12px;
+    color: white;
+}
+
+.footer-link {
+    border-right: 1px solid white;
+    padding-right: 6px;
+}
+
+.footer-link:last-child {
+    border: none;
 }
