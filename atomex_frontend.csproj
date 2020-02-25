@@ -26,6 +26,7 @@
   <ItemGroup>
     <Folder Include="i18ntext\" />
     <Folder Include="Components\" />
+    <Folder Include="DataStructures\" />
     <Folder Include="Storages\" />
     <Folder Include="wwwroot\css\fonts\" />
     <Folder Include="wwwroot\css\icons\" />

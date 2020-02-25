@@ -1,35 +1,47 @@
-﻿@page "/wallet"
+@page "/wallet"
+@using atomex_frontend.atomex_data_structures
 
-<div class="wallet-page dark-background">
-    <div class="wallet-page__left-nav dark-background">
-        <div>
-            <WalletMenuButton
-                Variant="@WalletMenuButton.ButtonVariants.Portfolio"
-                OnClick="@WalletMenuButtonClick"
-                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Portfolio)" />
+<div>
+  <div class="wallet-page dark-background">
+      <div class="wallet-page__left-nav dark-background">
+          <div>
+              <WalletMenuButton
+                  Variant="@WalletMenuButton.ButtonVariants.Portfolio"
+                  OnClick="@WalletMenuButtonClick"
+                  IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Portfolio)" />
 
-            <WalletMenuButton
-                Variant="@WalletMenuButton.ButtonVariants.Wallets"
-                OnClick="@WalletMenuButtonClick"
-                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Wallets)" />
+              <WalletMenuButton
+                  Variant="@WalletMenuButton.ButtonVariants.Wallets"
+                  OnClick="@WalletMenuButtonClick"
+                  IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Wallets)" />
 
-            <WalletMenuButton
-                Variant="@WalletMenuButton.ButtonVariants.Conversion"
-                OnClick="@WalletMenuButtonClick"
-                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Conversion)" />
-        </div>
-    </div>
-    <div class="wallet-page__container">
-        @if (ActiveSection == WalletMenuButton.ButtonVariants.Portfolio) {
-            <DonutChart LTCPercent="15" ETHPercent="20" XTZPercent="30" BTCPercent="35" />
-            <CurrenciesTable />
-        }
-    </div>
+              <WalletMenuButton
+                  Variant="@WalletMenuButton.ButtonVariants.Conversion"
+                  OnClick="@WalletMenuButtonClick"
+                  IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Conversion)" />
+          </div>
+      </div>
+      <div class="wallet-page__container">
+          @if (ActiveSection == WalletMenuButton.ButtonVariants.Portfolio) {
+              <DonutChart LTCPercent="15" ETHPercent="20" XTZPercent="30" BTCPercent="35" />
+              <WalletDataTable
+                Variant="@WalletDataTable.AvailableVariants.Currencies"
+                CurrenciesData="@CurrenciesData" />
+          }
+
+          @if (ActiveSection == WalletMenuButton.ButtonVariants.Wallets) {
+            <div>Available currencies</div>
+              <WalletDataTable Variant="@WalletDataTable.AvailableVariants.Transactions" />
+          }
+      </div>
+  </div>
+  <Footer />
 </div>
-<Footer />
 
 @code {
     protected WalletMenuButton.ButtonVariants ActiveSection { get; set; }
+
+    protected List<CurrencyData> CurrenciesData { get; set; }
 
     protected void WalletMenuButtonClick(WalletMenuButton.ButtonVariants Variant) {
         Console.WriteLine(Variant.ToName());
@@ -38,5 +50,7 @@
 
     protected override void OnInitialized() {
         ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
+        CurrenciesData = new List<CurrencyData>();
+        CurrenciesData.Add(new CurrencyData(AvailableCurrencies.Bitcoin, 0.56, 1234, 20));
     }
 }

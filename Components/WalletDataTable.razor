@@ -1,0 +1,38 @@
+<div>
+  <table>
+    @if (Variant == AvailableVariants.Currencies) {
+      <tr>
+        <th>Currency</th>
+        <th>Balance</th>
+        <th>Value</th>
+        <th>% in portfolio</th>
+      </tr>
+      @foreach (CurrencyData currency in CurrenciesData) {
+        <tr>
+          <td>
+            <div class="currency-container">
+              <i class="currency-icon @currency.CurrencyName.ToName().ToLower()" />
+              <span class="currency-name">@currency.CurrencyName.ToName()</span>
+            </div>
+          </td>
+          <td>@currency.Balance BTC</td>
+          <td>$@currency.DollarValue</td>
+          <td>$@currency.Percent%</td>
+        </tr>
+      }
+    }
+  </table>
+</div>
+
+@code {
+  [Parameter]
+  public AvailableVariants Variant { get; set; }
+
+  [Parameter]
+  public List<CurrencyData> CurrenciesData { get; set; }
+
+  public enum AvailableVariants {
+    Currencies,
+    Transactions
+  }
+}
