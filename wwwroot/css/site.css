@@ -622,18 +622,43 @@ table>tbody>tr>th {
     border-right: 1px solid var(--light-gray);
 }
 
-.currency-container {
+.icon-vertical-text {
     display: flex;
     align-items: center;
 }
 
-.currency-icon {
+.icon {
     display: inline-block;
     background-position: center;
-    background-size: 50px;
     background-repeat: no-repeat;
+}
+
+.currency-icon {
+    background-size: 50px;
     width: 55px;
     height: 55px;
+}
+
+.transaction-icon {
+    background-size: 25px;
+    width: 25px;
+    height: 25px;
+}
+
+.input {
+    background-image: url('images/received.png');
+}
+
+.output {
+    background-image: url('images/sent.png');
+}
+
+.swapredeem {
+    background-image: url('images/refunded.png');
+}
+
+.unknown {
+    background-image: url('images/unknown.png');
 }
 
 .bitcoin {
@@ -711,4 +736,13 @@ table>tbody>tr>th {
 
 .footer-link:last-child {
     border: none;
+}
+
+.transaction-desc {
+    padding: 5px 0;
+    text-transform: initial;
+}
+
+.negative-transaction-amount {
+    color: var(--light-blue-sky);
 }

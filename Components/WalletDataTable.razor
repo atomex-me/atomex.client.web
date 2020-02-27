@@ -11,14 +11,36 @@
         @foreach (KeyValuePair<AvailableCurrencies, CurrencyData> currency in CurrenciesData) {
           <tr>
             <td>
-              <div class="currency-container">
-                <i class="currency-icon @currency.Value.CurrencyName.ToName().ToLower()" />
+              <div class="icon-vertical-text">
+                <i class="icon currency-icon @currency.Value.CurrencyName.ToName().ToLower()" />
                 <span class="currency-name">@currency.Value.CurrencyName.ToName()</span>
               </div>
             </td>
             <td>@currency.Value.Balance BTC</td>
             <td>$@currency.Value.DollarValue</td>
             <td>$@currency.Value.Percent%</td>
+          </tr>
+        }
+      }
+      @if (Variant == AvailableVariants.Transactions) {
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Amount</th>
+          <th>State</th>
+          <th>Time</th>
+        </tr>
+        @foreach (var transaction in TransactionsData) {
+          <tr>
+            <td>
+              <div class="icon-vertical-text">
+                <i class="icon transaction-icon @transaction.Type.ToName().ToLower()" />
+              </div>
+            </td>
+            <td class="transaction-desc">Swap redeem bla bla</td>
+            <td class="transaction-desc @(transaction.Amount < 0 ? "negative-transaction-amount" : "")">@transaction.Amount</td>
+            <td class="transaction-desc"><span class="badge badge-@(GetBadgeColor(transaction.State))">@transaction.State.ToName()</span></td>
+            <td class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:MM}", transaction.CreationTime))</td>
           </tr>
         }
       }
@@ -33,8 +55,28 @@
   [Parameter]
   public Dictionary<AvailableCurrencies, CurrencyData> CurrenciesData { get; set; }
 
+  [Parameter]
+  public List<Transaction> TransactionsData { get; set; }
+
   public enum AvailableVariants {
     Currencies,
     Transactions
+  }
+
+  private string GetBadgeColor(BlockchainTransactionState state) {
+    switch (state) {
+      case BlockchainTransactionState.Confirmed:
+        return "primary";
+      case BlockchainTransactionState.Unconfirmed:
+        return "warning";
+      case BlockchainTransactionState.Failed:
+        return "danger";
+      case BlockchainTransactionState.Pending:
+        return "info";
+      case BlockchainTransactionState.Unknown:
+        return "dark";
+      default:
+        return "secondary";
+    }
   }
 }

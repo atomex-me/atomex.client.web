@@ -35,8 +35,10 @@
           }
 
           @if (ActiveSection == WalletMenuButton.ButtonVariants.Wallets) {
-            <div>Available currencies</div>
-            <WalletDataTable Variant="@WalletDataTable.AvailableVariants.Transactions" />
+            <div>Crypto card</div>
+            <WalletDataTable
+                Variant="@WalletDataTable.AvailableVariants.Transactions"
+                TransactionsData="@Transactions" />
           }
       </div>
   </div>
@@ -47,10 +49,9 @@
     protected WalletMenuButton.ButtonVariants ActiveSection { get; set; }
     protected Dictionary<AvailableCurrencies, CurrencyData> CurrenciesData { get; set; }
 
-    protected List<IBlockchainTransaction> Transactions { get; set; }
+    protected List<Transaction> Transactions { get; set; }
 
     protected void WalletMenuButtonClick(WalletMenuButton.ButtonVariants Variant) {
-        Console.WriteLine(Variant.ToName());
         ActiveSection = Variant;
     }
 
@@ -58,12 +59,18 @@
         ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
         CurrenciesData = new Dictionary<AvailableCurrencies, CurrencyData>();
 
-        // temp data
         CurrenciesData.Add(AvailableCurrencies.Bitcoin, new CurrencyData(AvailableCurrencies.Bitcoin, 0.56, 1234, 15));
         CurrenciesData.Add(AvailableCurrencies.Ethereum, new CurrencyData(AvailableCurrencies.Ethereum, 200, 32000, 35));
         CurrenciesData.Add(AvailableCurrencies.Litecoin, new CurrencyData(AvailableCurrencies.Litecoin, 234, 100, 30));
         CurrenciesData.Add(AvailableCurrencies.Tezos, new CurrencyData(AvailableCurrencies.Tezos, 600, 640, 20));
         
-        Transactions.Add(new Transaction("1",BlockchainTransactionState.Confirmed, BlockchainTransactionType.Input, new DateTime(2008, 6, 1, 7, 47, 0), true));
+        Transactions = new List<Transaction>();
+        Transactions.Add(new Transaction("1",BlockchainTransactionState.Confirmed, BlockchainTransactionType.Input, new DateTime(2008, 6, 7, 7, 47, 0), true, 12));
+        Transactions.Add(new Transaction("2",BlockchainTransactionState.Unknown, BlockchainTransactionType.Input, new DateTime(2012, 6, 1, 13, 47, 0), true, 34));
+        Transactions.Add(new Transaction("3",BlockchainTransactionState.Failed, BlockchainTransactionType.Unknown, new DateTime(2012, 7, 1, 22, 47, 0), true, -0.34534));
+        Transactions.Add(new Transaction("4",BlockchainTransactionState.Pending, BlockchainTransactionType.Output, new DateTime(2008, 8, 1, 15, 47, 0), true, -1234.2344));
+        Transactions.Add(new Transaction("5",BlockchainTransactionState.Unconfirmed, BlockchainTransactionType.Input, new DateTime(2008, 9, 5, 7, 47, 0), true, 234.23444));
+        Transactions.Add(new Transaction("6",BlockchainTransactionState.Pending, BlockchainTransactionType.SwapRedeem, new DateTime(2008, 12, 2, 7, 47, 0), true, 2555));
+
     }
 }
