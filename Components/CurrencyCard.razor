@@ -1,0 +1,24 @@
+<div class="currency-card">
+  <div class="currency-card__selected-currency">
+    <i class="icon currency-icon-big bitcoin" />
+    <span>
+      <div class="currency-card__currency-value">
+        0.00000000000 <span class="currency-card__currency-value-desc">BTC</span>
+      </div>
+      <div class="currency-card__dollar-value">
+        $0.00 <span class="currency-card__dollar-value-desc">USD</span>
+      </div>
+    </span>
+  </div>
+  <div class="currency-card__buttons">
+    <NavigateButton OnClick="OnSendClick" Variant="small">Send</NavigateButton>
+    <NavigateButton Variant="small">Receive</NavigateButton>
+    <NavigateButton Variant="small">Convert</NavigateButton>
+    <NavigateButton Variant="small">Update</NavigateButton>
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public EventCallback OnSendClick { get; set; }
+}

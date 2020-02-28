@@ -34,12 +34,14 @@
           <tr>
             <td>
               <div class="icon-vertical-text">
-                <i class="icon transaction-icon @transaction.Type.ToName().ToLower()" />
+                <i class="icon transaction-icon @transaction.Type.ToName().ToLower()" title="@transaction.Type.ToName()" />
               </div>
             </td>
             <td class="transaction-desc">Swap redeem bla bla</td>
             <td class="transaction-desc @(transaction.Amount < 0 ? "negative-transaction-amount" : "")">@transaction.Amount</td>
-            <td class="transaction-desc"><span class="badge badge-@(GetBadgeColor(transaction.State))">@transaction.State.ToName()</span></td>
+            <td class="transaction-desc">
+              <span class="badge badge-@(GetBadgeColor(transaction.State))">@transaction.State.ToName()</span>
+            </td>
             <td class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:MM}", transaction.CreationTime))</td>
           </tr>
         }

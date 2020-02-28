@@ -1,0 +1,13 @@
+@if (IsOpen) {
+  <div class="modal-window light-background">
+  @ChildContent
+</div>
+}
+
+@code {
+  [Parameter]
+  public RenderFragment ChildContent { get; set; }
+
+  [Parameter]
+  public bool IsOpen { get; set; }
+}

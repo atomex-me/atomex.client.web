@@ -128,7 +128,15 @@ namespace atomex_frontend.Storages
       {
         Console.WriteLine($"Wallet {WalletName} founded on FS");
       }
-      Account = Account.LoadFromFile($"/{WalletName}.wallet", Password, currenciesProvider, symbolsProvider);
+      // Account = Account.LoadFromFile($"/{WalletName}.wallet", Password, currenciesProvider, symbolsProvider);
+
+      Account = new Account(
+        HdWallet.LoadFromFile($"/{WalletName}.wallet", Password),
+        Password,
+        new AccountDataRepository(),
+        currenciesProvider,
+        symbolsProvider
+      );
 
       Terminal = new Terminal(configuration, Account);
 

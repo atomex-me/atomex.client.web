@@ -26,6 +26,7 @@ app {
 
 .main {
     flex: 1;
+    position: relative;
 }
 
 .main .top-row {
@@ -154,7 +155,7 @@ app {
     --error-color: #dc3545;
     --very-dark-blue: #0F203D;
     --light-gray: #B8B8BA;
-
+    --medium-gray: #80817D;
 }
 
 @font-face {
@@ -354,6 +355,12 @@ button:hover {
 
 .navigate-button.center {
     border-radius: 50px;
+}
+
+.navigate-button.small {
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 10px;
 }
 
 .steps-container {
@@ -639,11 +646,20 @@ table>tbody>tr>th {
     height: 55px;
 }
 
+.currency-icon-big {
+    background-size: 85px;
+    width: 90px;
+    height: 90px;
+}
+
 .transaction-icon {
     background-size: 25px;
     width: 25px;
     height: 25px;
+    cursor: help;
 }
+
+
 
 .input {
     background-image: url('images/received.png');
@@ -739,10 +755,93 @@ table>tbody>tr>th {
 }
 
 .transaction-desc {
-    padding: 5px 0;
+    padding: 6px 0;
     text-transform: initial;
+    padding-left: 15px;
 }
 
 .negative-transaction-amount {
     color: var(--light-blue-sky);
+}
+
+.currencies-row {
+    margin-top: 25px;
+    display: flex;
+    display: flex;
+    justify-content: center;
+}
+
+.currencies-row>* {
+    margin-right: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+
+.currencies-row>*:last-child {
+    margin: 0;
+}
+
+.currency-card {
+    margin: 30px auto 0;
+    display: flex;
+    flex-direction: column;
+    max-width: 500px;
+    background-color: var(--dark-gradient-color);
+    padding: 15px;
+    border-radius: 20px;
+}
+
+.currency-card__selected-currency {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.currency-card__selected-currency>*:last-child {
+    margin-left: 15px;
+}
+
+.currency-card__buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.currency-card__buttons>* {
+    margin-right: 5px;
+    width: 100%;
+}
+
+.currency-card__buttons>*:last-child {
+    margin: 0;
+}
+
+.currency-card__currency-value {
+    font-size: 30px;
+    line-height: 28px;
+}
+
+.currency-card__currency-value-desc {
+    font-size: 22px;
+}
+
+.currency-card__dollar-value {
+    font-size: 26px;
+    line-height: 28px;
+    color: var(--medium-gray);
+}
+
+.currency-card__dollar-value-desc {
+    font-size: 18px;
+}
+
+.modal-window {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 700px;
+    padding: 15px;
+    top: calc(50%);
+    transform: translate(-50%, -50%);
 }

@@ -1,5 +1,7 @@
 ﻿@page "/wallet"
 @using Atomex.Blockchain.Abstract
+@using Atomex.Blockchain.Tezos;
+@inject AccountStorage AccountStorage
 
 <div>
   <div class="wallet-page dark-background">
@@ -35,7 +37,13 @@
           }
 
           @if (ActiveSection == WalletMenuButton.ButtonVariants.Wallets) {
-            <div>Crypto card</div>
+            <div>
+                <CurrenciesRow />
+                <CurrencyCard OnSendClick="OnSendClick" />
+                <Modal IsOpen="@SendModalOpened">
+                    Send content
+                </Modal>
+            </div>
             <WalletDataTable
                 Variant="@WalletDataTable.AvailableVariants.Transactions"
                 TransactionsData="@Transactions" />
@@ -54,6 +62,57 @@
     protected void WalletMenuButtonClick(WalletMenuButton.ButtonVariants Variant) {
         ActiveSection = Variant;
     }
+
+    public async void OnSendClick() {
+        Console.WriteLine("SEND CLICKED");
+        SendModalOpened = !SendModalOpened;
+
+        WalletAddress WA =  await AccountStorage.Account.GetFreeExternalAddressAsync("XTZ");
+        Console.WriteLine(WA.Address);
+
+        @* var addresses = await AccountStorage.Account
+                .GetUnspentAddressesAsync("XTZ")
+                .ConfigureAwait(false); *@
+
+        Console.WriteLine("Scanning start");
+
+        await new HdWalletScanner(AccountStorage.Account)
+                .ScanAddressAsync("XTZ", "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5")
+                .ConfigureAwait(false);
+
+        Console.WriteLine("Scanning end");
+
+        var walletAddress = await AccountStorage.Account
+                .ResolveAddressAsync("XTZ", "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5")
+                .ConfigureAwait(false);
+
+        Console.WriteLine($"Balance is {walletAddress.Balance}");
+
+        var transactions = (await AccountStorage.Account
+                .GetTransactionsAsync("XTZ"))
+                .ToList();
+        
+        foreach(TezosTransaction transaction in transactions) {
+            Console.WriteLine($"ID: {transaction.Id}, IsConfirmed: {transaction.IsConfirmed} State: {transaction.State} Time: {String.Format("{0:d MMM yyyy, HH:MM}", transaction.CreationTime)} BlockInfo: {transaction.BlockInfo}");
+            Console.WriteLine($"AMOUNT: {GetAmount(transaction)}");
+        }
+    }
+
+    private static decimal GetAmount(TezosTransaction tx) {
+        var result = 0m;
+
+        if (tx.Type.HasFlag(BlockchainTransactionType.Input))
+            result += Tezos.MtzToTz(tx.Amount);
+
+        if (tx.Type.HasFlag(BlockchainTransactionType.Output))
+            result += -Tezos.MtzToTz(tx.Amount + tx.Fee);
+
+        tx.InternalTxs?.ForEach(t => result += GetAmount(t));
+
+        return result;
+    }
+
+    protected bool SendModalOpened { get; set; } = false;
 
     protected override void OnInitialized() {
         ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
