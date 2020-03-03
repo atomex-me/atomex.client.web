@@ -28,5 +28,6 @@
   "InvalidPassword": "Invalid password",
   "Portfolio": "Portfolio",
   "Wallets": "Wallets",
-  "Conversion": "Conversion"
+  "Conversion": "Conversion",
+  "ToAddress": "To Address"
 }

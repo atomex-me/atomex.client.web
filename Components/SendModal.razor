@@ -1,0 +1,41 @@
+<div class="light-background">
+  <div class="dark-background modal-title">
+    Send
+  </div>
+
+  <div class="modal-subtitle">
+    Instantly sending of currency.
+  </div>
+
+  <div class="send-modal__currency-title-container">
+    Bitcoin title
+  </div>
+
+  <Input Description="@Translations.ToAddress" InputType="text" InputName="sendToAddress" Value="@ToAddress" OnChange="@SendAddressChange"  />
+
+</div>
+
+@code {
+
+  protected string ToAddress { get; set; } = "";
+  protected double Amount { get; set; } = 0;
+
+  protected double GasPrice { get; set; } = 0;
+
+  protected double GasLimit { get; set; } = 0;
+
+  protected double MinersFee { get; set; } = 0;
+
+  protected double Fee { get; set; } = 0;
+ 
+  protected void SendAddressChange(string address) {
+    ToAddress = address;
+  }
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+      await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+  }
+}

@@ -1,8 +1,14 @@
-﻿<div class="atomex-input">
-    <div class="@(Error ? "error-input" : "")">
+﻿<div class="atomex-input-container atomex-input @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "")">
+    <div class="@(Error ? "error-input" : "no-error")">
         @if (InputType == "password")
         {
             <i class="icon-input lock"></i>
+        }
+        @if (Description != null)
+        {
+            <div class="input-description">
+                <span>@Description</span>
+            </div>
         }
         <input type="@InputType"
                value="@Value"
@@ -20,6 +26,9 @@
 @code {
     [Parameter]
     public string InputName { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
 
     [Parameter]
     public string InputPlaceholder { get; set; }

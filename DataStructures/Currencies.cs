@@ -8,6 +8,14 @@ namespace atomex_frontend.atomex_data_structures
     Tezos
   }
 
+  public enum AvailableCurrenciesAbbr
+  {
+    BTC,
+    ETH,
+    LTC,
+    XTZ
+  }
+
   public class CurrencyData
   {
     public CurrencyData(AvailableCurrencies currencyName, double balance, double dollarValue, double percent)

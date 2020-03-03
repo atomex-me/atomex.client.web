@@ -1,11 +1,11 @@
 ﻿<div>
     <div class="@(Error ? "error-input" : "")">
         <div class="@((string.IsNullOrEmpty(Description) ?
-                  "atomex-select-container" :
-                  "atomex-select-container with-description"))">
+                  "atomex-input-container atomex-select" :
+                  "atomex-input-container atomex-select with-description"))">
             @if (Description != null)
             {
-                <div class="select-description">
+                <div class="input-description">
                     <span>@Description</span>
                 </div>
             }

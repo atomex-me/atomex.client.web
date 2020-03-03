@@ -85,6 +85,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Step 5: Storage password"</summary>
         public string RegisterStep5Title;
 
+        /// <summary>"To Address"</summary>
+        public string ToAddress;
+
         /// <summary>"Unlock"</summary>
         public string Unlock;
 
