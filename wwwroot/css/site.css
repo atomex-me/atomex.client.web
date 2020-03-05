@@ -1,10 +1,21 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 @import url('animations/spinner.css');
 @import url('pie-chart/pie.css');
+@import url('checkbox/index.css');
 
 html,
 body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
 }
 
 a:hover {
@@ -156,6 +167,9 @@ app {
     --very-dark-blue: #0F203D;
     --light-gray: #B8B8BA;
     --medium-gray: #80817D;
+    --dark-input-dark-blue: #192E50;
+    --dark-input-light-blue: #273F73;
+    --orange: #FA9517;
 }
 
 @font-face {
@@ -178,11 +192,13 @@ app {
     border-radius: 30px;
     box-sizing: border-box;
     display: flex;
+    position: relative;
 }
 
 .no-error {
     display: flex;
     width: 100%;
+    position: relative;
 }
 
 .error-description {
@@ -283,6 +299,20 @@ app {
     transform: rotate(180deg);
 }
 
+.atomex-select .additional-info {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--orange);
+    max-width: 120px;
+    overflow: hidden;
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
 .atomex-input-container select,
 .atomex-input-container input {
     position: relative;
@@ -332,6 +362,9 @@ app {
     min-width: 160px;
 }
 
+.input-description.dark {
+    background-color: var(--dark-input-light-blue);
+}
 
 .navigate-button {
     height: 50px;
@@ -433,6 +466,11 @@ button:hover {
     font-size: 16px;
     background-color: var(--light-blue-sky);
     color: var(--dark-blue);
+}
+
+.atomex-input.dark input {
+    background-color: var(--dark-input-dark-blue);
+    color: white;
 }
 
 .atomex-input input[type=password] {
@@ -849,12 +887,101 @@ table>tbody>tr>th {
     position: absolute;
     top: 0;
     left: 50%;
-    width: 700px;
+    width: 762px;
     padding: 15px;
     top: calc(50%);
     transform: translate(-50%, -50%);
+    box-shadow: 0 0 10px black;
 }
 
 .no-flex {
     display: block;
+}
+
+.modal-title {
+    display: flex;
+    justify-content: center;
+    padding: 5px;
+    font-size: 24px;
+    font-family: RobotoLight;
+    margin: 0 -15px;
+}
+
+.modal-subtitle {
+    font-size: 18px;
+    font-family: RobotoLight;
+    display: flex;
+    justify-content: center;
+}
+
+.rounded-dark-container {
+    background-color: var(--dark-input-dark-blue);
+    padding: 10px 20px;
+    border-radius: 20px;
+}
+
+.modal-currency-title__container {
+    display: flex;
+    align-items: center;
+}
+
+.modal-currency-title__text-container {
+    margin-left: 15px;
+}
+
+.modal-currency-title__text-container>*:first-child {
+    text-transform: uppercase;
+}
+
+.modal-currency-title__text-container>*:last-child {
+    font-size: 16px;
+}
+
+.modal-currency-title__text-container>*:last-child>span {
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+.additional-input-info {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--medium-gray);
+}
+
+.send-modal__container>* {
+    margin-bottom: 10px;
+}
+
+.send-modal__container>*:nth-child(1) {
+    margin-bottom: 30px;
+}
+
+.send-modal__container>*:nth-child(2) {
+    margin-bottom: 20px;
+}
+
+.send-modal__container>*:last-child {
+    margin-top: 40px;
+    margin-bottom: 0;
+}
+
+.modal-buttons-container {
+    display: flex;
+    justify-content: center;
+}
+
+.close-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-image: url('icons/cancel.svg');
+    background-size: 34px;
+    height: 34px;
+    width: 34px;
+    display: inline-block;
+    cursor: pointer;
+    top: -17px;
+    right: -17px;
 }

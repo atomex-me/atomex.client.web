@@ -1,0 +1,17 @@
+<div class="checkbox-container">
+  <label class="checkbox-switch" for="checkbox">
+    <input type="checkbox" id="checkbox" checked="true" />
+    <div class="checkbox-slider checkbox-round"></div>
+  </label>
+  @if (Description.Length > 0) {
+    <div>@Description</div>
+  }
+</div>
+
+@code {
+  [Parameter]
+  public bool Checked { get; set; } = false;
+
+  [Parameter]
+  public string Description { get; set; } = "";
+}

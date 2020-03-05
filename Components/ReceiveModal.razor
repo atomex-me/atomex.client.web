@@ -1,0 +1,35 @@
+<div class="send-modal__container">
+  <div class="dark-background modal-title">
+    Send
+  </div>
+
+  <div class="modal-subtitle">
+    Receive Modal
+  </div>
+
+  <CurrencyModalCard />
+
+  <Dropdown OnChange="@OnChange" Options="@DropOptions" Description="Description" CurrentValue="@CurrentValue" />
+
+    <div class="modal-buttons-container">
+      <div>
+        <NavigateButton Variant="left">
+            Cancel
+        </NavigateButton>
+        <NavigateButton Variant="right">
+            Receive
+        </NavigateButton>
+      </div>
+    </div>
+</div>
+
+@code {
+  protected string[] DropOptions = { "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5 0.2", "kt1Ufcd1ZSjs7b9BfhwfKExpY9MeQqnKJRe5 1243.9423957345234" };
+
+  protected string CurrentValue = "kt1Ufcd1ZSjs7b9BfhwfKExpY9MeQqnKJRe5";
+
+  public void OnChange(string value) {
+    Console.WriteLine(value);
+    CurrentValue = value;
+  }
+}

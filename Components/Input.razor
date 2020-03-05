@@ -1,4 +1,4 @@
-﻿<div class="atomex-input-container atomex-input @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "")">
+﻿<div class="atomex-input-container atomex-input @Theme @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "")">
     <div class="@(Error ? "error-input" : "no-error")">
         @if (InputType == "password")
         {
@@ -6,7 +6,7 @@
         }
         @if (Description != null)
         {
-            <div class="input-description">
+            <div class="input-description @Theme">
                 <span>@Description</span>
             </div>
         }
@@ -15,6 +15,9 @@
                placeholder="@InputPlaceholder"
                name="@InputName"
                @oninput="HandleChange" />
+        @if(AdditionalRightInfo.Length > 0) {
+            <span class="additional-input-info">@AdditionalRightInfo</span>
+        }
     </div>
     @if (!String.IsNullOrEmpty(ErrorDescription)) {
         <div class="error-description">
@@ -47,6 +50,12 @@
 
     [Parameter]
     public string ErrorDescription { get; set; }
+
+    [Parameter]
+    public string Theme { get; set; } = "light";
+
+    [Parameter]
+    public string AdditionalRightInfo { get; set; } = "";
 
 
     protected async void HandleChange(ChangeEventArgs evt) {

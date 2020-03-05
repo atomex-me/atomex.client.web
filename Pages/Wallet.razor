@@ -43,6 +43,9 @@
                 <Modal IsOpen="@SendModalOpened">
                     <SendModal />
                 </Modal>
+                <Modal IsOpen="@ReceiveModalOpened">
+                    <ReceiveModal />
+                </Modal>
             </div>
             <WalletDataTable
                 Variant="@WalletDataTable.AvailableVariants.Transactions"
@@ -65,14 +68,15 @@
 
     public async void OnSendClick() {
         Console.WriteLine("SEND CLICKED");
-        SendModalOpened = !SendModalOpened;
+        // SendModalOpened = !SendModalOpened;
+        ReceiveModalOpened = !ReceiveModalOpened;
 
         WalletAddress WA =  await AccountStorage.Account.GetFreeExternalAddressAsync("XTZ");
         Console.WriteLine(WA.Address);
 
-        @* var addresses = await AccountStorage.Account
+        var addresses = await AccountStorage.Account
                 .GetUnspentAddressesAsync("XTZ")
-                .ConfigureAwait(false); *@
+                .ConfigureAwait(false);
 
         Console.WriteLine("Scanning start");
 
@@ -113,6 +117,7 @@
     }
 
     protected bool SendModalOpened { get; set; } = false;
+    protected bool ReceiveModalOpened { get; set; } = false;
 
     protected override void OnInitialized() {
         ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;

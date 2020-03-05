@@ -7,6 +7,15 @@ namespace atomex_frontend.I18nText
 
         public string this[string key] => global::Toolbelt.Blazor.I18nText.I18nTextExtensions.GetFieldValue(this, key);
 
+        /// <summary>"Amount"</summary>
+        public string Amount;
+
+        /// <summary>"Available"</summary>
+        public string Available;
+
+        /// <summary>"Balance update in progress..."</summary>
+        public string BalanceUpdateInProgress;
+
         /// <summary>"Cancel"</summary>
         public string Cancel;
 
@@ -15,6 +24,15 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Conversion"</summary>
         public string Conversion;
+
+        /// <summary>"Convert"</summary>
+        public string Convert;
+
+        /// <summary>"Delegate"</summary>
+        public string Delegate;
+
+        /// <summary>"Description"</summary>
+        public string Description;
 
         /// <summary>"Wallet name could not be emty"</summary>
         public string EmptyWalletName;
@@ -28,8 +46,23 @@ namespace atomex_frontend.I18nText
         /// <summary>"Wallet with this name already exist"</summary>
         public string ErrorWalletNameExist;
 
+        /// <summary>"Fee"</summary>
+        public string Fee;
+
         /// <summary>"Finish"</summary>
         public string Finish;
+
+        /// <summary>"From"</summary>
+        public string From;
+
+        /// <summary>"Gas limit"</summary>
+        public string GasLimit;
+
+        /// <summary>"Gas price"</summary>
+        public string GasPrice;
+
+        /// <summary>"Instantly sending of currency."</summary>
+        public string InstantlySendingOfCurrency;
 
         /// <summary>"Invalid password"</summary>
         public string InvalidPassword;
@@ -37,8 +70,14 @@ namespace atomex_frontend.I18nText
         /// <summary>"Language"</summary>
         public string Language;
 
+        /// <summary>"Miners fee"</summary>
+        public string MinersFee;
+
         /// <summary>"Next"</summary>
         public string Next;
+
+        /// <summary>"NoDelegationsFound"</summary>
+        public string NoDelegationsFound;
 
         /// <summary>"Passwords could not be empty"</summary>
         public string PasswordEmpty;
@@ -54,6 +93,12 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Previous"</summary>
         public string Previous;
+
+        /// <summary>"Receive"</summary>
+        public string Receive;
+
+        /// <summary>"Received"</summary>
+        public string Recevived;
 
         /// <summary>"Please select your wallet type."</summary>
         public string RegisterStep1Description;
@@ -85,11 +130,41 @@ namespace atomex_frontend.I18nText
         /// <summary>"Step 5: Storage password"</summary>
         public string RegisterStep5Title;
 
+        /// <summary>"Send"</summary>
+        public string Send;
+
+        /// <summary>"Sent"</summary>
+        public string Sent;
+
+        /// <summary>"State"</summary>
+        public string State;
+
+        /// <summary>"Swap redeem"</summary>
+        public string SwapRedeem;
+
+        /// <summary>"Time"</summary>
+        public string Time;
+
+        /// <summary>"To"</summary>
+        public string To;
+
         /// <summary>"To Address"</summary>
         public string ToAddress;
 
+        /// <summary>"Total fee"</summary>
+        public string TotalFee;
+
+        /// <summary>"Type"</summary>
+        public string Type;
+
         /// <summary>"Unlock"</summary>
         public string Unlock;
+
+        /// <summary>"Upadte"</summary>
+        public string Update;
+
+        /// <summary>"Use default fee"</summary>
+        public string UseDefaultFee;
 
         /// <summary>"Wallets"</summary>
         public string Wallets;

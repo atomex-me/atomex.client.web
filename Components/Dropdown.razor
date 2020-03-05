@@ -14,14 +14,25 @@
                 {
                     @if (x == getSelectedOptionIndex())
                     {
-                        <option selected="selected" value="@Options[x]">@Options[x]</option>
+                        @if(Options[x].Split(" ").Length == MAX_OPTION_WORDS) {
+                            <option selected="selected" value="@Options[x].Split(" ")[0]">@Options[x].Split(" ")[0]</option>
+                        } else {
+                            <option selected="selected" value="@Options[x]">@Options[x]</option>
+                        }
                     }
                     else
                     {
-                        <option value="@Options[x]">@Options[x]</option>
+                        @if(Options[x].Split(" ").Length == MAX_OPTION_WORDS) {
+                            <option value="@Options[x].Split(" ")[0]">@Options[x]</option>
+                        } else {
+                            <option value="@Options[x]">@Options[x]</option>
+                        }
                     }
                 }
             </select>
+            @if(getSelectedOptionIndex() != -1 && Options[getSelectedOptionIndex()].Split(" ").Length == MAX_OPTION_WORDS) {
+                <div class="additional-info">@Options[getSelectedOptionIndex()].Split(" ")[1]</div>
+            }
         </div>
     </div>
     @if (!String.IsNullOrEmpty(ErrorDescription))
@@ -33,6 +44,8 @@
 </div>
 
 @code {
+    private int MAX_OPTION_WORDS = 2;
+
     [Parameter]
     public EventCallback<string> OnChange { get; set; }
 
@@ -57,6 +70,8 @@
     }
 
     protected int getSelectedOptionIndex() {
-        return Array.FindIndex(Options, option => option.Equals(CurrentValue));
+        return Array.FindIndex(Options,
+                option => option.Split(" ").Length == MAX_OPTION_WORDS ?
+                option.Split(" ")[0].Equals(CurrentValue) : option.Equals(CurrentValue));
     }
 }

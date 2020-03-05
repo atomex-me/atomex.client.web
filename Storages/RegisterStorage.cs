@@ -291,7 +291,6 @@ namespace atomex_frontend.Storages
     {
       CurrentMnemonicLang = AvailableMnemonicLangs
           .FirstOrDefault(x => x.Key == strLang).Value;
-
     }
 
     private Atomex.Core.Network GetNetworkCode()

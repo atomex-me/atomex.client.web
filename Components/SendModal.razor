@@ -1,18 +1,51 @@
-<div class="light-background">
+<div class="send-modal__container">
   <div class="dark-background modal-title">
     Send
   </div>
 
   <div class="modal-subtitle">
-    Instantly sending of currency.
+    @Translations.InstantlySendingOfCurrency
   </div>
 
-  <div class="send-modal__currency-title-container">
-    Bitcoin title
-  </div>
+  <CurrencyModalCard />
 
-  <Input Description="@Translations.ToAddress" InputType="text" InputName="sendToAddress" Value="@ToAddress" OnChange="@SendAddressChange"  />
+  <Input
+    Description="@Translations.ToAddress"
+    InputType="text"
+    InputName="sendToAddress"
+    Value="@ToAddress"
+    OnChange="@SendAddressChange"
+    Theme="dark" />
 
+  <Input
+    Description="@Translations.Amount" 
+    InputType="number" 
+    InputName="sendAmount" 
+    Value="@Amount.ToString()" 
+    OnChange="@SendAmountChange"
+    Theme="dark"
+    AdditionalRightInfo="$0.00 USD" />
+  <Input 
+    Description="@Translations.MinersFee" 
+    InputType="number" 
+    InputName="minersFee" 
+    Value="@MinersFee.ToString()" 
+    OnChange="@SendMinersFeeChange"
+    Theme="dark"
+    AdditionalRightInfo="$0.00 USD" />
+
+    <Checkbox Checked="true" Description="@Translations.UseDefaultFee" />
+
+    <div class="modal-buttons-container">
+      <div>
+        <NavigateButton Variant="left">
+            @Translations.Cancel
+        </NavigateButton>
+        <NavigateButton Variant="right">
+            @Translations.Send
+        </NavigateButton>
+      </div>
+    </div>
 </div>
 
 @code {
@@ -30,6 +63,15 @@
  
   protected void SendAddressChange(string address) {
     ToAddress = address;
+  }
+
+  protected void SendAmountChange(string amount) {
+    Amount = Convert.ToDouble(amount);
+  }
+
+  protected void SendMinersFeeChange(string minersFee) {
+    MinersFee = Convert.ToDouble(minersFee);
+    Console.WriteLine(MinersFee);
   }
 
   I18nText.Translations Translations = new I18nText.Translations();
