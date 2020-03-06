@@ -1,6 +1,6 @@
 @if (IsOpen) {
   <div class="modal-window light-background">
-    <i class="close-icon"></i>
+    <i class="close-icon" @onclick="@OnClose"></i>
     @ChildContent
   </div>
 }
@@ -8,6 +8,9 @@
 @code {
   [Parameter]
   public RenderFragment ChildContent { get; set; }
+
+  [Parameter]
+  public EventCallback OnClose { get; set; }
 
   [Parameter]
   public bool IsOpen { get; set; }

@@ -12,13 +12,22 @@
   </div>
   <div class="currency-card__buttons">
     <NavigateButton OnClick="OnSendClick" Variant="small">Send</NavigateButton>
-    <NavigateButton Variant="small">Receive</NavigateButton>
-    <NavigateButton Variant="small">Convert</NavigateButton>
-    <NavigateButton Variant="small">Update</NavigateButton>
+    <NavigateButton OnClick="OnReceiveClick" Variant="small">Receive</NavigateButton>
+    <NavigateButton OnClick="OnConvertClick" Variant="small">Convert</NavigateButton>
+    <NavigateButton OnClick="OnUpdateClick" Variant="small">Update</NavigateButton>
   </div>
 </div>
 
 @code {
   [Parameter]
   public EventCallback OnSendClick { get; set; }
+
+  [Parameter]
+  public EventCallback OnReceiveClick { get; set; }
+
+  [Parameter]
+  public EventCallback OnConvertClick { get; set; }
+
+  [Parameter]
+  public EventCallback OnUpdateClick { get; set; }
 }

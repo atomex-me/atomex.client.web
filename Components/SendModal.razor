@@ -1,4 +1,4 @@
-<div class="send-modal__container">
+<div class="modal__container">
   <div class="dark-background modal-title">
     Send
   </div>
@@ -38,7 +38,7 @@
 
     <div class="modal-buttons-container">
       <div>
-        <NavigateButton Variant="left">
+        <NavigateButton Variant="left" OnClick="OnCancelClick">
             @Translations.Cancel
         </NavigateButton>
         <NavigateButton Variant="right">
@@ -49,8 +49,11 @@
 </div>
 
 @code {
+  [Parameter]
+  public EventCallback OnCancelClick { get; set; }
 
   protected string ToAddress { get; set; } = "";
+  
   protected double Amount { get; set; } = 0;
 
   protected double GasPrice { get; set; } = 0;

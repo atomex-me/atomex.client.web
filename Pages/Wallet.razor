@@ -39,12 +39,14 @@
           @if (ActiveSection == WalletMenuButton.ButtonVariants.Wallets) {
             <div>
                 <CurrenciesRow />
-                <CurrencyCard OnSendClick="OnSendClick" />
-                <Modal IsOpen="@SendModalOpened">
-                    <SendModal />
+                <CurrencyCard
+                    OnSendClick="@SendOpenCloseHandler"
+                    OnReceiveClick="@ReceiveOpenCloseHandler" />
+                <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
+                    <SendModal OnCancelClick="@SendOpenCloseHandler" />
                 </Modal>
-                <Modal IsOpen="@ReceiveModalOpened">
-                    <ReceiveModal />
+                <Modal IsOpen="@ReceiveModalOpened" OnClose="@ReceiveOpenCloseHandler">
+                    <ReceiveModal OnCancelClick="@ReceiveOpenCloseHandler" />
                 </Modal>
             </div>
             <WalletDataTable
@@ -100,6 +102,14 @@
             Console.WriteLine($"ID: {transaction.Id}, IsConfirmed: {transaction.IsConfirmed} State: {transaction.State} Time: {String.Format("{0:d MMM yyyy, HH:MM}", transaction.CreationTime)} BlockInfo: {transaction.BlockInfo}");
             Console.WriteLine($"AMOUNT: {GetAmount(transaction)}");
         }
+    }
+
+    private void SendOpenCloseHandler() {
+        SendModalOpened = !SendModalOpened;
+    }
+
+    private void ReceiveOpenCloseHandler() {
+        ReceiveModalOpened = !ReceiveModalOpened;
     }
 
     private static decimal GetAmount(TezosTransaction tx) {

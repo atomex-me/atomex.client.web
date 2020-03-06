@@ -7,6 +7,9 @@ namespace atomex_frontend.I18nText
 
         public string this[string key] => global::Toolbelt.Blazor.I18nText.I18nTextExtensions.GetFieldValue(this, key);
 
+        /// <summary>"Address"</summary>
+        public string Address;
+
         /// <summary>"Amount"</summary>
         public string Amount;
 

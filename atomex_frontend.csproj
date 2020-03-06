@@ -15,6 +15,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Blazor.HttpClient" Version="3.0.0-preview9.19465.2" />
     <PackageReference Include="Microsoft.AspNetCore.Blazor.DevServer" Version="3.0.0-preview9.19465.2" PrivateAssets="all" />
     <PackageReference Include="Blazored.LocalStorage" Version="2.1.1" />
+    <PackageReference Include="QRCodeEncoderLibrary" Version="2.0.1" />
     <PackageReference Include="Toolbelt.Blazor.I18nText" Version="7.1.0" />
   </ItemGroup>
 

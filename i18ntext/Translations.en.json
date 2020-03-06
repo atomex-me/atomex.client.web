@@ -54,5 +54,6 @@
   "State": "State",
   "Time": "Time",
   "Delegate": "Delegate",
-  "NoDelegationsFound": "NoDelegationsFound"
+  "NoDelegationsFound": "NoDelegationsFound",
+  "Address": "Address"
 }

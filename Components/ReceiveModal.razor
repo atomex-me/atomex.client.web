@@ -1,35 +1,57 @@
-<div class="send-modal__container">
-  <div class="dark-background modal-title">
-    Send
-  </div>
+@using QRCodeEncoderLibrary;
+@inject IJSRuntime JSRuntime;
 
-  <div class="modal-subtitle">
-    Receive Modal
+<div class="modal__container">
+  <div class="dark-background modal-title">
+    @Translations.Receive
   </div>
 
   <CurrencyModalCard />
 
-  <Dropdown OnChange="@OnChange" Options="@DropOptions" Description="Description" CurrentValue="@CurrentValue" />
+  <div class="receive-modal-dropdown__container">
+    <Dropdown
+      OnChange="@OnChange"
+      Options="@DropOptions"
+      Description="@Translations.Address"
+      CurrentValue="@CurrentValue" />
+    <i class="copy-button" @onclick="@OnCopyClick" />
+  </div>
 
-    <div class="modal-buttons-container">
-      <div>
-        <NavigateButton Variant="left">
-            Cancel
-        </NavigateButton>
-        <NavigateButton Variant="right">
-            Receive
-        </NavigateButton>
-      </div>
-    </div>
+  <div class="receive-qrcode">
+      <img src="data:image/png;base64,@(GetBase64QR(CurrentValue))" />
+  </div>
 </div>
 
 @code {
+  [Parameter]
+  public EventCallback OnCancelClick { get; set; }
+
   protected string[] DropOptions = { "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5 0.2", "kt1Ufcd1ZSjs7b9BfhwfKExpY9MeQqnKJRe5 1243.9423957345234" };
 
   protected string CurrentValue = "kt1Ufcd1ZSjs7b9BfhwfKExpY9MeQqnKJRe5";
 
-  public void OnChange(string value) {
-    Console.WriteLine(value);
+  protected void OnChange(string value)
+  {
     CurrentValue = value;
+  }
+
+  protected async void OnCopyClick() {
+    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", CurrentValue);
+  }
+
+  private string GetBase64QR(string address) {
+    QREncoder Encoder = new QREncoder();
+    Encoder.ErrorCorrection = ErrorCorrection.Q;
+    Encoder.ModuleSize = 8;
+    Encoder.QuietZone = 32;
+    Encoder.Encode(address);
+    var memoryStream = new MemoryStream();
+    Encoder.SaveQRCodeToPngFile(memoryStream);
+    return Convert.ToBase64String(memoryStream.ToArray());
+  }
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync() {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
   }
 }
