@@ -7,7 +7,9 @@
     @Translations.InstantlySendingOfCurrency
   </div>
 
-  <CurrencyModalCard />
+  <RoundedContainer>
+    <CurrencyModalCard SelectedCurrency="AvailableCurrencies.Bitcoin" Amount="@(1.023m)" />
+  </RoundedContainer>
 
   <Input
     Description="@Translations.ToAddress"
@@ -53,7 +55,7 @@
   public EventCallback OnCancelClick { get; set; }
 
   protected string ToAddress { get; set; } = "";
-  
+
   protected double Amount { get; set; } = 0;
 
   protected double GasPrice { get; set; } = 0;
@@ -63,16 +65,19 @@
   protected double MinersFee { get; set; } = 0;
 
   protected double Fee { get; set; } = 0;
- 
-  protected void SendAddressChange(string address) {
+
+  protected void SendAddressChange(string address)
+  {
     ToAddress = address;
   }
 
-  protected void SendAmountChange(string amount) {
+  protected void SendAmountChange(string amount)
+  {
     Amount = Convert.ToDouble(amount);
   }
 
-  protected void SendMinersFeeChange(string minersFee) {
+  protected void SendMinersFeeChange(string minersFee)
+  {
     MinersFee = Convert.ToDouble(minersFee);
     Console.WriteLine(MinersFee);
   }
@@ -80,7 +85,7 @@
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
   {
-      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-      await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
   }
 }

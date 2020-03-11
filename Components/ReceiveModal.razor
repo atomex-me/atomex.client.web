@@ -6,7 +6,9 @@
     @Translations.Receive
   </div>
 
-  <CurrencyModalCard />
+  <RoundedContainer>
+    <CurrencyModalCard SelectedCurrency="AvailableCurrencies.Tezos" Amount="@(0.000004m)" />
+  </RoundedContainer>
 
   <div class="receive-modal-dropdown__container">
     <Dropdown

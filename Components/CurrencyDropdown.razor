@@ -1,0 +1,53 @@
+<div class="exchange-container @(IsOpened ? "opened" : "") noselect">
+  @if(Label.Length > 0) {
+    <span>
+      @(Label):
+    </span>
+  }
+  <RoundedContainer OnClick="@OnDropdownClick">
+    <CurrencyModalCard SelectedCurrency="@SelectedCurrency" Amount="@Amount" />
+    @if (IsOpened) {
+      <div class="exchange-dropdown">
+        <CurrencyModalCard
+          SelectedCurrency="@AvailableCurrencies.Bitcoin"
+          Amount="@(0.0m)"
+          OnClick="() => OnCurrencyClick(AvailableCurrencies.Bitcoin)" />
+        <CurrencyModalCard
+          SelectedCurrency="AvailableCurrencies.Ethereum"
+          Amount="@(0.0m)"
+          OnClick="() => OnCurrencyClick(AvailableCurrencies.Ethereum)" />
+        <CurrencyModalCard
+          SelectedCurrency="@AvailableCurrencies.Litecoin"
+          Amount="@(0.0m)"
+          OnClick="() => OnCurrencyClick(AvailableCurrencies.Litecoin)" />
+        <CurrencyModalCard
+          SelectedCurrency="@AvailableCurrencies.Tezos"
+          Amount="@(0.0m)"
+          OnClick="() => OnCurrencyClick(AvailableCurrencies.Tezos)" />
+      </div>
+    }
+  </RoundedContainer>
+</div>
+
+@code {
+  [Parameter]
+  public AvailableCurrencies SelectedCurrency { get; set; } = AvailableCurrencies.Bitcoin;
+
+  [Parameter]
+  public string Label { get; set; } = "";
+
+  private bool IsOpened { get; set; } = false;
+
+  private decimal Amount { get; set; } = 0.0000000m;
+
+  private void OnCurrencyClick(AvailableCurrencies currency)
+  {
+    SelectedCurrency = currency;
+    IsOpened = !IsOpened;
+  }
+
+  private void OnDropdownClick()
+  {
+    IsOpened = !IsOpened;
+  }
+}

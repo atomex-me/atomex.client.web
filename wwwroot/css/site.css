@@ -29,6 +29,15 @@ app {
     color: white;
 }
 
+.noselect {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
 .top-row {
     height: 3.5rem;
     display: flex;
@@ -814,7 +823,6 @@ table>tbody>tr>th {
 .currencies-row {
     margin-top: 25px;
     display: flex;
-    display: flex;
     justify-content: center;
 }
 
@@ -1018,4 +1026,204 @@ table>tbody>tr>th {
 
 .receive-modal-dropdown__container>*:last-child {
     margin-left: 15px;
+}
+
+.exchange {
+    margin-top: 25px;
+}
+
+.exchange>* {
+    margin-bottom: 15px;
+}
+
+.exchange>*:last-child {
+    margin: 0;
+}
+
+.exchange-container {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    align-items: center;
+}
+
+.exchange-container>span {
+    margin-right: 10px;
+    font-family: RobotoRegular;
+    font-size: 16px;
+    width: 70px;
+    text-align: right;
+    margin-left: -80px;
+}
+
+.exchange-container>.rounded-dark-container::after {
+    position: absolute;
+    right: 20px;
+    top: 29px;
+    content: "";
+    background-image: url(icons/triangle-white.svg);
+    background-position: center;
+    background-size: 15px;
+    width: 15px;
+    height: 15px;
+    transform: rotate(180deg);
+    transition: transform .3s;
+}
+
+.exchange-container.opened>.rounded-dark-container::after {
+    transform: none;
+}
+
+.exchange-container>.rounded-dark-container {
+    width: 400px;
+    position: relative;
+    cursor: pointer;
+}
+
+.exchange-dropdown {
+    position: absolute;
+    top: 75px;
+    width: 400px;
+    z-index: 10;
+    left: 0;
+}
+
+.exchange-dropdown>div {
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.exchange-dropdown>div:nth-child(1n) {
+    background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color));
+}
+
+.exchange-dropdown>div:nth-child(2n) {
+    background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color));
+}
+
+.exchange-amount-container {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    align-items: center;
+}
+
+.exchange-amount-container>span {
+    width: 70px;
+    margin-right: 10px;
+    text-align: right;
+    margin-left: -80px;
+}
+
+.currency-abbr {
+    font-size: 14px;
+    line-height: 24px;
+}
+
+.currency-abbr.small {
+    font-size: 12px;
+}
+
+.exchange-amount__input {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+}
+
+.exchange-amount__input>input {
+    width: 400px;
+    border: none;
+    height: 45px;
+    background-color: var(--dark-input-dark-blue);
+    color: white;
+    border-radius: 20px;
+    padding: 0px 20px;
+}
+
+.exchange-amount__input>.exchexchange-amount__input-add-info {
+    position: absolute;
+    right: 0;
+
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.exchange-amount__input>div>*:first-child {
+    margin-right: 10px;
+}
+
+.exchange-amount__input>div>*:last-child {
+    margin-right: 15px;
+}
+
+.exchange-amount-container__usd-amount {
+    font-size: 14px;
+    color: var(--medium-gray)
+}
+
+.currencies-exchange-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 30px;
+    padding-bottom: 20px;
+}
+
+.currencies-exchange__currency-usd {
+    display: flex;
+    flex-direction: column;
+}
+
+.currencies-exchange-row>*:first-child {
+    align-items: flex-end;
+    margin-right: 15px;
+}
+
+
+
+.currencies-exchange-row>*:last-child {
+    align-items: flex-start;
+    margin-left: 15px;
+}
+
+.exchange-button__container {
+    display: flex;
+    justify-content: center;
+}
+
+
+.exchange-info {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 20px;
+}
+
+.exchange-info>*:first-child {
+    width: 400px;
+    font-family: RobotoLight;
+}
+
+.convert-arrow-icon {
+    background-image: url('icons/right-arrow.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 15px;
+    width: 15px;
+    height: 15px;
+    padding: 0 20px;
+}
+
+.gray-text {
+    color: var(--medium-gray);
+}
+
+.white-text {
+    color: #FFF;
+}
+
+.exchange-amount__available-container {
+    position: absolute;
+    right: -10px;
+    transform: translateX(100%)
 }

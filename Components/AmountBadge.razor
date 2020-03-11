@@ -1,0 +1,41 @@
+<div class="exchange-amount-container">
+  @if(Label.Length > 0) {
+    <span>
+      @(Label):
+    </span>
+  }
+  <div class="exchange-amount__input">
+    <input type="number" value="@Amount.ToString().Replace(",", ".")" @oninput="@HandleChange" onkeydown="return event.keyCode !== 69" />
+    <div class="exchexchange-amount__input-add-info">
+      <span class="currency-abbr">@SelectedCurrency.ToName().ToUpper()</span>
+      <div class="exchange-amount-container__usd-amount">($@DollarAmount <span class="currency-abbr small">USD</span>)</div>
+    </div>
+    <div class="exchange-amount__available-container">
+      <RoundedContainer>
+        Available: 0.00000000 <span class="currency-abbr small">@SelectedCurrency.ToName().ToUpper()</span>
+      </RoundedContainer>
+    </div>
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public string Label { get; set; } = "";
+
+  [Parameter]
+  public AvailableCurrenciesAbbr SelectedCurrency { get; set; }
+
+  [Parameter]
+  public decimal DollarAmount { get; set; } = 0.0m;
+
+  [Parameter]
+  public EventCallback<string> OnChange { get; set; }
+
+  [Parameter]
+  public decimal Amount { get; set; } = 0.0m;
+
+  private async void HandleChange(ChangeEventArgs evt)
+  {
+    await OnChange.InvokeAsync(evt.Value.ToString());
+  }
+}

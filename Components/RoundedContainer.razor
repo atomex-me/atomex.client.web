@@ -1,0 +1,11 @@
+  <div class="rounded-dark-container" @onclick="@OnClick">
+    @ChildContent
+  </div>
+
+@code {
+  [Parameter]
+  public RenderFragment ChildContent { get; set; }
+
+  [Parameter]
+  public EventCallback OnClick { get; set; }
+}
