@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+
 namespace atomex_frontend.atomex_data_structures
 {
   public enum AvailableCurrencies
@@ -16,9 +19,27 @@ namespace atomex_frontend.atomex_data_structures
     XTZ
   }
 
+  public class Helper
+  {
+    public static AvailableCurrenciesAbbr GetAbbr(AvailableCurrencies currency)
+    {
+      return (AvailableCurrenciesAbbr)currency;
+    }
+
+    public static Stream GenerateStreamFromString(string s)
+    {
+      var stream = new MemoryStream();
+      var writer = new StreamWriter(stream);
+      writer.Write(s);
+      writer.Flush();
+      stream.Position = 0;
+      return stream;
+    }
+  }
+
   public class CurrencyData
   {
-    public CurrencyData(AvailableCurrencies currencyName, double balance, double dollarValue, double percent)
+    public CurrencyData(AvailableCurrenciesAbbr currencyName, double balance, double dollarValue, double percent)
     {
       CurrencyName = currencyName;
       Balance = balance;
@@ -26,7 +47,7 @@ namespace atomex_frontend.atomex_data_structures
       Percent = percent;
     }
 
-    public AvailableCurrencies CurrencyName;
+    public AvailableCurrenciesAbbr CurrencyName;
     public double Balance;
 
     public double DollarValue;

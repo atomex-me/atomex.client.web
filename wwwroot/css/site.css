@@ -649,7 +649,23 @@ button:hover {
     margin: 0 auto;
 }
 
+
+.tableFixHead {
+    overflow-y: auto;
+    height: 220px;
+}
+
+.tableFixHead.portfolio {
+    height: 320px;
+}
+
+.tableFixHead thead th {
+    position: sticky;
+    top: 0;
+}
+
 table {
+    border-collapse: collapse;
     width: 100%;
     width: -moz-available;
     width: -webkit-fill-available;
@@ -660,7 +676,12 @@ table {
     text-transform: uppercase;
 }
 
-table>tbody>tr>th:last-child {
+th,
+td {
+    padding: 8px 16px;
+}
+
+table>thead>tr>th:last-child {
     border-right: none;
 }
 
@@ -676,7 +697,7 @@ table>tbody>tr>td {
     padding-left: 15px;
 }
 
-table>tbody>tr>th {
+table>thead>tr>th {
     padding: 6px;
     padding-left: 15px;
     color: white;
@@ -900,6 +921,7 @@ table>tbody>tr>th {
     top: calc(50%);
     transform: translate(-50%, -50%);
     box-shadow: 0 0 10px black;
+    z-index: 100;
 }
 
 .no-flex {
@@ -1166,8 +1188,7 @@ table>tbody>tr>th {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-top: 30px;
-    padding-bottom: 20px;
+    padding: 18px 0;
 }
 
 .currencies-exchange__currency-usd {

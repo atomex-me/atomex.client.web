@@ -1,13 +1,15 @@
-<div>
+<div class="tableFixHead @(Variant == AvailableVariants.Currencies ? "portfolio" : "")">
   <table>
-    <tbody>
       @if (Variant == AvailableVariants.Currencies) {
+        <thead>
         <tr>
           <th>Currency</th>
           <th>Balance</th>
           <th>Value</th>
           <th>% in portfolio</th>
         </tr>
+        </thead>
+        <tbody>
         @foreach (KeyValuePair<AvailableCurrencies, CurrencyData> currency in CurrenciesData) {
           <tr>
             <td>
@@ -21,8 +23,10 @@
             <td>$@currency.Value.Percent%</td>
           </tr>
         }
+      </tbody>
       }
       @if (Variant == AvailableVariants.Transactions) {
+        <thead>
         <tr>
           <th>Type</th>
           <th>Description</th>
@@ -30,6 +34,9 @@
           <th>State</th>
           <th>Time</th>
         </tr>
+        </thead>
+
+        <tbody>
         @foreach (var transaction in TransactionsData) {
           <tr>
             <td>
@@ -45,8 +52,8 @@
             <td class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:MM}", transaction.CreationTime))</td>
           </tr>
         }
+        </tbody>
       }
-    </tbody>
   </table>
 </div>
 
@@ -60,13 +67,16 @@
   [Parameter]
   public List<Transaction> TransactionsData { get; set; }
 
-  public enum AvailableVariants {
+  public enum AvailableVariants
+  {
     Currencies,
     Transactions
   }
 
-  private string GetBadgeColor(BlockchainTransactionState state) {
-    switch (state) {
+  private string GetBadgeColor(BlockchainTransactionState state)
+  {
+    switch (state)
+    {
       case BlockchainTransactionState.Confirmed:
         return "primary";
       case BlockchainTransactionState.Unconfirmed:

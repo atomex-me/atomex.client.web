@@ -10,11 +10,14 @@ using System.IO;
 using Atomex.Common.Configuration;
 using Atomex;
 using Atomex.MarketData.Bitfinex;
+using Atomex.MarketData.Abstract;
 using Atomex.Core;
 using System.Security;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using atomex_frontend.atomex_data_structures;
+
 
 namespace atomex_frontend.Storages
 {
@@ -34,16 +37,6 @@ namespace atomex_frontend.Storages
     public IAtomexApp AtomexApp { get; set; }
     public Terminal Terminal { get; set; }
 
-
-    private Stream GenerateStreamFromString(string s)
-    {
-      var stream = new MemoryStream();
-      var writer = new StreamWriter(stream);
-      writer.Write(s);
-      writer.Flush();
-      stream.Position = 0;
-      return stream;
-    }
 
     public async Task<IList<string>> GetAvailableWallets()
     {
@@ -81,10 +74,6 @@ namespace atomex_frontend.Storages
 
     public async Task ConnectToWallet(string WalletName, SecureString Password)
     {
-      //if (Account != null && Terminal != null) {
-
-      //}
-
       var coreAssembly = AppDomain.CurrentDomain
           .GetAssemblies()
           .FirstOrDefault(a => a.GetName().Name == "Atomex.Client.Core");
@@ -98,7 +87,7 @@ namespace atomex_frontend.Storages
           .Build();
 
       var confJson = await httpClient.GetJsonAsync<dynamic>("conf/configuration.json");
-      Stream confStream = GenerateStreamFromString(confJson.ToString());
+      Stream confStream = Helper.GenerateStreamFromString(confJson.ToString());
 
       var configuration = new ConfigurationBuilder()
           .AddJsonStream(confStream)
@@ -128,7 +117,6 @@ namespace atomex_frontend.Storages
       {
         Console.WriteLine($"Wallet {WalletName} founded on FS");
       }
-      // Account = Account.LoadFromFile($"/{WalletName}.wallet", Password, currenciesProvider, symbolsProvider);
 
       Account = new Account(
         HdWallet.LoadFromFile($"/{WalletName}.wallet", Password),
@@ -158,6 +146,20 @@ namespace atomex_frontend.Storages
         AtomexApp.Start();
       }
 
+      if (AtomexApp.HasQuotesProvider)
+      {
+        Console.WriteLine("Subscribing to QuotesUpdated Event.");
+        AtomexApp.QuotesProvider.QuotesUpdated += OnQuotesUpdatedEventHandler;
+      }
+    }
+
+    private void OnQuotesUpdatedEventHandler(object sender, EventArgs args)
+    {
+      if (sender is BitfinexQuotesProvider quotesProvider)
+      {
+        var quote = quotesProvider.GetQuote("BTC", "USD");
+        Console.WriteLine($"QUOTES FOR BTC HAS BEEN UPDATED! 1 BTC == {quote.Bid} USD");
+      }
     }
   }
 }

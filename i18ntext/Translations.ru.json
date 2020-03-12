@@ -55,5 +55,8 @@
   "Time": "Time",
   "Delegate": "Delegate",
   "NoDelegationsFound": "NoDelegationsFound",
-  "Address": "Address"
+  "Address": "Address",
+  "EstimatedPrice": "Estimated price",
+  "EstimatedPaymentFee": "Estimated payment fee",
+  "EstimatedRedeemFee": "Estimated redeem fee"
 }

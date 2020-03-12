@@ -17,6 +17,7 @@ namespace atomex_frontend
       services.AddSingleton<AccountStorage, AccountStorage>();
       services.AddSingleton<UserStorage, UserStorage>();
       services.AddSingleton<RegisterStorage, RegisterStorage>();
+      services.AddSingleton<WalletStorage, WalletStorage>();
     }
 
     public void Configure(IComponentsApplicationBuilder app)

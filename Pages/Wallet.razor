@@ -1,8 +1,8 @@
 ﻿@page "/wallet"
 @using Atomex.Blockchain.Abstract
 @using Atomex.Blockchain.Tezos;
-@using System.Globalization;
-@inject AccountStorage AccountStorage
+@inject AccountStorage AccountStorage;
+@inject WalletStorage WalletStorage;
 
 <div>
   <div class="wallet-page dark-background">
@@ -28,10 +28,10 @@
       <div class="wallet-page__container">
           @if (ActiveSection == WalletMenuButton.ButtonVariants.Portfolio) {
             <DonutChart
-                LTCPercent="@CurrenciesData[AvailableCurrencies.Litecoin].Percent"
-                ETHPercent="@CurrenciesData[AvailableCurrencies.Ethereum].Percent"
-                XTZPercent="@CurrenciesData[AvailableCurrencies.Tezos].Percent"
-                BTCPercent="@CurrenciesData[AvailableCurrencies.Bitcoin].Percent" />
+                LTCPercent="@(0)"
+                ETHPercent="@(0)"
+                XTZPercent="@(0)"
+                BTCPercent="@(0)" />
             <WalletDataTable
                 Variant="@WalletDataTable.AvailableVariants.Currencies"
                 CurrenciesData="@CurrenciesData" />
@@ -42,7 +42,9 @@
                 <CurrenciesRow />
                 <CurrencyCard
                     OnSendClick="@SendOpenCloseHandler"
-                    OnReceiveClick="@ReceiveOpenCloseHandler" />
+                    OnReceiveClick="@ReceiveOpenCloseHandler"
+                    OnUpdateClick="@OnUpdateHandler"
+                    OnConvertClick="@OnConvertHandler"/>
                 <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
                     <SendModal OnCancelClick="@SendOpenCloseHandler" />
                 </Modal>
@@ -56,46 +58,20 @@
           }
           @if (ActiveSection == WalletMenuButton.ButtonVariants.Conversion) {
             <div class="exchange">
-                <CurrencyDropdown SelectedCurrency="AvailableCurrencies.Bitcoin" Label="From" />
-                <CurrencyDropdown SelectedCurrency="AvailableCurrencies.Litecoin" Label="To" />
+                <CurrencyDropdown SelectedCurrency="AvailableCurrencies.Bitcoin" Label="@Translations.From" />
+                <CurrencyDropdown SelectedCurrency="AvailableCurrencies.Litecoin" Label="@Translations.To" />
+
                 <AmountBadge
-                    Label="Amount"
+                    Label="@Translations.Amount"
                     SelectedCurrency="AvailableCurrenciesAbbr.ETH" 
                     Amount="@ConvertedCurrencyAmount"
                     OnChange="@OnAmountChange"
                     DollarAmount="@(123.3454m)" />
                 
-                <div class="light-background">
-                    <div class="currencies-exchange-row">
-                        <div class="currencies-exchange__currency-usd">
-                            <span>0.00000000 <span class="currency-abbr">BTC</span></span>
-                            <span class="exchange-amount-container__usd-amount">$0.00 <span class="currency-abbr small">USD</span></span>
-                        </div>
-                        <i class="icon currency-icon-big bitcoin"></i>
-                        <i class="convert-arrow-icon"></i>
-                        <i class="icon currency-icon-big litecoin"></i>
-                        <div class="currencies-exchange__currency-usd">
-                            <span>0.00000000 <span class="currency-abbr">BTC</span></span>
-                            <span class="exchange-amount-container__usd-amount">$0.00 <span class="currency-abbr small">USD</span></span>
-                        </div>
-                    </div>
-                    <div class="exchange-info">
-                        <RoundedContainer>
-                            <div class="gray-text">Estimated price: <span class="white-text">0.0000000</span></div>
-                            <div class="gray-text">Estimated payment fee: <span class="white-text">0.0000000</span>
-                                <span class="currency-abbr small white-text">BTC</span>
-                                <span class="currency-abbr small">$0.01</span>
-                            </div>
-                            <div class="gray-text">Estimated redeem fee: <span class="white-text">0.0000000</span>
-                                <span class="currency-abbr small white-text">BTC</span>
-                                <span class="currency-abbr small">$0.01</span>
-                            </div>
-                        </RoundedContainer>
-                    </div>
-                </div>
+                <ConvertCard />
 
                 <div class="exchange-button__container">
-                    <NavigateButton Variant="center">Convert</NavigateButton>
+                    <NavigateButton Variant="center">@Translations.Convert</NavigateButton>
                 </div>
             </div>
             <WalletDataTable
@@ -125,6 +101,18 @@
 
     protected void WalletMenuButtonClick(WalletMenuButton.ButtonVariants Variant) {
         ActiveSection = Variant;
+    }
+
+    private async void OnUpdateHandler() {
+        await WalletStorage.ScanCurrencyAsync(WalletStorage.AvailableCurrencies[3]);
+        Console.WriteLine($"Scanning {WalletStorage.AvailableCurrencies[3].Name} done");
+    }
+
+    private async void OnConvertHandler() {
+        var balance = await WalletStorage.GetTezosBalance();
+        foreach(TezosTransaction tx in balance) {
+            Console.WriteLine(tx.GasLimit);
+        }
     }
 
     public async void OnSendClick() {
@@ -188,14 +176,15 @@
     protected bool SendModalOpened { get; set; } = false;
     protected bool ReceiveModalOpened { get; set; } = false;
 
-    protected override void OnInitialized() {
+  I18nText.Translations Translations = new I18nText.Translations();
+    protected override async Task OnInitializedAsync() {
         ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
         CurrenciesData = new Dictionary<AvailableCurrencies, CurrencyData>();
 
-        CurrenciesData.Add(AvailableCurrencies.Bitcoin, new CurrencyData(AvailableCurrencies.Bitcoin, 0.56, 1234, 15));
-        CurrenciesData.Add(AvailableCurrencies.Ethereum, new CurrencyData(AvailableCurrencies.Ethereum, 200, 32000, 35));
-        CurrenciesData.Add(AvailableCurrencies.Litecoin, new CurrencyData(AvailableCurrencies.Litecoin, 234, 100, 30));
-        CurrenciesData.Add(AvailableCurrencies.Tezos, new CurrencyData(AvailableCurrencies.Tezos, 600, 640, 20));
+        // CurrenciesData.Add(AvailableCurrencies.Bitcoin, new CurrencyData(AvailableCurrencies.Bitcoin, 0.56, 1234, 15));
+        // CurrenciesData.Add(AvailableCurrencies.Ethereum, new CurrencyData(AvailableCurrencies.Ethereum, 200, 32000, 35));
+        // CurrenciesData.Add(AvailableCurrencies.Litecoin, new CurrencyData(AvailableCurrencies.Litecoin, 234, 100, 30));
+        // CurrenciesData.Add(AvailableCurrencies.Tezos, new CurrencyData(AvailableCurrencies.Tezos, 600, 640, 20));
         
         Transactions = new List<Transaction>();
         Transactions.Add(new Transaction("1",BlockchainTransactionState.Confirmed, BlockchainTransactionType.Input, new DateTime(2008, 6, 7, 7, 47, 0), true, 12));
@@ -204,5 +193,7 @@
         Transactions.Add(new Transaction("4",BlockchainTransactionState.Pending, BlockchainTransactionType.Output, new DateTime(2008, 8, 1, 15, 47, 0), true, -1234.2344));
         Transactions.Add(new Transaction("5",BlockchainTransactionState.Unconfirmed, BlockchainTransactionType.Input, new DateTime(2008, 9, 5, 7, 47, 0), true, 234.23444));
         Transactions.Add(new Transaction("6",BlockchainTransactionState.Pending, BlockchainTransactionType.SwapRedeem, new DateTime(2008, 12, 2, 7, 47, 0), true, 2555));
+
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     }
 }

@@ -49,6 +49,15 @@ namespace atomex_frontend.I18nText
         /// <summary>"Wallet with this name already exist"</summary>
         public string ErrorWalletNameExist;
 
+        /// <summary>"Estimated payment fee"</summary>
+        public string EstimatedPaymentFee;
+
+        /// <summary>"Estimated price"</summary>
+        public string EstimatedPrice;
+
+        /// <summary>"Estimated redeem fee"</summary>
+        public string EstimatedRedeemFee;
+
         /// <summary>"Fee"</summary>
         public string Fee;
 
