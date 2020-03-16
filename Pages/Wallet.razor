@@ -3,6 +3,7 @@
 @using Atomex.Blockchain.Tezos;
 @inject AccountStorage AccountStorage;
 @inject WalletStorage WalletStorage;
+@using Atomex.Blockchain.BitcoinBased;
 
 <div>
   <div class="wallet-page dark-background">
@@ -104,15 +105,35 @@
     }
 
     private async void OnUpdateHandler() {
-        await WalletStorage.ScanCurrencyAsync(WalletStorage.AvailableCurrencies[3]);
-        Console.WriteLine($"Scanning {WalletStorage.AvailableCurrencies[3].Name} done");
+        await WalletStorage.ScanCurrencyAsync(WalletStorage.AvailableCurrencies[2]);
+        Console.WriteLine($"Scanning {WalletStorage.AvailableCurrencies[2].Name} done");
+
+        List<IBlockchainTransaction> trans = await WalletStorage.GetTezosBalance();
+        foreach(var tx in trans){
+            Console.WriteLine(tx.CreationTime);
+             Console.WriteLine(tx.State);
+        }
+
+        var balance = await AccountStorage.Account.GetBalanceAsync("LTC");
+        Console.WriteLine($"LTC BALANCE: {balance.Available}");
+
+        WalletAddress wa = await WalletStorage.GetFreeAddress("LTC");
     }
 
     private async void OnConvertHandler() {
         var balance = await WalletStorage.GetTezosBalance();
-        foreach(TezosTransaction tx in balance) {
-            Console.WriteLine(tx.GasLimit);
+        Console.WriteLine("Retrieving LTC transactions");
+        int am = 0;
+        foreach(IBlockchainTransaction tx in balance) {
+            am++;
+            Console.WriteLine($"{tx.Currency.Name}: {tx.CreationTime} {tx.State}");
+
         }
+
+        Console.WriteLine($"Total transactions: {am}");
+
+        WalletAddress wa = await WalletStorage.GetFreeAddress("LTC");
+        Console.WriteLine(wa.ToString());
     }
 
     public async void OnSendClick() {

@@ -17,6 +17,8 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using atomex_frontend.atomex_data_structures;
+using Atomex.Blockchain;
+using Atomex.Blockchain.Abstract;
 
 
 namespace atomex_frontend.Storages
@@ -151,6 +153,10 @@ namespace atomex_frontend.Storages
         Console.WriteLine("Subscribing to QuotesUpdated Event.");
         AtomexApp.QuotesProvider.QuotesUpdated += OnQuotesUpdatedEventHandler;
       }
+      Console.WriteLine("Subscribing to New Trans Event Event.");
+      AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
+      Console.WriteLine("Subscribing to BalanceUpdated event.");
+      AtomexApp.Account.BalanceUpdated += OnBalanceChangedEventHandler;
     }
 
     private void OnQuotesUpdatedEventHandler(object sender, EventArgs args)
@@ -160,6 +166,19 @@ namespace atomex_frontend.Storages
         var quote = quotesProvider.GetQuote("BTC", "USD");
         Console.WriteLine($"QUOTES FOR BTC HAS BEEN UPDATED! 1 BTC == {quote.Bid} USD");
       }
+    }
+
+    private void OnBalanceChangedEventHandler(object sender, CurrencyEventArgs args)
+    {
+      Console.WriteLine($"BALANCE UPDATED ON {args.Currency.Name}");
+    }
+
+    private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
+    {
+      Console.WriteLine("New trans!!!!!!!!!!!!!");
+      //   Console.WriteLine($"New transaction!! {e.Transaction.Id}");
+      //   if (!e.Transaction.IsConfirmed && e.Transaction.State != BlockchainTransactionState.Failed)
+      //     Console.WriteLine($"New transaction!! {e.Transaction.Id}");
     }
   }
 }

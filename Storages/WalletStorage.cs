@@ -37,9 +37,17 @@ namespace atomex_frontend.Storages
 
     public async Task ScanCurrencyAsync(Currency currency)
     {
+      Console.WriteLine($"Scanning {currency.Name}");
       await new HdWalletScanner(accountStorage.Account)
           .ScanAsync(currency.Name)
           .ConfigureAwait(false);
+    }
+
+    public async Task<WalletAddress> GetFreeAddress(string currency)
+    {
+      WalletAddress wa = await accountStorage.Account.GetFreeExternalAddressAsync(currency);
+      Console.WriteLine(wa.ToString());
+      return wa;
     }
 
     public async void UpdatePortfolioAsync()
@@ -61,7 +69,7 @@ namespace atomex_frontend.Storages
     {
       // var balance = await accountStorage.Account.GetBalanceAsync("XTZ");
 
-      var transactions = await accountStorage.Account.GetTransactionsAsync("XTZ");
+      var transactions = await accountStorage.Account.GetTransactionsAsync("LTC");
       return transactions.ToList();
 
     }
