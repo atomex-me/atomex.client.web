@@ -1,14 +1,14 @@
 <div class="light-background">
     <div class="currencies-exchange-row">
         <div class="currencies-exchange__currency-usd">
-            <span>@FromAmount.ToString() <span class="currency-abbr">@(Helper.GetAbbr(FromCurrency).ToName().ToUpper())</span></span>
+            <span>@FromAmount.ToString() <span class="currency-abbr">@(FromCurrency.Name.ToUpper())</span></span>
             <span class="exchange-amount-container__usd-amount">$0.00 <span class="currency-abbr small">USD</span></span>
         </div>
         <i class="icon currency-icon-big bitcoin"></i>
         <i class="convert-arrow-icon"></i>
         <i class="icon currency-icon-big litecoin"></i>
         <div class="currencies-exchange__currency-usd">
-            <span>@ToAmount.ToString()  <span class="currency-abbr">@(Helper.GetAbbr(ToCurrency).ToName().ToUpper())</span></span>
+            <span>@ToAmount.ToString()  <span class="currency-abbr">@(ToCurrency.Name.ToUpper())</span></span>
             <span class="exchange-amount-container__usd-amount">$0.00 <span class="currency-abbr small">USD</span></span>
         </div>
     </div>
@@ -16,11 +16,11 @@
         <RoundedContainer>
             <div class="gray-text">@Translations.EstimatedPrice: <span class="white-text">@EstimatedPrice.ToString()</span></div>
             <div class="gray-text">@Translations.EstimatedPaymentFee: <span class="white-text">@EstimatedPaymentFee.ToString()</span>
-                <span class="currency-abbr small white-text">@(Helper.GetAbbr(FromCurrency).ToName().ToUpper())</span>
+                <span class="currency-abbr small white-text">@(FromCurrency.Name.ToUpper())</span>
                 <span class="currency-abbr small">$0.01</span>
             </div>
             <div class="gray-text">@Translations.EstimatedRedeemFee: <span class="white-text">@EstimatedRedeemFee.ToString()</span>
-                <span class="currency-abbr small white-text">@(Helper.GetAbbr(FromCurrency).ToName().ToUpper())</span>
+                <span class="currency-abbr small white-text">@(FromCurrency.Name.ToUpper())</span>
                 <span class="currency-abbr small">$0.01</span>
             </div>
         </RoundedContainer>
@@ -28,30 +28,30 @@
 </div>
 
 @code {
-  [Parameter]
-  public AvailableCurrencies FromCurrency { get; set; }
+    [Parameter]
+    public Currency FromCurrency { get; set; }
 
-  [Parameter]
-  public AvailableCurrencies ToCurrency { get; set; }
+    [Parameter]
+    public Currency ToCurrency { get; set; }
 
-  [Parameter]
-  public decimal FromAmount { get; set; } = 0.0000m;
+    [Parameter]
+    public decimal FromAmount { get; set; } = 0.0000m;
 
-  [Parameter]
-  public decimal ToAmount { get; set; } = 0.0000m;
+    [Parameter]
+    public decimal ToAmount { get; set; } = 0.0000m;
 
-  [Parameter]
-  public decimal EstimatedPrice { get; set; } = 0.0000m;
+    [Parameter]
+    public decimal EstimatedPrice { get; set; } = 0.0000m;
 
-  [Parameter]
-  public decimal EstimatedPaymentFee { get; set; } = 0.0000m;
+    [Parameter]
+    public decimal EstimatedPaymentFee { get; set; } = 0.0000m;
 
-  [Parameter]
-  public decimal EstimatedRedeemFee { get; set; } = 0.0000m;
+    [Parameter]
+    public decimal EstimatedRedeemFee { get; set; } = 0.0000m;
 
-  I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync()
-  {
-    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-  }
+    I18nText.Translations Translations = new I18nText.Translations();
+    protected override async Task OnInitializedAsync()
+    {
+      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    }
 }

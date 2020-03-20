@@ -1,12 +1,15 @@
+@inject WalletStorage walletStorage;
+@using Microsoft.AspNetCore.Components;
+
 <div class="currency-card">
   <div class="currency-card__selected-currency">
-    <i class="icon currency-icon-big bitcoin" />
+    <i class="icon currency-icon-big @(walletStorage.SelectedCurrency.Description.ToLower())" />
     <span>
       <div class="currency-card__currency-value">
-        0.00000000000 <span class="currency-card__currency-value-desc">BTC</span>
+        @(walletStorage.SelectedCurrencyData.Balance) <span class="currency-card__currency-value-desc">@walletStorage.SelectedCurrency.Name</span>
       </div>
       <div class="currency-card__dollar-value">
-        $0.00 <span class="currency-card__dollar-value-desc">USD</span>
+        $@(walletStorage.SelectedCurrencyData.DollarValue) <span class="currency-card__dollar-value-desc">USD</span>
       </div>
     </span>
   </div>
@@ -30,4 +33,13 @@
 
   [Parameter]
   public EventCallback OnUpdateClick { get; set; }
+
+  [Parameter]
+  public decimal CurrencyAmount { get; set; }
+
+
+  protected override void OnInitialized()
+  {
+    walletStorage.RefreshRequested += StateHasChanged;
+  }
 }

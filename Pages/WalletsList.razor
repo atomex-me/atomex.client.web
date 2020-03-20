@@ -70,48 +70,54 @@
     string WalletPasswordError { get; set; }
     bool Loading { get; set; }
 
-    private void OnWalletClick(int index) {
-        Console.WriteLine($"{AvailableWallets[index]} {index}");
-        SelectedWalletIndex = index;
+    private void OnWalletClick(int index)
+    {
+      Console.WriteLine($"{AvailableWallets[index]} {index}");
+      SelectedWalletIndex = index;
     }
 
-    private void OnWalletPasswordChange(string pass) {
-        WalletPassword = pass;
-        if (WalletPasswordError.Length > 0) {
-            WalletPasswordError = "";
-        }
+    private void OnWalletPasswordChange(string pass)
+    {
+      WalletPassword = pass;
+      if (WalletPasswordError.Length > 0)
+      {
+    WalletPasswordError = "";
+      }
     }
 
-    private void OnCancelClick() {
-        SelectedWalletIndex = -1;
-        WalletPassword = "";
+    private void OnCancelClick()
+    {
+      SelectedWalletIndex = -1;
+      WalletPassword = "";
     }
 
-    private async Task OnUlockClick() {
-        try
-        {
-            Loading = true;
-            await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
-            Loading = false;
-        }
-        catch (Exception e) {
-            Console.WriteLine("PASS INCORRECT");
-            WalletPasswordError = Translations.InvalidPassword;
-            Loading = false;
-        }
+    private async Task OnUlockClick()
+    {
+      try
+      {
+    Loading = true;
+    await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
+    Loading = false;
+      }
+      catch (Exception e)
+      {
+    Console.WriteLine("PASS INCORRECT");
+    WalletPasswordError = Translations.InvalidPassword;
+    Loading = false;
+      }
     }
 
     I18nText.Translations Translations = new I18nText.Translations();
     protected override async Task OnInitializedAsync()
     {
-        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-        await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+      await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
 
-        IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
-        AvailableWallets = availableWalletsList.ToArray<string>();
-        SelectedWalletIndex = -1;
-        WalletPasswordError = "";
-        Loading = false;
+      IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
+      AvailableWallets = availableWalletsList.ToArray<string>();
+      SelectedWalletIndex = -1;
+      WalletPasswordError = "";
+      Loading = false;
     }
 }
 

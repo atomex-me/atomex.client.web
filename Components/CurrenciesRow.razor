@@ -1,6 +1,8 @@
+@inject WalletStorage walletStorage;
+
 <div class="currencies-row">
   <div>
-    <div>
+    <div @onclick="@(() => OnClick(AccountStorage.Bitcoin))">
         <i class="icon currency-icon bitcoin" />
     </div>
     <div>
@@ -8,7 +10,7 @@
     </div>
   </div>
   <div>
-    <div>
+    <div @onclick="@(() => OnClick(AccountStorage.Ethereum))">
         <i class="icon currency-icon ethereum" />
     </div>
     <div>
@@ -16,7 +18,7 @@
     </div>
   </div>
   <div>
-    <div>
+    <div @onclick="@(() => OnClick(AccountStorage.Litecoin))">
         <i class="icon currency-icon litecoin" />
     </div>
     <div>
@@ -24,7 +26,7 @@
     </div>
   </div>
   <div>
-    <div>
+    <div @onclick="@(() => OnClick(AccountStorage.Tezos))">
         <i class="icon currency-icon tezos" />
     </div>
     <div>
@@ -32,3 +34,10 @@
     </div>
   </div>
 </div>
+
+@code { 
+  private void OnClick(Currency currency)
+  {
+    walletStorage.SelectedCurrency = currency;
+  }
+}

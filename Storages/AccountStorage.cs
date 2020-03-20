@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
 using System.IO;
+using System.Reflection;
 using Atomex.Common.Configuration;
 using Atomex;
 using Atomex.MarketData.Bitfinex;
@@ -16,9 +17,9 @@ using System.Security;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using atomex_frontend.atomex_data_structures;
 using Atomex.Blockchain;
 using Atomex.Blockchain.Abstract;
+using Atomex.Abstract;
 
 
 namespace atomex_frontend.Storages
@@ -30,15 +31,41 @@ namespace atomex_frontend.Storages
     {
       this.httpClient = httpClient;
       this.localStorage = localStorage;
+
+      this.InitializeAtomexConfigs();
+    }
+    public static Currency Bitcoin
+    {
+      get => Currencies.GetByName("BTC");
     }
 
-    private HttpClient httpClient;
-    private ILocalStorageService localStorage;
+    public static Currency Ethereum
+    {
+      get => Currencies.GetByName("ETH");
+    }
+
+    public static Currency Litecoin
+    {
+      get => Currencies.GetByName("LTC");
+    }
+
+    public static Currency Tezos
+    {
+      get => Currencies.GetByName("XTZ");
+    }
 
     public Account Account { get; set; }
     public IAtomexApp AtomexApp { get; set; }
     public Terminal Terminal { get; set; }
+    public static ICurrencies Currencies { get; set; }
+    public BitfinexQuotesProvider QuotesProvider { get; set; }
 
+    private CurrenciesProvider currenciesProvider;
+    private IConfiguration currenciesConfiguration;
+    private IConfiguration symbolsConfiguration;
+    private Assembly coreAssembly;
+    private HttpClient httpClient;
+    private ILocalStorageService localStorage;
 
     public async Task<IList<string>> GetAvailableWallets()
     {
@@ -76,30 +103,15 @@ namespace atomex_frontend.Storages
 
     public async Task ConnectToWallet(string WalletName, SecureString Password)
     {
-      var coreAssembly = AppDomain.CurrentDomain
-          .GetAssemblies()
-          .FirstOrDefault(a => a.GetName().Name == "Atomex.Client.Core");
-
-      var currenciesConfiguration = new ConfigurationBuilder()
-          .AddEmbeddedJsonFile(coreAssembly, "currencies.json")
-          .Build();
-
-      var symbolsConfiguration = new ConfigurationBuilder()
-          .AddEmbeddedJsonFile(coreAssembly, "symbols.json")
-          .Build();
-
       var confJson = await httpClient.GetJsonAsync<dynamic>("conf/configuration.json");
-      Stream confStream = Helper.GenerateStreamFromString(confJson.ToString());
+      Stream confStream = Common.Helper.GenerateStreamFromString(confJson.ToString());
 
-      var configuration = new ConfigurationBuilder()
+      IConfiguration configuration = new ConfigurationBuilder()
           .AddJsonStream(confStream)
           .Build();
-
-      var currenciesProvider = new CurrenciesProvider(currenciesConfiguration);
       var symbolsProvider = new SymbolsProvider(symbolsConfiguration, currenciesProvider);
 
       bool walletFileExist = File.Exists($"/{WalletName}.wallet");
-
       if (!walletFileExist)
       {
         var wallet = await localStorage.GetItemAsync<string>($"{WalletName}.wallet");
@@ -163,8 +175,7 @@ namespace atomex_frontend.Storages
     {
       if (sender is BitfinexQuotesProvider quotesProvider)
       {
-        var quote = quotesProvider.GetQuote("BTC", "USD");
-        Console.WriteLine($"QUOTES FOR BTC HAS BEEN UPDATED! 1 BTC == {quote.Bid} USD");
+        QuotesProvider = quotesProvider;
       }
     }
 
@@ -179,6 +190,25 @@ namespace atomex_frontend.Storages
       //   Console.WriteLine($"New transaction!! {e.Transaction.Id}");
       //   if (!e.Transaction.IsConfirmed && e.Transaction.State != BlockchainTransactionState.Failed)
       //     Console.WriteLine($"New transaction!! {e.Transaction.Id}");
+    }
+
+    private void InitializeAtomexConfigs()
+    {
+      this.coreAssembly = AppDomain.CurrentDomain
+        .GetAssemblies()
+        .FirstOrDefault(a => a.GetName().Name == "Atomex.Client.Core");
+
+      this.currenciesConfiguration = new ConfigurationBuilder()
+        .AddEmbeddedJsonFile(coreAssembly, "currencies.json")
+        .Build();
+
+      this.symbolsConfiguration = new ConfigurationBuilder()
+        .AddEmbeddedJsonFile(coreAssembly, "symbols.json")
+        .Build();
+
+      this.currenciesProvider = new CurrenciesProvider(this.currenciesConfiguration);
+
+      Currencies = currenciesProvider.GetCurrencies(Network.TestNet); // todo: Make actual Net;
     }
   }
 }

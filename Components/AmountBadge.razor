@@ -7,12 +7,12 @@
   <div class="exchange-amount__input">
     <input type="number" value="@Amount.ToString().Replace(",", ".")" @oninput="@HandleChange" onkeydown="return event.keyCode !== 69" />
     <div class="exchexchange-amount__input-add-info">
-      <span class="currency-abbr">@SelectedCurrency.ToName().ToUpper()</span>
+      <span class="currency-abbr">@SelectedCurrency.Name</span>
       <div class="exchange-amount-container__usd-amount">($@DollarAmount <span class="currency-abbr small">USD</span>)</div>
     </div>
     <div class="exchange-amount__available-container">
       <RoundedContainer>
-        Available: 0.00000000 <span class="currency-abbr small">@SelectedCurrency.ToName().ToUpper()</span>
+        Available: 0.00000000 <span class="currency-abbr small">@SelectedCurrency.Name</span>
       </RoundedContainer>
     </div>
   </div>
@@ -23,7 +23,7 @@
   public string Label { get; set; } = "";
 
   [Parameter]
-  public AvailableCurrenciesAbbr SelectedCurrency { get; set; }
+  public Currency SelectedCurrency { get; set; }
 
   [Parameter]
   public decimal DollarAmount { get; set; } = 0.0m;

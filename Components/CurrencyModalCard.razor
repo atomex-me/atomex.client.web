@@ -1,15 +1,15 @@
 
 <div class="modal-currency-title__container" @onclick="@OnClick">
-  <i class="icon currency-icon @SelectedCurrency.ToName().ToLower()"></i>
+  <i class="icon currency-icon @SelectedCurrency.Name.ToLower()"></i>
   <div class="modal-currency-title__text-container">
-    <div>@SelectedCurrency.ToName().ToUpper()</div>
-    <div>@Amount <span>@(((AvailableCurrenciesAbbr)(SelectedCurrency)).ToName().ToUpper())</span></div>
+    <div>@SelectedCurrency.Name.ToUpper()</div>
+    <div>@Amount <span>@SelectedCurrency.Name</span></div>
   </div>
 </div>
 
 @code {
   [Parameter]
-  public AvailableCurrencies SelectedCurrency { get; set; }
+  public Currency SelectedCurrency { get; set; }
 
   [Parameter]
   public decimal Amount { get; set; }

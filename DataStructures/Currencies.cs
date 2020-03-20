@@ -1,5 +1,11 @@
+using Atomex.Core;
 using System;
-using System.IO;
+using System.Threading.Tasks;
+using Atomex.Abstract;
+using Atomex.Common;
+using Atomex.Common.Configuration;
+using Atomex.Subsystems.Abstract;
+using Microsoft.Extensions.Configuration;
 
 namespace atomex_frontend.atomex_data_structures
 {
@@ -11,48 +17,22 @@ namespace atomex_frontend.atomex_data_structures
     Tezos
   }
 
-  public enum AvailableCurrenciesAbbr
-  {
-    BTC,
-    ETH,
-    LTC,
-    XTZ
-  }
-
-  public class Helper
-  {
-    public static AvailableCurrenciesAbbr GetAbbr(AvailableCurrencies currency)
-    {
-      return (AvailableCurrenciesAbbr)currency;
-    }
-
-    public static Stream GenerateStreamFromString(string s)
-    {
-      var stream = new MemoryStream();
-      var writer = new StreamWriter(stream);
-      writer.Write(s);
-      writer.Flush();
-      stream.Position = 0;
-      return stream;
-    }
-  }
-
   public class CurrencyData
   {
-    public CurrencyData(AvailableCurrenciesAbbr currencyName, double balance, double dollarValue, double percent)
+    public CurrencyData(Currency currency, decimal balance, decimal dollarValue, decimal percent)
     {
-      CurrencyName = currencyName;
+      Currency = currency;
       Balance = balance;
       DollarValue = dollarValue;
       Percent = percent;
     }
 
-    public AvailableCurrenciesAbbr CurrencyName;
-    public double Balance;
+    public Currency Currency;
 
-    public double DollarValue;
+    public decimal Balance;
 
-    public double Percent;
+    public decimal DollarValue;
+
+    public decimal Percent;
   }
-
 }

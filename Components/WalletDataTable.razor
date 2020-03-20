@@ -1,3 +1,5 @@
+@inject WalletStorage walletStorage;
+
 <div class="tableFixHead @(Variant == AvailableVariants.Currencies ? "portfolio" : "")">
   <table>
       @if (Variant == AvailableVariants.Currencies) {
@@ -10,17 +12,17 @@
         </tr>
         </thead>
         <tbody>
-        @foreach (KeyValuePair<AvailableCurrencies, CurrencyData> currency in CurrenciesData) {
+        @foreach (var currency in CurrenciesData.Values) {
           <tr>
             <td>
               <div class="icon-vertical-text">
-                <i class="icon currency-icon @currency.Value.CurrencyName.ToName().ToLower()" />
-                <span class="currency-name">@currency.Value.CurrencyName.ToName()</span>
+                <i class="icon currency-icon @currency.Currency.Description.ToLower()" />
+                <span class="currency-name">@currency.Currency.Name</span>
               </div>
             </td>
-            <td>@currency.Value.Balance BTC</td>
-            <td>$@currency.Value.DollarValue</td>
-            <td>$@currency.Value.Percent%</td>
+            <td>@(Helper.SetPrecision(currency.Balance, 6)) @(currency.Currency.Name.ToUpper())</td>
+            <td>$@(Helper.SetPrecision(currency.DollarValue, 2))</td>
+            <td>@(Helper.SetPrecision(currency.Percent, 1)) %</td>
           </tr>
         }
       </tbody>
@@ -49,7 +51,7 @@
             <td class="transaction-desc">
               <span class="badge badge-@(GetBadgeColor(transaction.State))">@transaction.State.ToName()</span>
             </td>
-            <td class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:MM}", transaction.CreationTime))</td>
+            <td class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:mm}", transaction.CreationTime))</td>
           </tr>
         }
         </tbody>
@@ -62,7 +64,7 @@
   public AvailableVariants Variant { get; set; }
 
   [Parameter]
-  public Dictionary<AvailableCurrencies, CurrencyData> CurrenciesData { get; set; }
+  public Dictionary<Currency, CurrencyData> CurrenciesData { get; set; }
 
   [Parameter]
   public List<Transaction> TransactionsData { get; set; }
@@ -90,5 +92,10 @@
       default:
         return "secondary";
     }
+  }
+
+  protected override void OnInitialized()
+  {
+    walletStorage.RefreshRequested += StateHasChanged;
   }
 }

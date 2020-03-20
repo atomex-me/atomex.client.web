@@ -1,3 +1,5 @@
+@inject WalletStorage walletStorage;
+
 <div class="modal__container">
   <div class="dark-background modal-title">
     Send
@@ -8,7 +10,7 @@
   </div>
 
   <RoundedContainer>
-    <CurrencyModalCard SelectedCurrency="AvailableCurrencies.Bitcoin" Amount="@(1.023m)" />
+    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@(1.023m)" />
   </RoundedContainer>
 
   <Input
@@ -56,15 +58,15 @@
 
   protected string ToAddress { get; set; } = "";
 
-  protected double Amount { get; set; } = 0;
+  protected decimal Amount { get; set; } = 0;
 
-  protected double GasPrice { get; set; } = 0;
+  protected decimal GasPrice { get; set; } = 0;
 
-  protected double GasLimit { get; set; } = 0;
+  protected decimal GasLimit { get; set; } = 0;
 
-  protected double MinersFee { get; set; } = 0;
+  protected decimal MinersFee { get; set; } = 0;
 
-  protected double Fee { get; set; } = 0;
+  protected decimal Fee { get; set; } = 0;
 
   protected void SendAddressChange(string address)
   {
@@ -73,12 +75,12 @@
 
   protected void SendAmountChange(string amount)
   {
-    Amount = Convert.ToDouble(amount);
+    Amount = Convert.ToDecimal(amount);
   }
 
   protected void SendMinersFeeChange(string minersFee)
   {
-    MinersFee = Convert.ToDouble(minersFee);
+    MinersFee = Convert.ToDecimal(minersFee);
     Console.WriteLine(MinersFee);
   }
 

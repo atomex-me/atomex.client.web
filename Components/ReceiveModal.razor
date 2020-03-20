@@ -1,5 +1,6 @@
 @using QRCodeEncoderLibrary;
 @inject IJSRuntime JSRuntime;
+@inject WalletStorage walletStorage;
 
 <div class="modal__container">
   <div class="dark-background modal-title">
@@ -7,7 +8,7 @@
   </div>
 
   <RoundedContainer>
-    <CurrencyModalCard SelectedCurrency="AvailableCurrencies.Tezos" Amount="@(0.000004m)" />
+    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@(0.000004m)" />
   </RoundedContainer>
 
   <div class="receive-modal-dropdown__container">

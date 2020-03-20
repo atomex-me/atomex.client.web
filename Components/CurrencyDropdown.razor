@@ -1,3 +1,5 @@
+@using Atomex
+
 <div class="exchange-container @(IsOpened ? "opened" : "") noselect">
   @if(Label.Length > 0) {
     <span>
@@ -9,21 +11,21 @@
     @if (IsOpened) {
       <div class="exchange-dropdown">
         <CurrencyModalCard
-          SelectedCurrency="@AvailableCurrencies.Bitcoin"
+          SelectedCurrency="@(new Bitcoin())"
           Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(AvailableCurrencies.Bitcoin)" />
+          OnClick="() => OnCurrencyClick(new Bitcoin())" />
         <CurrencyModalCard
-          SelectedCurrency="AvailableCurrencies.Ethereum"
+          SelectedCurrency="@(new Ethereum())"
           Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(AvailableCurrencies.Ethereum)" />
+          OnClick="() => OnCurrencyClick(new Ethereum())" />
         <CurrencyModalCard
-          SelectedCurrency="@AvailableCurrencies.Litecoin"
+          SelectedCurrency="@(new Litecoin())"
           Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(AvailableCurrencies.Litecoin)" />
+          OnClick="() => OnCurrencyClick(new Litecoin())" />
         <CurrencyModalCard
-          SelectedCurrency="@AvailableCurrencies.Tezos"
+          SelectedCurrency="@(new Tezos())"
           Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(AvailableCurrencies.Tezos)" />
+          OnClick="() => OnCurrencyClick(new Tezos())" />
       </div>
     }
   </RoundedContainer>
@@ -31,7 +33,7 @@
 
 @code {
   [Parameter]
-  public AvailableCurrencies SelectedCurrency { get; set; } = AvailableCurrencies.Bitcoin;
+  public Currency SelectedCurrency { get; set; }
 
   [Parameter]
   public string Label { get; set; } = "";
@@ -40,7 +42,7 @@
 
   private decimal Amount { get; set; } = 0.0000000m;
 
-  private void OnCurrencyClick(AvailableCurrencies currency)
+  private void OnCurrencyClick(Currency currency)
   {
     SelectedCurrency = currency;
     IsOpened = !IsOpened;
