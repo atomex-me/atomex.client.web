@@ -16,7 +16,6 @@ using Atomex.MarketData.Abstract;
 using Atomex.Blockchain.Tezos;
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.Blockchain.Ethereum;
-using Atomex.Blockchain.BitcoinBased;
 
 namespace atomex_frontend.Storages
 {
