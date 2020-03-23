@@ -24,7 +24,10 @@ namespace atomex_frontend
       builder.Services.AddSingleton<RegisterStorage, RegisterStorage>();
       builder.Services.AddSingleton<WalletStorage, WalletStorage>();
 
-      await builder.Build().RunAsync();
+      await builder
+        .Build()
+        .UseLocalTimeZone()
+        .RunAsync();
     }
   }
 

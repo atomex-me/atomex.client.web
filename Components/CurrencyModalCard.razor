@@ -1,6 +1,8 @@
 
+@inject WalletStorage walletStorage;
+
 <div class="modal-currency-title__container" @onclick="@OnClick">
-  <i class="icon currency-icon @SelectedCurrency.Name.ToLower()"></i>
+  <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
   <div class="modal-currency-title__text-container">
     <div>@SelectedCurrency.Name.ToUpper()</div>
     <div>@Amount <span>@SelectedCurrency.Name</span></div>
@@ -16,4 +18,10 @@
 
   [Parameter]
   public EventCallback OnClick { get; set; }
+
+
+  protected override void OnInitialized()
+  {
+    walletStorage.RefreshRequested += StateHasChanged;
+  }
 }

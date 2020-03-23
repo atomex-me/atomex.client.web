@@ -34,7 +34,21 @@ namespace atomex_frontend.Storages
     }
 
     private AccountStorage accountStorage;
-    public List<Currency> AvailableCurrencies { get => accountStorage.Account.Currencies.ToList(); }
+    public List<Currency> AvailableCurrencies
+    {
+      get
+      {
+        try
+        {
+          return accountStorage.Account.Currencies.ToList();
+        }
+        catch (Exception e)
+        {
+          return new List<Currency>();
+        }
+      }
+    }
+
     public Dictionary<Currency, CurrencyData> PortfolioData { get; } = new Dictionary<Currency, CurrencyData>();
     public List<Transaction> Transactions { get; } = new List<Transaction>();
     public List<Transaction> SelectedCurrencyTransactions
@@ -58,8 +72,11 @@ namespace atomex_frontend.Storages
       get => this._selectedCurrency;
       set
       {
-        this._selectedCurrency = value;
-        this.CallUIRefresh();
+        if (this._selectedCurrency.Name != value.Name)
+        {
+          this._selectedCurrency = value;
+          this.CallUIRefresh();
+        }
       }
     }
 
@@ -67,8 +84,36 @@ namespace atomex_frontend.Storages
     public Currency SelectedSecondCurrency
     {
       get => _selectedSecondCurrency;
-      set { _selectedSecondCurrency = value; }
+      set
+      {
+        if (this._selectedSecondCurrency.Name != value.Name)
+        {
+          this._selectedSecondCurrency = value;
+          this.CallUIRefresh();
+        }
+      }
     }
+
+    private decimal _sendingAmount = 0;
+    public decimal SendingAmount
+    {
+      get => this._sendingAmount;
+      set
+      {
+        if (value >= 0)
+        {
+          this._sendingAmount = value;
+          this.CallUIRefresh();
+        }
+      }
+    }
+
+    public decimal SendingAmountDollars
+    {
+      get => this.GetDollarValue(this.SelectedCurrency, this._sendingAmount);
+    }
+
+
 
     public void Initialize()
     {
@@ -118,6 +163,10 @@ namespace atomex_frontend.Storages
       foreach (Currency currency in currenciesList)
       {
         decimal availableBalance = (await accountStorage.Account.GetBalanceAsync(currency.Name)).Available;
+        if (currency.Name == "ETH")
+        {
+          Console.WriteLine($"ETH BALANCE: {availableBalance}");
+        }
         if (!PortfolioData.TryGetValue(currency, out CurrencyData currencyData))
         {
           PortfolioData.Add(currency, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency, availableBalance), 0.0m));
@@ -148,15 +197,15 @@ namespace atomex_frontend.Storages
         {
           case BitcoinBasedCurrency _:
             IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
-            AddTransaction(new Transaction(currency, btcBasedTrans.Id, btcBasedTrans.State, btcBasedTrans.Type, btcBasedTrans.CreationTime, btcBasedTrans.IsConfirmed, btcBasedTrans.Amount), currency);
+            AddTransaction(new Transaction(currency, btcBasedTrans.Id, btcBasedTrans.State, btcBasedTrans.Type, btcBasedTrans.CreationTime, btcBasedTrans.IsConfirmed, btcBasedTrans.Amount / (decimal)tx.Currency.DigitsMultiplier), currency);
             break;
           case Ethereum _:
             EthereumTransaction ethTrans = (EthereumTransaction)tx;
-            AddTransaction(new Transaction(currency, ethTrans.Id, ethTrans.State, ethTrans.Type, ethTrans.CreationTime, ethTrans.IsConfirmed, 0.01m), currency);
+            AddTransaction(new Transaction(currency, ethTrans.Id, ethTrans.State, ethTrans.Type, ethTrans.CreationTime, ethTrans.IsConfirmed, (decimal)ethTrans.Amount / tx.Currency.DigitsMultiplier), currency);
             break;
           case Tezos _:
             TezosTransaction xtzTrans = (TezosTransaction)tx;
-            AddTransaction(new Transaction(currency, xtzTrans.Id, xtzTrans.State, xtzTrans.Type, xtzTrans.CreationTime, xtzTrans.IsConfirmed, xtzTrans.Amount), currency);
+            AddTransaction(new Transaction(currency, xtzTrans.Id, xtzTrans.State, xtzTrans.Type, xtzTrans.CreationTime, xtzTrans.IsConfirmed, xtzTrans.Amount / (decimal)tx.Currency.DigitsMultiplier), currency);
             break;
         }
       }

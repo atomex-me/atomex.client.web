@@ -1,12 +1,14 @@
+@inject WalletStorage walletStorage;
+
 <div class="light-background">
     <div class="currencies-exchange-row">
         <div class="currencies-exchange__currency-usd">
             <span>@FromAmount.ToString() <span class="currency-abbr">@(FromCurrency.Name.ToUpper())</span></span>
-            <span class="exchange-amount-container__usd-amount">$0.00 <span class="currency-abbr small">USD</span></span>
+            <span class="exchange-amount-container__usd-amount">$@(walletStorage.SendingAmountDollars) <span class="currency-abbr small">USD</span></span>
         </div>
-        <i class="icon currency-icon-big bitcoin"></i>
+        <i class="icon currency-icon-big @(FromCurrency.Description.ToLower())"></i>
         <i class="convert-arrow-icon"></i>
-        <i class="icon currency-icon-big litecoin"></i>
+        <i class="icon currency-icon-big @(ToCurrency.Description.ToLower())"></i>
         <div class="currencies-exchange__currency-usd">
             <span>@ToAmount.ToString()  <span class="currency-abbr">@(ToCurrency.Name.ToUpper())</span></span>
             <span class="exchange-amount-container__usd-amount">$0.00 <span class="currency-abbr small">USD</span></span>
@@ -17,7 +19,7 @@
             <div class="gray-text">@Translations.EstimatedPrice: <span class="white-text">@EstimatedPrice.ToString()</span></div>
             <div class="gray-text">@Translations.EstimatedPaymentFee: <span class="white-text">@EstimatedPaymentFee.ToString()</span>
                 <span class="currency-abbr small white-text">@(FromCurrency.Name.ToUpper())</span>
-                <span class="currency-abbr small">$0.01</span>
+                <span class="currency-abbr small">$@(walletStorage.SendingAmountDollars)</span>
             </div>
             <div class="gray-text">@Translations.EstimatedRedeemFee: <span class="white-text">@EstimatedRedeemFee.ToString()</span>
                 <span class="currency-abbr small white-text">@(FromCurrency.Name.ToUpper())</span>

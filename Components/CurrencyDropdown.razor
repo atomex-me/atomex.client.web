@@ -1,4 +1,6 @@
-@using Atomex
+@using Atomex;
+@inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
 
 <div class="exchange-container @(IsOpened ? "opened" : "") noselect">
   @if(Label.Length > 0) {
@@ -7,25 +9,18 @@
     </span>
   }
   <RoundedContainer OnClick="@OnDropdownClick">
-    <CurrencyModalCard SelectedCurrency="@SelectedCurrency" Amount="@Amount" />
+    <CurrencyModalCard SelectedCurrency="@SelectedCurrency" Amount="@(walletStorage.GetCurrencyData(SelectedCurrency, "balance"))" />
     @if (IsOpened) {
       <div class="exchange-dropdown">
-        <CurrencyModalCard
-          SelectedCurrency="@(new Bitcoin())"
-          Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(new Bitcoin())" />
-        <CurrencyModalCard
-          SelectedCurrency="@(new Ethereum())"
-          Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(new Ethereum())" />
-        <CurrencyModalCard
-          SelectedCurrency="@(new Litecoin())"
-          Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(new Litecoin())" />
-        <CurrencyModalCard
-          SelectedCurrency="@(new Tezos())"
-          Amount="@(0.0m)"
-          OnClick="() => OnCurrencyClick(new Tezos())" />
+        @foreach (Currency currency in walletStorage.AvailableCurrencies)
+        {
+          if (!IsSecondCurrency || (IsSecondCurrency && GetCurrencyIsConverted(currency))) {
+            <CurrencyModalCard
+              SelectedCurrency="@currency"
+              Amount="@(walletStorage.GetCurrencyData(currency, "balance"))"
+              OnClick="() => OnCurrencyClick(currency)" />
+          }
+        }
       </div>
     }
   </RoundedContainer>
@@ -36,20 +31,49 @@
   public Currency SelectedCurrency { get; set; }
 
   [Parameter]
+  public bool IsSecondCurrency { get; set; }
+
+  [Parameter]
   public string Label { get; set; } = "";
+
+  [Parameter]
+  public EventCallback<Currency> OnChange { get; set; }
 
   private bool IsOpened { get; set; } = false;
 
-  private decimal Amount { get; set; } = 0.0000000m;
+  private bool GetCurrencyIsConverted(Currency currency)
+  {
+    return accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(walletStorage.SelectedCurrency, currency) != null;
+  }
 
-  private void OnCurrencyClick(Currency currency)
+  private async void OnCurrencyClick(Currency currency)
   {
     SelectedCurrency = currency;
     IsOpened = !IsOpened;
+
+    if (!IsSecondCurrency && (SelectedCurrency.Name == walletStorage.SelectedSecondCurrency.Name
+        || accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(SelectedCurrency, walletStorage.SelectedSecondCurrency) == null))
+    {
+      foreach (Currency availableCurrency in walletStorage.AvailableCurrencies)
+      {
+        if (accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(currency, availableCurrency) != null)
+        {
+          walletStorage.SelectedSecondCurrency = availableCurrency;
+          break;
+        }
+      }
+    }
+
+    await OnChange.InvokeAsync(SelectedCurrency);
   }
 
   private void OnDropdownClick()
   {
     IsOpened = !IsOpened;
+  }
+
+  protected override void OnInitialized()
+  {
+    walletStorage.RefreshRequested += StateHasChanged;
   }
 }

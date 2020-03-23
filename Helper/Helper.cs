@@ -24,5 +24,17 @@ namespace atomex_frontend.Common
     {
       return decimal.Round(value, precision, MidpointRounding.AwayFromZero);
     }
+
+    public static decimal StrToDecimal(string str)
+    {
+      string res = str.Replace(".", ",");
+      decimal number;
+      return decimal.TryParse(res, out number) ? number : 0;
+    }
+
+    public static string DecimalToStr(decimal value)
+    {
+      return value.ToString().Replace(",", ".");
+    }
   }
 }

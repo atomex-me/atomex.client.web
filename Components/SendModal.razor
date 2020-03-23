@@ -1,4 +1,5 @@
 @inject WalletStorage walletStorage;
+@using atomex_frontend.Common;
 
 <div class="modal__container">
   <div class="dark-background modal-title">
@@ -10,7 +11,7 @@
   </div>
 
   <RoundedContainer>
-    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@(1.023m)" />
+    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@walletStorage.SendingAmount" />
   </RoundedContainer>
 
   <Input
@@ -25,10 +26,10 @@
     Description="@Translations.Amount" 
     InputType="number" 
     InputName="sendAmount" 
-    Value="@Amount.ToString()" 
+    Value="@Helper.DecimalToStr(walletStorage.SendingAmount)" 
     OnChange="@SendAmountChange"
     Theme="dark"
-    AdditionalRightInfo="$0.00 USD" />
+    AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")" />
   <Input 
     Description="@Translations.MinersFee" 
     InputType="number" 
@@ -75,7 +76,7 @@
 
   protected void SendAmountChange(string amount)
   {
-    Amount = Convert.ToDecimal(amount);
+    walletStorage.SendingAmount = Helper.StrToDecimal(amount);
   }
 
   protected void SendMinersFeeChange(string minersFee)
@@ -89,5 +90,6 @@
   {
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+    walletStorage.RefreshRequested += StateHasChanged;
   }
 }

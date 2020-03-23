@@ -1,3 +1,5 @@
+@using atomex_frontend.Common;
+
 <div class="exchange-amount-container">
   @if(Label.Length > 0) {
     <span>
@@ -5,14 +7,14 @@
     </span>
   }
   <div class="exchange-amount__input">
-    <input type="number" value="@Amount.ToString().Replace(",", ".")" @oninput="@HandleChange" onkeydown="return event.keyCode !== 69" />
+    <input type="number" value="@(Helper.DecimalToStr(Amount))" @oninput="@HandleChange" onkeydown="return event.keyCode !== 69" />
     <div class="exchexchange-amount__input-add-info">
       <span class="currency-abbr">@SelectedCurrency.Name</span>
       <div class="exchange-amount-container__usd-amount">($@DollarAmount <span class="currency-abbr small">USD</span>)</div>
     </div>
     <div class="exchange-amount__available-container">
       <RoundedContainer>
-        Available: 0.00000000 <span class="currency-abbr small">@SelectedCurrency.Name</span>
+        Available: @(TotalAmount.ToString()) <span class="currency-abbr small">@SelectedCurrency.Name</span>
       </RoundedContainer>
     </div>
   </div>
@@ -26,16 +28,22 @@
   public Currency SelectedCurrency { get; set; }
 
   [Parameter]
+  public decimal Amount { get; set; } = 0.0m;
+
+  [Parameter]
   public decimal DollarAmount { get; set; } = 0.0m;
 
   [Parameter]
-  public EventCallback<string> OnChange { get; set; }
+  public decimal TotalAmount { get; set; } = 0.0m;
 
   [Parameter]
-  public decimal Amount { get; set; } = 0.0m;
+  public decimal TotalAmountDollars { get; set; } = 0.0m;
+
+  [Parameter]
+  public EventCallback<decimal> OnChange { get; set; }
 
   private async void HandleChange(ChangeEventArgs evt)
   {
-    await OnChange.InvokeAsync(evt.Value.ToString());
+    await OnChange.InvokeAsync(Helper.StrToDecimal(evt.Value.ToString()));
   }
 }

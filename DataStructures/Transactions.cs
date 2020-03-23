@@ -20,7 +20,7 @@ namespace atomex_frontend.atomex_data_structures
       Id = id;
       State = state;
       Type = type;
-      CreationTime = creationTime;
+      CreationTime = TimeZoneInfo.ConvertTime(creationTime ?? DateTime.Now, TimeZoneInfo.Local);
       IsConfirmed = isConfirmed;
       Amount = amount;
     }
