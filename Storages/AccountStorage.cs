@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 using Atomex.Blockchain;
 using Atomex.Blockchain.Abstract;
 using Atomex.Abstract;
-
+using Atomex.Subsystems.Abstract;
 
 namespace atomex_frontend.Storages
 {
@@ -54,9 +54,19 @@ namespace atomex_frontend.Storages
       get => Currencies.GetByName("XTZ");
     }
 
+    public static Currency Tether
+    {
+      get => Currencies.GetByName("USDT");
+    }
+
+    public static Currency FA12
+    {
+      get => Currencies.GetByName("FA12");
+    }
+
     public Account Account { get; set; }
     public IAtomexApp AtomexApp { get; set; }
-    public Terminal Terminal { get; set; }
+    public IAtomexClient Terminal { get; set; }
     public static ICurrencies Currencies { get; set; }
     public BitfinexQuotesProvider QuotesProvider { get; set; }
 
@@ -109,7 +119,13 @@ namespace atomex_frontend.Storages
       IConfiguration configuration = new ConfigurationBuilder()
           .AddJsonStream(confStream)
           .Build();
-      var symbolsProvider = new SymbolsProvider(symbolsConfiguration, currenciesProvider);
+
+      IConfiguration symbolsConfiguration = new ConfigurationBuilder()
+        .SetBasePath("/")
+        .AddEmbeddedJsonFile(this.coreAssembly, "symbols.json")
+        .Build();
+
+      var symbolsProvider = new SymbolsProvider(symbolsConfiguration);
 
       bool walletFileExist = File.Exists($"/{WalletName}.wallet");
       if (!walletFileExist)
@@ -140,7 +156,7 @@ namespace atomex_frontend.Storages
         symbolsProvider
       );
 
-      Terminal = new Terminal(configuration, Account);
+      Terminal = new WebSocketAtomexClient(configuration, Account);
 
       if (AtomexApp != null)
       {
@@ -152,6 +168,7 @@ namespace atomex_frontend.Storages
         AtomexApp = new AtomexApp()
             .UseCurrenciesProvider(currenciesProvider)
             .UseSymbolsProvider(symbolsProvider)
+            // .UseCurrenciesUpdater(new CurrenciesUpdater(currenciesProvider))
             .UseQuotesProvider(new BitfinexQuotesProvider(
                 currencies: currenciesProvider.GetCurrencies(Network.TestNet),
                 baseCurrency: BitfinexQuotesProvider.Usd))
@@ -181,7 +198,7 @@ namespace atomex_frontend.Storages
 
     private void OnBalanceChangedEventHandler(object sender, CurrencyEventArgs args)
     {
-      Console.WriteLine($"BALANCE UPDATED ON {args.Currency.Name}");
+      Console.WriteLine($"BALANCE UPDATED ON {args.Currency}");
     }
 
     private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)

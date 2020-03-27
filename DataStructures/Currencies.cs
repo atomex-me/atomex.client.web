@@ -9,14 +9,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace atomex_frontend.atomex_data_structures
 {
-  public enum AvailableCurrencies
-  {
-    Bitcoin,
-    Ethereum,
-    Litecoin,
-    Tezos
-  }
-
   public class CurrencyData
   {
     public CurrencyData(Currency currency, decimal balance, decimal dollarValue, decimal percent)

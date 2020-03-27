@@ -16,6 +16,9 @@ using Atomex.MarketData.Abstract;
 using Atomex.Blockchain.Tezos;
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.Blockchain.Ethereum;
+using Atomex.EthereumTokens;
+using Atomex.TezosTokens;
+using atomex_frontend.Common;
 
 namespace atomex_frontend.Storages
 {
@@ -162,11 +165,12 @@ namespace atomex_frontend.Storages
 
       foreach (Currency currency in currenciesList)
       {
-        decimal availableBalance = (await accountStorage.Account.GetBalanceAsync(currency.Name)).Available;
-        if (currency.Name == "ETH")
+        Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name));
+        if (currency == AccountStorage.FA12)
         {
-          Console.WriteLine($"ETH BALANCE: {availableBalance}");
+          Console.WriteLine($"BALANCE FOR FA12 is {balance.Available}");
         }
+        var availableBalance = balance.Available;
         if (!PortfolioData.TryGetValue(currency, out CurrencyData currencyData))
         {
           PortfolioData.Add(currency, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency, availableBalance), 0.0m));
@@ -193,19 +197,36 @@ namespace atomex_frontend.Storages
       var transactions = await accountStorage.Account.GetTransactionsAsync(currency.Name);
       foreach (var tx in transactions)
       {
+        decimal amount = 0;
+        string description = "";
+
         switch (tx.Currency)
         {
           case BitcoinBasedCurrency _:
             IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
-            AddTransaction(new Transaction(currency, btcBasedTrans.Id, btcBasedTrans.State, btcBasedTrans.Type, btcBasedTrans.CreationTime, btcBasedTrans.IsConfirmed, btcBasedTrans.Amount / (decimal)tx.Currency.DigitsMultiplier), currency);
+            amount = CurrHelper.GetTransAmount(btcBasedTrans);
+            description = CurrHelper.GetTransDescription(tx, amount);
+            AddTransaction(new Transaction(currency, btcBasedTrans.Id, btcBasedTrans.State, btcBasedTrans.Type, btcBasedTrans.CreationTime, btcBasedTrans.IsConfirmed, amount, description), currency);
+            break;
+          case Tether _:
+            EthereumTransaction usdtTrans = (EthereumTransaction)tx;
+            amount = CurrHelper.GetTransAmount(usdtTrans);
+            description = CurrHelper.GetTransDescription(tx, amount);
+            AddTransaction(new Transaction(currency, usdtTrans.Id, usdtTrans.State, usdtTrans.Type, usdtTrans.CreationTime, usdtTrans.IsConfirmed, amount, description), currency);
             break;
           case Ethereum _:
             EthereumTransaction ethTrans = (EthereumTransaction)tx;
-            AddTransaction(new Transaction(currency, ethTrans.Id, ethTrans.State, ethTrans.Type, ethTrans.CreationTime, ethTrans.IsConfirmed, (decimal)ethTrans.Amount / tx.Currency.DigitsMultiplier), currency);
+            amount = CurrHelper.GetTransAmount(ethTrans);
+            description = CurrHelper.GetTransDescription(tx, amount);
+            AddTransaction(new Transaction(currency, ethTrans.Id, ethTrans.State, ethTrans.Type, ethTrans.CreationTime, ethTrans.IsConfirmed, amount, description), currency);
             break;
+
+          case FA12 _:
           case Tezos _:
             TezosTransaction xtzTrans = (TezosTransaction)tx;
-            AddTransaction(new Transaction(currency, xtzTrans.Id, xtzTrans.State, xtzTrans.Type, xtzTrans.CreationTime, xtzTrans.IsConfirmed, xtzTrans.Amount / (decimal)tx.Currency.DigitsMultiplier), currency);
+            amount = CurrHelper.GetTransAmount(xtzTrans);
+            description = CurrHelper.GetTransDescription(tx, amount);
+            AddTransaction(new Transaction(currency, xtzTrans.Id, xtzTrans.State, xtzTrans.Type, xtzTrans.CreationTime, xtzTrans.IsConfirmed, amount, description), currency);
             break;
         }
       }

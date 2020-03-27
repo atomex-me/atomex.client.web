@@ -81,7 +81,7 @@
       WalletPassword = pass;
       if (WalletPasswordError.Length > 0)
       {
-        WalletPasswordError = "";
+    WalletPasswordError = "";
       }
     }
 
@@ -95,15 +95,15 @@
     {
       try
       {
-        Loading = true;
-        await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
-        Loading = false;
+    Loading = true;
+    await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
+    Loading = false;
       }
       catch (Exception e)
       {
-        Console.WriteLine("PASS INCORRECT");
-        WalletPasswordError = Translations.InvalidPassword;
-        Loading = false;
+    Console.WriteLine("PASS INCORRECT");
+    WalletPasswordError = Translations.InvalidPassword;
+    Loading = false;
       }
     }
 

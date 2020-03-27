@@ -136,14 +136,17 @@
     // Console.WriteLine($"LTC BALANCE: {balance.Available}");
 
     // WalletAddress wa = await WalletStorage.GetFreeAddress("LTC");
-
+    Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} starting to scan");
     await WalletStorage.ScanCurrencyAsync(WalletStorage.SelectedCurrency);
     Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} scanned");
   }
 
   private async void OnConvertHandler()
   {
+
+    Console.Write($"FREE ADDRESS TO {WalletStorage.SelectedCurrency.Name} ");
     Console.WriteLine(await WalletStorage.GetFreeAddress(WalletStorage.SelectedCurrency));
+
   }
 
   public async void OnSendClick()
@@ -167,11 +170,11 @@
 
     Console.WriteLine("Scanning end");
 
-    var walletAddress = await AccountStorage.Account
-    .ResolveAddressAsync("XTZ", "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5")
-    .ConfigureAwait(false);
+    // var walletAddress = await AccountStorage.Account
+    // .ResolveAddressAsync("XTZ", "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5")
+    // .ConfigureAwait(false);
 
-    Console.WriteLine($"Balance is {walletAddress.Balance}");
+    // Console.WriteLine($"Balance is {walletAddress.Balance}");
 
     var transactions = (await AccountStorage.Account
     .GetTransactionsAsync("XTZ"))

@@ -1,38 +1,17 @@
 @inject WalletStorage walletStorage;
 
 <div class="currencies-row">
-  <div>
-    <div @onclick="@(() => OnClick(AccountStorage.Bitcoin))">
-        <i class="icon currency-icon bitcoin" />
-    </div>
+  @foreach (var currency in walletStorage.AvailableCurrencies)
+  {
     <div>
-      Bitcoin
+      <div @onclick="@(() => OnClick(currency))">
+          <i class="icon currency-icon @(currency.Description.ToLower())" />
+      </div>
+      <div>
+        @currency.Description
+      </div>
     </div>
-  </div>
-  <div>
-    <div @onclick="@(() => OnClick(AccountStorage.Ethereum))">
-        <i class="icon currency-icon ethereum" />
-    </div>
-    <div>
-      Ethereum
-    </div>
-  </div>
-  <div>
-    <div @onclick="@(() => OnClick(AccountStorage.Litecoin))">
-        <i class="icon currency-icon litecoin" />
-    </div>
-    <div>
-      Litecoin
-    </div>
-  </div>
-  <div>
-    <div @onclick="@(() => OnClick(AccountStorage.Tezos))">
-        <i class="icon currency-icon tezos" />
-    </div>
-    <div>
-      Tezos
-    </div>
-  </div>
+  }
 </div>
 
 @code { 

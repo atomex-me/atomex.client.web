@@ -770,6 +770,14 @@ table>thead>tr>th {
     background-image: url('images/tezos_90x90.png');
 }
 
+.tether {
+    background-image: url('images/tether_90x90.png');
+}
+
+.fa12 {
+    background-image: url('images/fa12_90x90.png');
+}
+
 .currency-name {
     margin-left: 10px;
 }
