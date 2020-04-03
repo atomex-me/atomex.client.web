@@ -179,6 +179,7 @@ app {
     --dark-input-dark-blue: #192E50;
     --dark-input-light-blue: #273F73;
     --orange: #FA9517;
+    --atomex-yellow: #E4F463;
 }
 
 @font-face {
@@ -993,6 +994,10 @@ table>thead>tr>th {
     color: var(--medium-gray);
 }
 
+.modal__container {
+    min-height: 165px;
+}
+
 .modal__container>* {
     margin-bottom: 10px;
 }
@@ -1265,4 +1270,42 @@ table>thead>tr>th {
     position: absolute;
     right: -10px;
     transform: translateX(100%)
+}
+
+.send-confirmation__container {
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    margin: 0 auto;
+}
+
+.send-confirmation__container>div {
+    display: flex;
+}
+
+.send-confirmation__label {
+    text-align: right;
+    margin-right: 10px;
+    font-family: RobotoLight;
+    flex-basis: 35.5%
+}
+
+.send-confirmation__coin {
+    font-family: RobotoRegular;
+    color: var(--atomex-yellow);
+}
+
+.send-confirmation__usd {
+    font-family: RobotoLight;
+    color: var(--medium-gray);
+    margin-left: 10px;
+}
+
+.send-confirmation__address {
+    font-family: RobotoRegular;
+    color: var(--orange);
+}
+
+.currency-code {
+    font-size: 0.8rem;
 }

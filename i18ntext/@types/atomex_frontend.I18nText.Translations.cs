@@ -37,6 +37,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Description"</summary>
         public string Description;
 
+        /// <summary>"Do you really want"</summary>
+        public string DoYouReallyWant;
+
         /// <summary>"Wallet name could not be emty"</summary>
         public string EmptyWalletName;
 
@@ -145,11 +148,23 @@ namespace atomex_frontend.I18nText
         /// <summary>"Send"</summary>
         public string Send;
 
+        /// <summary>"Send confirmation"</summary>
+        public string SendConfirmation;
+
+        /// <summary>"Sending"</summary>
+        public string Sending;
+
+        /// <summary>"Sending was successfull"</summary>
+        public string SendingWasSuccessfull;
+
         /// <summary>"Sent"</summary>
         public string Sent;
 
         /// <summary>"State"</summary>
         public string State;
+
+        /// <summary>"Success"</summary>
+        public string Success;
 
         /// <summary>"Swap redeem"</summary>
         public string SwapRedeem;

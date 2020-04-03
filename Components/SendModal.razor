@@ -3,87 +3,130 @@
 @using atomex_frontend.Common;
 @using Atomex;
 
-<div class="modal__container">
+<div class="modal__container loading-container">
   <div class="dark-background modal-title">
-    Send
+    @if (State == States.SendingData){
+      @Translations.Send
+    }
+    @if (State == States.Confirmation) {
+      @Translations.SendConfirmation
+    }
+    @if (State == States.Sending) {
+      @Translations.Sending
+    }
   </div>
 
   <div class="modal-subtitle">
-    @Translations.InstantlySendingOfCurrency
+    @if (State == States.SendingData){
+      @Translations.InstantlySendingOfCurrency
+    }
+    @if (State == States.Confirmation) {
+      @String.Concat(Translations.DoYouReallyWant, ":")
+    }
   </div>
-
-  <RoundedContainer>
-    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@walletStorage.SelectedCurrencyData.Balance" />
-  </RoundedContainer>
-
-  <Input
-    Description="@Translations.ToAddress"
-    InputType="text"
-    InputName="sendToAddress"
-    Value="@walletStorage.SendingToAddress"
-    OnChange="@SendAddressChange"
-    Theme="dark" />
-
-  <Input
-    Description="@Translations.Amount" 
-    InputType="number" 
-    InputName="sendAmount" 
-    Value="@Helper.DecimalToStr(walletStorage.SendingAmount)" 
-    OnChange="@SendAmountChange"
-    Theme="dark"
-    AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")" />
-
-  @if(GetEthreumBasedCurrency) {
-
-    <Input
-      Description="@Translations.GasPrice"
-      InputType="text"
-      InputName="gasPrice"
-      Value="@Helper.DecimalToStr(walletStorage.GasPrice)"
-      OnChange="@SendGasPriceChange"
-      Disabled="@walletStorage.UseDefaultFee"
-      Theme="dark" />
-
-    <Input
-      Description="@Translations.GasLimit"
-      InputType="text"
-      InputName="gasLimit"
-      Value="@Helper.DecimalToStr(walletStorage.GasLimit)"
-      OnChange="@SendGasLimitChange"
-      Disabled="@walletStorage.UseDefaultFee"
-      Theme="dark" />
+  @if (State == States.Sending) {
+    <Loader />
   }
 
-  <Input 
-    Description="@Translations.MinersFee" 
-    InputType="number" 
-    InputName="minersFee" 
-    Value="@Helper.DecimalToStr(walletStorage.SendingFee)" 
-    OnChange="@SendFeeChange"
-    Theme="dark"
-    AdditionalRightInfo="@String.Concat("$", GetFeeDollars, " USD")"
-    Disabled="@(FeeInputDisabled)" />
+  @if (State == States.SendingData) {
+    <RoundedContainer>
+      <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@walletStorage.SelectedCurrencyData.Balance" />
+    </RoundedContainer>
 
-    <Checkbox
-      Checked="@walletStorage.UseDefaultFee"
-      Description="@Translations.UseDefaultFee"
-      OnChange="@OnUseDefaultFeeChange" />
+    <Input
+      Description="@Translations.ToAddress"
+      InputType="text"
+      InputName="sendToAddress"
+      Value="@walletStorage.SendingToAddress"
+      OnChange="@SendAddressChange"
+      Theme="dark" />
 
-    <div class="modal-buttons-container">
+    <Input
+      Description="@Translations.Amount" 
+      InputType="number" 
+      InputName="sendAmount" 
+      Value="@Helper.DecimalToStr(walletStorage.SendingAmount)" 
+      OnChange="@SendAmountChange"
+      Theme="dark"
+      AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")" />
+
+    @if(GetEthreumBasedCurrency) {
+      <Input
+        Description="@Translations.GasPrice"
+        InputType="text"
+        InputName="gasPrice"
+        Value="@Helper.DecimalToStr(walletStorage.GasPrice)"
+        OnChange="@SendGasPriceChange"
+        Disabled="@walletStorage.UseDefaultFee"
+        Theme="dark" />
+
+      <Input
+        Description="@Translations.GasLimit"
+        InputType="text"
+        InputName="gasLimit"
+        Value="@Helper.DecimalToStr(walletStorage.GasLimit)"
+        OnChange="@SendGasLimitChange"
+        Disabled="@walletStorage.UseDefaultFee"
+        Theme="dark" />
+    }
+
+    <Input 
+      Description="@Translations.MinersFee" 
+      InputType="number" 
+      InputName="minersFee" 
+      Value="@Helper.DecimalToStr(walletStorage.SendingFee)" 
+      OnChange="@SendFeeChange"
+      Theme="dark"
+      AdditionalRightInfo="@String.Concat("$", GetFeeDollars, " USD")"
+      Disabled="@(FeeInputDisabled)" />
+
+      <Checkbox
+        Checked="@walletStorage.UseDefaultFee"
+        Description="@Translations.UseDefaultFee"
+        OnChange="@OnUseDefaultFeeChange" />
+  }
+
+  @if(State == States.Confirmation) {
+    <div class="send-confirmation__container">
       <div>
+        <span class="send-confirmation__label">to send:</span>
+        <span class="send-confirmation__coin">@walletStorage.SendingAmount <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
+        <span class="send-confirmation__usd">($@walletStorage.SendingAmountDollars<span class="currency-code">USD</span>)</span>
+      </div>
+      <div>
+        <span class="send-confirmation__label">to address:</span>
+        <span class="send-confirmation__address">@walletStorage.SendingToAddress</span>
+      </div>
+      <div>
+        <span class="send-confirmation__label">with comission:</span>
+        <span class="send-confirmation__coin">@walletStorage.SendingFee <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
+        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.SendingFee) <span class="currency-code">USD</span>)</span>
+      </div>
+    </div>
+  }
+
+  <div class="modal-buttons-container">
+    <div>
+      @if (State != States.Sending) {
         <NavigateButton Variant="left" OnClick="OnCancelClick">
             @Translations.Cancel
         </NavigateButton>
-        <NavigateButton Variant="right">
+        <NavigateButton Variant="right" OnClick="OnNextClick">
             @Translations.Send
         </NavigateButton>
-      </div>
+      }
+      @if (State == States.Success) {
+        <NavigateButton Variant="center">OK</NavigateButton>
+      }
     </div>
+  </div>
 </div>
 
 @code {
   [Parameter]
   public EventCallback OnCancelClick { get; set; }
+
+  private States State { get; set; } = States.SendingData;
 
   private bool FeeInputDisabled
   {
@@ -166,6 +209,20 @@
     walletStorage.UseDefaultFee = value;
   }
 
+  private void OnNextClick()
+  {
+    if (State == States.SendingData)
+    {
+      State = States.Confirmation;
+      return;
+    }
+    if (State == States.Confirmation)
+    {
+      State = States.Sending;
+      return;
+    }
+  }
+
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
   {
@@ -180,5 +237,14 @@
     debounceInputFee = new System.Timers.Timer(1000);
     debounceInputFee.Elapsed += OnUserFinishFee;
     debounceInputFee.AutoReset = false;
+  }
+
+  private enum States
+  {
+    SendingData,
+    Confirmation,
+    Sending,
+    Success,
+    Error
   }
 }
