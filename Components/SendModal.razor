@@ -108,11 +108,21 @@
   <div class="modal-buttons-container">
     <div>
       @if (State != States.Sending) {
-        <NavigateButton Variant="left" OnClick="OnCancelClick">
+        <NavigateButton Variant="left" OnClick="handleCancel">
+          @if (State == States.SendingData) {
             @Translations.Cancel
+          }
+          @if (State == States.Confirmation) {
+            @Translations.No
+          }
         </NavigateButton>
         <NavigateButton Variant="right" OnClick="OnNextClick">
+          @if (State == States.SendingData) {
             @Translations.Send
+          }
+          @if (State == States.Confirmation) {
+            @Translations.Yes
+          }
         </NavigateButton>
       }
       @if (State == States.Success) {
@@ -127,6 +137,18 @@
   public EventCallback OnCancelClick { get; set; }
 
   private States State { get; set; } = States.SendingData;
+
+  private async void handleCancel()
+  {
+    if (State == States.Confirmation)
+    {
+      State = States.SendingData;
+    }
+    else
+    {
+      await OnCancelClick.InvokeAsync(null);
+    }
+  }
 
   private bool FeeInputDisabled
   {

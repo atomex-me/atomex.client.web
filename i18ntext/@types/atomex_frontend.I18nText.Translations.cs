@@ -91,6 +91,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Next"</summary>
         public string Next;
 
+        /// <summary>"No"</summary>
+        public string No;
+
         /// <summary>"NoDelegationsFound"</summary>
         public string NoDelegationsFound;
 
@@ -198,5 +201,8 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Word count"</summary>
         public string WordCount;
+
+        /// <summary>"Yes"</summary>
+        public string Yes;
     }
 }

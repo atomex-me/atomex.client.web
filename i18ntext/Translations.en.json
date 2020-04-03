@@ -63,5 +63,7 @@
   "Address": "Address",
   "EstimatedPrice": "Estimated price",
   "EstimatedPaymentFee": "Estimated payment fee",
-  "EstimatedRedeemFee": "Estimated redeem fee"
+  "EstimatedRedeemFee": "Estimated redeem fee",
+  "No": "No",
+  "Yes": "Yes"
 }
