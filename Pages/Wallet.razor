@@ -49,7 +49,8 @@
                     OnReceiveClick="@ReceiveOpenCloseHandler"
                     OnUpdateClick="@OnUpdateHandler"
                     OnConvertClick="@OnConvertHandler" 
-                    CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)" />
+                    CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
+                    IsLoading="@WalletStorage.IsUpdating"/>
                     
                 <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
                     <SendModal OnCancelClick="@SendOpenCloseHandler" />
@@ -145,7 +146,7 @@
   {
 
     Console.Write($"FREE ADDRESS TO {WalletStorage.SelectedCurrency.Name} ");
-    Console.WriteLine(await WalletStorage.GetFreeAddress(WalletStorage.SelectedCurrency));
+    Console.WriteLine(await WalletStorage.GetFreeAddress());
 
   }
 
@@ -219,6 +220,8 @@
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
   {
+    await AccountStorage.ConnectToWallet("[test] test wallet", "StoneGiant25".ToSecureString()); //todo: remove in prod
+
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
     WalletStorage.Initialize();

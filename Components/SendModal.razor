@@ -1,5 +1,7 @@
 @inject WalletStorage walletStorage;
+@using System.Timers;
 @using atomex_frontend.Common;
+@using Atomex;
 
 <div class="modal__container">
   <div class="dark-background modal-title">
@@ -11,14 +13,14 @@
   </div>
 
   <RoundedContainer>
-    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@walletStorage.SendingAmount" />
+    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@walletStorage.SelectedCurrencyData.Balance" />
   </RoundedContainer>
 
   <Input
     Description="@Translations.ToAddress"
     InputType="text"
     InputName="sendToAddress"
-    Value="@ToAddress"
+    Value="@walletStorage.SendingToAddress"
     OnChange="@SendAddressChange"
     Theme="dark" />
 
@@ -30,16 +32,42 @@
     OnChange="@SendAmountChange"
     Theme="dark"
     AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")" />
+
+  @if(GetEthreumBasedCurrency) {
+
+    <Input
+      Description="@Translations.GasPrice"
+      InputType="text"
+      InputName="gasPrice"
+      Value="@Helper.DecimalToStr(walletStorage.GasPrice)"
+      OnChange="@SendGasPriceChange"
+      Disabled="@walletStorage.UseDefaultFee"
+      Theme="dark" />
+
+    <Input
+      Description="@Translations.GasLimit"
+      InputType="text"
+      InputName="gasLimit"
+      Value="@Helper.DecimalToStr(walletStorage.GasLimit)"
+      OnChange="@SendGasLimitChange"
+      Disabled="@walletStorage.UseDefaultFee"
+      Theme="dark" />
+  }
+
   <Input 
     Description="@Translations.MinersFee" 
     InputType="number" 
     InputName="minersFee" 
-    Value="@MinersFee.ToString()" 
-    OnChange="@SendMinersFeeChange"
+    Value="@Helper.DecimalToStr(walletStorage.SendingFee)" 
+    OnChange="@SendFeeChange"
     Theme="dark"
-    AdditionalRightInfo="$0.00 USD" />
+    AdditionalRightInfo="@String.Concat("$", GetFeeDollars, " USD")"
+    Disabled="@(FeeInputDisabled)" />
 
-    <Checkbox Checked="true" Description="@Translations.UseDefaultFee" />
+    <Checkbox
+      Checked="@walletStorage.UseDefaultFee"
+      Description="@Translations.UseDefaultFee"
+      OnChange="@OnUseDefaultFeeChange" />
 
     <div class="modal-buttons-container">
       <div>
@@ -57,6 +85,16 @@
   [Parameter]
   public EventCallback OnCancelClick { get; set; }
 
+  private bool FeeInputDisabled
+  {
+    get => GetEthreumBasedCurrency ? true : walletStorage.UseDefaultFee;
+  }
+
+  private decimal GetFeeDollars
+  {
+    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.SendingFee);
+  }
+
   protected string ToAddress { get; set; } = "";
 
   protected decimal Amount { get; set; } = 0;
@@ -65,24 +103,67 @@
 
   protected decimal GasLimit { get; set; } = 0;
 
-  protected decimal MinersFee { get; set; } = 0;
-
   protected decimal Fee { get; set; } = 0;
 
-  protected void SendAddressChange(string address)
+  private bool GetEthreumBasedCurrency
   {
-    ToAddress = address;
+    get => walletStorage.SelectedCurrency == AccountStorage.Ethereum || walletStorage.SelectedCurrency == AccountStorage.Tether;
   }
 
-  protected void SendAmountChange(string amount)
+  private System.Timers.Timer debounceInputAmount;
+  private System.Timers.Timer debounceInputFee;
+  private string SendingAmountString = "0";
+  private string SendingFeeString = "0";
+
+  private void SendAddressChange(string address)
   {
-    walletStorage.SendingAmount = Helper.StrToDecimal(amount);
+    walletStorage.SendingToAddress = address;
   }
 
-  protected void SendMinersFeeChange(string minersFee)
+  private void SendAmountChange(string amount)
   {
-    MinersFee = Convert.ToDecimal(minersFee);
-    Console.WriteLine(MinersFee);
+
+    debounceInputAmount.Stop();
+    debounceInputAmount.Start();
+    SendingAmountString = amount;
+  }
+
+  private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+     {
+       walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString);
+     });
+  }
+
+  private void SendFeeChange(string fee)
+  {
+    debounceInputFee.Stop();
+    debounceInputFee.Start();
+    SendingFeeString = fee;
+  }
+
+  private void OnUserFinishFee(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+    {
+      walletStorage.SendingFee = Helper.StrToDecimal(SendingFeeString);
+    });
+  }
+
+  private void SendGasPriceChange(string gasPrice)
+  {
+    walletStorage.GasPrice = Helper.StrToDecimal(gasPrice);
+  }
+
+  private void SendGasLimitChange(string gasLimit)
+  {
+    walletStorage.GasLimit = Helper.StrToDecimal(gasLimit);
+  }
+
+  private void OnUseDefaultFeeChange(bool value)
+  {
+    walletStorage.UseDefaultFee = value;
   }
 
   I18nText.Translations Translations = new I18nText.Translations();
@@ -91,5 +172,13 @@
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
     walletStorage.RefreshRequested += StateHasChanged;
+
+    debounceInputAmount = new System.Timers.Timer(1000);
+    debounceInputAmount.Elapsed += OnUserFinishAmount;
+    debounceInputAmount.AutoReset = false;
+
+    debounceInputFee = new System.Timers.Timer(1000);
+    debounceInputFee.Elapsed += OnUserFinishFee;
+    debounceInputFee.AutoReset = false;
   }
 }

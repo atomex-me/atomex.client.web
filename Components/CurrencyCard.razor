@@ -1,25 +1,32 @@
 @inject WalletStorage walletStorage;
 @using Microsoft.AspNetCore.Components;
 
-<div class="currency-card">
-  <div class="currency-card__selected-currency">
-    <i class="icon currency-icon-big @(walletStorage.SelectedCurrency.Description.ToLower())" />
-    <span>
-      <div class="currency-card__currency-value">
-        @(walletStorage.SelectedCurrencyData.Balance) <span class="currency-card__currency-value-desc">@walletStorage.SelectedCurrency.Name</span>
+  <div class="loading-container">
+    @if (IsLoading) {
+      <Loader />
+    }
+    <div class="currency-card @(IsLoading ? "loading" : "")">
+      <div class="currency-card__selected-currency">
+        <i class="icon currency-icon-big @(walletStorage.SelectedCurrency.Description.ToLower())" />
+        <span>
+          <div class="currency-card__currency-value">
+            @(IsLoading ? "Updating " : walletStorage.SelectedCurrencyData.Balance.ToString()) <span class="currency-card__currency-value-desc">@walletStorage.SelectedCurrency.Name</span>
+          </div>
+          @if (!IsLoading) {
+            <div class="currency-card__dollar-value">
+              $@(walletStorage.SelectedCurrencyData.DollarValue) <span class="currency-card__dollar-value-desc">USD</span>
+            </div>
+          }
+        </span>
       </div>
-      <div class="currency-card__dollar-value">
-        $@(walletStorage.SelectedCurrencyData.DollarValue) <span class="currency-card__dollar-value-desc">USD</span>
+      <div class="currency-card__buttons">
+        <NavigateButton OnClick="OnSendClick" Variant="small">Send</NavigateButton>
+        <NavigateButton OnClick="OnReceiveClick" Variant="small">Receive</NavigateButton>
+        <NavigateButton OnClick="OnConvertClick" Variant="small">Convert</NavigateButton>
+        <NavigateButton OnClick="OnUpdateClick" Variant="small">Update</NavigateButton>
       </div>
-    </span>
+    </div>
   </div>
-  <div class="currency-card__buttons">
-    <NavigateButton OnClick="OnSendClick" Variant="small">Send</NavigateButton>
-    <NavigateButton OnClick="OnReceiveClick" Variant="small">Receive</NavigateButton>
-    <NavigateButton OnClick="OnConvertClick" Variant="small">Convert</NavigateButton>
-    <NavigateButton OnClick="OnUpdateClick" Variant="small">Update</NavigateButton>
-  </div>
-</div>
 
 @code {
   [Parameter]
@@ -36,6 +43,9 @@
 
   [Parameter]
   public decimal CurrencyAmount { get; set; }
+
+  [Parameter]
+  public bool IsLoading { get; set; }
 
 
   protected override void OnInitialized()

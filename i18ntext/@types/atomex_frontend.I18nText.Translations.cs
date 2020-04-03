@@ -82,7 +82,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"Language"</summary>
         public string Language;
 
-        /// <summary>"Miners fee"</summary>
+        /// <summary>"Fee"</summary>
         public string MinersFee;
 
         /// <summary>"Next"</summary>

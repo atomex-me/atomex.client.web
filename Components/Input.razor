@@ -1,4 +1,4 @@
-﻿<div class="atomex-input-container atomex-input @Theme @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "")">
+﻿<div class="atomex-input-container atomex-input @Theme @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "") @(Disabled ? "disabled" : "")">
     <div class="@(Error ? "error-input" : "no-error")">
         @if (InputType == "password")
         {
@@ -14,7 +14,9 @@
                value="@Value"
                placeholder="@InputPlaceholder"
                name="@InputName"
-               @oninput="HandleChange" />
+               @oninput="HandleChange"
+               onkeydown="@GetNumberValidator"
+               disabled="@Disabled" />
         @if(AdditionalRightInfo.Length > 0) {
             <span class="additional-input-info">@AdditionalRightInfo</span>
         }
@@ -57,8 +59,17 @@
     [Parameter]
     public string AdditionalRightInfo { get; set; } = "";
 
+    [Parameter]
+    public bool Disabled { get; set; } = false;
 
-    protected async void HandleChange(ChangeEventArgs evt) {
-        await OnChange.InvokeAsync(evt.Value.ToString());
+    private string GetNumberValidator
+    {
+      get => InputType == "number" ? "return event.keyCode !== 69" : "";
+    }
+
+
+    protected async void HandleChange(ChangeEventArgs evt)
+    {
+      await OnChange.InvokeAsync(evt.Value.ToString());
     }
 }

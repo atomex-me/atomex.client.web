@@ -1,6 +1,6 @@
 <div class="checkbox-container">
   <label class="checkbox-switch" for="checkbox">
-    <input type="checkbox" id="checkbox" checked="true" />
+    <input type="checkbox" id="checkbox" checked="@Checked" @onchange="handleChange" />
     <div class="checkbox-slider checkbox-round"></div>
   </label>
   @if (Description.Length > 0) {
@@ -10,8 +10,17 @@
 
 @code {
   [Parameter]
-  public bool Checked { get; set; } = false;
+  public bool Checked { get; set; } = true;
 
   [Parameter]
   public string Description { get; set; } = "";
+
+  [Parameter]
+  public EventCallback<bool> OnChange { get; set; }
+
+  private void handleChange(ChangeEventArgs e)
+  {
+    bool value = Convert.ToBoolean(e.Value);
+    OnChange.InvokeAsync(value);
+  }
 }

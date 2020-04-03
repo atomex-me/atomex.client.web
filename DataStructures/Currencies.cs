@@ -26,5 +26,7 @@ namespace atomex_frontend.atomex_data_structures
     public decimal DollarValue;
 
     public decimal Percent;
+
+    public string FreeExternalAddress = "";
   }
 }

@@ -196,6 +196,11 @@ app {
     src: url('fonts/Roboto-Bold.ttf');
 }
 
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 .error-input {
     box-shadow: 0 0 0 2px var(--error-color);
     border-radius: 30px;
@@ -1027,11 +1032,16 @@ table>thead>tr>th {
 .receive-qrcode {
     display: flex;
     justify-content: center;
+    height: 170px;
 }
 
 .receive-qrcode img {
     width: 150px;
     height: 150px;
+    margin-bottom: 20px;
+}
+
+.receive-qrcode .lds-ellipsis {
     margin-bottom: 20px;
 }
 

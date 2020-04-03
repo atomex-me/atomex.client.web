@@ -7,6 +7,7 @@ using Atomex.Blockchain.Tezos;
 using Atomex.Blockchain.Ethereum;
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.EthereumTokens;
+using Atomex.TezosTokens;
 using atomex_frontend.Storages;
 
 namespace atomex_frontend.Common
@@ -57,7 +58,6 @@ namespace atomex_frontend.Common
           usdtResult += -Erc20.TokenDigitsToTokens(tx.Amount);
 
         tx.InternalTxs?.ForEach(t => usdtResult += GetTransAmount(t));
-        Console.WriteLine("COUNTED TRANS AMOUNT FOR USDT");
         return usdtResult;
       }
 
@@ -84,11 +84,6 @@ namespace atomex_frontend.Common
 
       return result;
     }
-
-    // public static decimal GetTransAmount()
-    // {
-
-    // }
 
     public static decimal GetTransAmount(IBitcoinBasedTransaction tx)
     {

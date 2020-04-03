@@ -31,7 +31,7 @@
   "Conversion": "Conversion",
   "ToAddress": "To Address",
   "Amount": "Amount",
-  "MinersFee": "Miners fee",
+  "MinersFee": "Fee",
   "GasPrice": "Gas price",
   "GasLimit": "Gas limit",
   "TotalFee": "Total fee",

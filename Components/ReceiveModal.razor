@@ -1,6 +1,7 @@
 @using QRCodeEncoderLibrary;
 @inject IJSRuntime JSRuntime;
 @inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
 
 <div class="modal__container">
   <div class="dark-background modal-title">
@@ -8,7 +9,7 @@
   </div>
 
   <RoundedContainer>
-    <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@(0.000004m)" />
+    <CurrencyModalCard SelectedCurrency="@walletStorage.SelectedCurrency" Amount="@walletStorage.SelectedCurrencyData.Balance" />
   </RoundedContainer>
 
   <div class="receive-modal-dropdown__container">
@@ -21,7 +22,9 @@
   </div>
 
   <div class="receive-qrcode">
+    @if(CurrentValue.Length > 0) {
       <img src="data:image/png;base64,@(GetBase64QR(CurrentValue))" />
+    }
   </div>
 </div>
 
@@ -29,20 +32,32 @@
   [Parameter]
   public EventCallback OnCancelClick { get; set; }
 
-  protected string[] DropOptions = { "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5 0.2", "kt1Ufcd1ZSjs7b9BfhwfKExpY9MeQqnKJRe5 1243.9423957345234" };
+  protected string[] DropOptions
+  {
+    get => new string[1] { $"{walletStorage.SelectedCurrencyData.FreeExternalAddress} {walletStorage.SelectedCurrencyData.Balance}" };
+  }
 
-  protected string CurrentValue = "kt1Ufcd1ZSjs7b9BfhwfKExpY9MeQqnKJRe5";
-
+  protected string CurrentValue
+  {
+    get => walletStorage.SelectedCurrencyData.FreeExternalAddress;
+    set { }
+  }
   protected void OnChange(string value)
   {
     CurrentValue = value;
   }
 
-  protected async void OnCopyClick() {
+  protected async void OnCopyClick()
+  {
     await JSRuntime.InvokeAsync<string>("copyTextToClipboard", CurrentValue);
   }
 
-  private string GetBase64QR(string address) {
+  private string GetBase64QR(string address)
+  {
+    if (address == null || address.Length == 0)
+    {
+      return "";
+    }
     QREncoder Encoder = new QREncoder();
     Encoder.ErrorCorrection = ErrorCorrection.Q;
     Encoder.ModuleSize = 8;
@@ -54,7 +69,9 @@
   }
 
   I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync() {
+  protected override async Task OnInitializedAsync()
+  {
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    walletStorage.RefreshRequested += StateHasChanged;
   }
 }
