@@ -50,23 +50,25 @@
       Theme="dark"
       AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")" />
 
-    @if(GetEthreumBasedCurrency) {
+    @if(walletStorage.GetEthreumBasedCurrency) {
       <Input
         Description="@Translations.GasPrice"
         InputType="text"
         InputName="gasPrice"
-        Value="@Helper.DecimalToStr(walletStorage.GasPrice)"
+        Value="@walletStorage.GasPriceString"
         OnChange="@SendGasPriceChange"
         Disabled="@walletStorage.UseDefaultFee"
+        AdditionalRightInfo="GWEI"
         Theme="dark" />
 
       <Input
         Description="@Translations.GasLimit"
         InputType="text"
         InputName="gasLimit"
-        Value="@Helper.DecimalToStr(walletStorage.GasLimit)"
+        Value="@walletStorage.GasLimitString"
         OnChange="@SendGasLimitChange"
         Disabled="@walletStorage.UseDefaultFee"
+        AdditionalRightInfo="GAS"
         Theme="dark" />
     }
 
@@ -74,7 +76,7 @@
       Description="@Translations.MinersFee" 
       InputType="number" 
       InputName="minersFee" 
-      Value="@Helper.DecimalToStr(walletStorage.SendingFee)" 
+      Value="@Helper.DecimalToStr(walletStorage.TotalFee)" 
       OnChange="@SendFeeChange"
       Theme="dark"
       AdditionalRightInfo="@String.Concat("$", GetFeeDollars, " USD")"
@@ -83,7 +85,8 @@
       <Checkbox
         Checked="@walletStorage.UseDefaultFee"
         Description="@Translations.UseDefaultFee"
-        OnChange="@OnUseDefaultFeeChange" />
+        OnChange="@OnUseDefaultFeeChange"
+        Disabled="@GetDefaultFeeDisabled" />
   }
 
   @if(State == States.Confirmation) {
@@ -91,7 +94,7 @@
       <div>
         <span class="send-confirmation__label">to send:</span>
         <span class="send-confirmation__coin">@walletStorage.SendingAmount <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
-        <span class="send-confirmation__usd">($@walletStorage.SendingAmountDollars<span class="currency-code">USD</span>)</span>
+        <span class="send-confirmation__usd">($@walletStorage.SendingAmountDollars <span class="currency-code">USD</span>)</span>
       </div>
       <div>
         <span class="send-confirmation__label">to address:</span>
@@ -99,8 +102,8 @@
       </div>
       <div>
         <span class="send-confirmation__label">with comission:</span>
-        <span class="send-confirmation__coin">@walletStorage.SendingFee <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
-        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.SendingFee) <span class="currency-code">USD</span>)</span>
+        <span class="send-confirmation__coin">@walletStorage.TotalFee <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
+        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.TotalFee) <span class="currency-code">USD</span>)</span>
       </div>
     </div>
   }
@@ -116,7 +119,7 @@
             @Translations.No
           }
         </NavigateButton>
-        <NavigateButton Variant="right" OnClick="OnNextClick">
+        <NavigateButton Variant="right" OnClick="OnNextClick" Disabled="@(!GetFormValid)">
           @if (State == States.SendingData) {
             @Translations.Send
           }
@@ -136,6 +139,16 @@
   [Parameter]
   public EventCallback OnCancelClick { get; set; }
 
+  private bool GetDefaultFeeDisabled
+  {
+    get => walletStorage.SelectedCurrency == AccountStorage.Ethereum || walletStorage.SelectedCurrency == AccountStorage.Tether;
+  }
+
+  private bool GetFormValid
+  {
+    get => walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress) && walletStorage.SendingAmount > 0 && walletStorage.SendingFee > 0;
+  }
+
   private States State { get; set; } = States.SendingData;
 
   private async void handleCancel()
@@ -152,27 +165,12 @@
 
   private bool FeeInputDisabled
   {
-    get => GetEthreumBasedCurrency ? true : walletStorage.UseDefaultFee;
+    get => walletStorage.GetEthreumBasedCurrency ? true : walletStorage.UseDefaultFee;
   }
 
   private decimal GetFeeDollars
   {
-    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.SendingFee);
-  }
-
-  protected string ToAddress { get; set; } = "";
-
-  protected decimal Amount { get; set; } = 0;
-
-  protected decimal GasPrice { get; set; } = 0;
-
-  protected decimal GasLimit { get; set; } = 0;
-
-  protected decimal Fee { get; set; } = 0;
-
-  private bool GetEthreumBasedCurrency
-  {
-    get => walletStorage.SelectedCurrency == AccountStorage.Ethereum || walletStorage.SelectedCurrency == AccountStorage.Tether;
+    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.TotalFee);
   }
 
   private System.Timers.Timer debounceInputAmount;
@@ -218,12 +216,12 @@
 
   private void SendGasPriceChange(string gasPrice)
   {
-    walletStorage.GasPrice = Helper.StrToDecimal(gasPrice);
+    // walletStorage.GasPrice = Helper.StrToDecimal(gasPrice);
   }
 
   private void SendGasLimitChange(string gasLimit)
   {
-    walletStorage.GasLimit = Helper.StrToDecimal(gasLimit);
+    // walletStorage.GasLimit = Helper.StrToDecimal(gasLimit);
   }
 
   private void OnUseDefaultFeeChange(bool value)

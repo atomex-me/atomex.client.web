@@ -147,7 +147,7 @@
 
     Console.Write($"FREE ADDRESS TO {WalletStorage.SelectedCurrency.Name} ");
     Console.WriteLine(await WalletStorage.GetFreeAddress());
-
+    Console.WriteLine($"FEE PRICE FOR {WalletStorage.SelectedCurrency.Name} IS {WalletStorage.SelectedCurrency.GetDefaultFeePrice()}");
   }
 
   public async void OnSendClick()
@@ -190,6 +190,7 @@
 
   private void SendOpenCloseHandler()
   {
+    // WalletStorage.ResetSendData();
     SendModalOpened = !SendModalOpened;
   }
 

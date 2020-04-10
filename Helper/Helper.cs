@@ -40,6 +40,11 @@ namespace atomex_frontend.Common
     {
       return value.ToString().Replace(",", ".");
     }
+
+    public static string DecimalToStr(decimal value, string format)
+    {
+      return value.ToString(format, CultureInfo.InvariantCulture).Replace(",", ".");
+    }
   }
 
   public static class CurrHelper

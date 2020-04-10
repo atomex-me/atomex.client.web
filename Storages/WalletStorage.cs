@@ -81,7 +81,8 @@ namespace atomex_frontend.Storages
         if (this._selectedCurrency.Name != value.Name)
         {
           this._selectedCurrency = value;
-          this.CallUIRefresh();
+
+          this.ResetSendData();
         }
       }
     }
@@ -115,7 +116,7 @@ namespace atomex_frontend.Storages
 
     public string SendingToAddress { get; set; } = "";
 
-    private decimal _sendingFee = 0;
+    public decimal _sendingFee = 0;
     public decimal SendingFee
     {
       get => this._sendingFee;
@@ -126,6 +127,13 @@ namespace atomex_frontend.Storages
           this.UpdateSendingFee(value);
         }
       }
+    }
+
+    private decimal _sendingFeePrice = 1;
+
+    public decimal TotalFee
+    {
+      get => this.SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice);
     }
 
     private bool _useDefaultFee = true;
@@ -139,13 +147,18 @@ namespace atomex_frontend.Storages
       }
     }
 
-    public decimal GasPrice { get; set; } = 0;
+    public string GasLimitString { get => Helper.DecimalToStr(this._sendingFee, "F0"); }
 
-    public decimal GasLimit { get; set; } = 0;
+    public string GasPriceString { get => Helper.DecimalToStr(this._sendingFeePrice); }
 
     public decimal SendingAmountDollars
     {
       get => this.GetDollarValue(this.SelectedCurrency, this._sendingAmount);
+    }
+
+    public bool GetEthreumBasedCurrency
+    {
+      get => this.SelectedCurrency == AccountStorage.Ethereum || this.SelectedCurrency == AccountStorage.Tether;
     }
 
     private bool _isUpdating = false;
@@ -297,8 +310,16 @@ namespace atomex_frontend.Storages
 
     protected async void UpdateSendingAmount(decimal amount)
     {
-      Console.WriteLine($"Started updating AMOUNT with {amount}");
+      bool TetherOrFa12 = SelectedCurrency == AccountStorage.FA12 || SelectedCurrency == AccountStorage.Tether;
+      Console.WriteLine($"TetherOrFa12 {TetherOrFa12}");
+
+      if ((SelectedCurrency == AccountStorage.FA12 || SelectedCurrency == AccountStorage.Tezos) && !SelectedCurrency.IsValidAddress(SendingToAddress))
+      {
+        this.ResetSendData();
+        return;
+      }
       var previousAmount = _sendingAmount;
+
       _sendingAmount = amount;
       this.CallUIRefresh();
 
@@ -308,8 +329,10 @@ namespace atomex_frontend.Storages
             .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, true);
 
         var availableAmount = SelectedCurrency is BitcoinBasedCurrency
-            ? SelectedCurrencyData.Balance
-            : maxAmount + maxFeeAmount;
+          ? SelectedCurrencyData.Balance
+          : !TetherOrFa12 ? maxAmount + maxFeeAmount : maxAmount;
+
+        Console.WriteLine($"availableAmount {availableAmount}");
 
         var estimatedFeeAmount = _sendingAmount != 0
             ? (_sendingAmount < availableAmount
@@ -331,13 +354,22 @@ namespace atomex_frontend.Storages
           }
         }
 
-        if (_sendingAmount + estimatedFeeAmount.Value > availableAmount)
-          _sendingAmount = Math.Max(availableAmount - estimatedFeeAmount.Value, 0);
+        if (!TetherOrFa12)
+        {
+          if (_sendingAmount + estimatedFeeAmount.Value > availableAmount)
+            _sendingAmount = Math.Max(availableAmount - estimatedFeeAmount.Value, 0);
+        }
+        else
+        {
+          if (_sendingAmount > availableAmount)
+            _sendingAmount = Math.Max(availableAmount, 0);
+        }
 
         if (_sendingAmount == 0)
           estimatedFeeAmount = 0;
 
         _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount.Value, SelectedCurrency.GetDefaultFeePrice());
+        _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
       }
       else
       {
@@ -346,23 +378,32 @@ namespace atomex_frontend.Storages
 
         var availableAmount = SelectedCurrency is BitcoinBasedCurrency
             ? SelectedCurrencyData.Balance
-            : maxAmount + maxFeeAmount;
+            : !TetherOrFa12 ? maxAmount + maxFeeAmount : maxAmount;
 
-        var feeAmount = Math.Max(SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice()), maxFeeAmount);
+        var feeAmount = Math.Max(SelectedCurrency.GetFeeAmount(_sendingFee, this._sendingFeePrice), maxFeeAmount);
 
-        if (_sendingAmount + feeAmount > availableAmount)
-          _sendingAmount = Math.Max(availableAmount - feeAmount, 0);
+        if (!TetherOrFa12)
+        {
+          if (_sendingAmount + feeAmount > availableAmount)
+          {
+            _sendingAmount = Math.Max(availableAmount - feeAmount, 0);
+          }
+        }
+        else
+        {
+          if (_sendingAmount > availableAmount)
+            _sendingAmount = Math.Max(availableAmount, 0);
+        }
 
         if (_sendingFee != 0)
           SendingFee = _sendingFee;
+
       }
-      Console.WriteLine($"FINISHED updating AMOUNT with sending amount {SendingAmount}");
       this.CallUIRefresh();
     }
 
     protected async void UpdateSendingFee(decimal fee)
     {
-      Console.WriteLine($"Start updating fee with fee {fee}");
       this._sendingFee = fee;
       this.CallUIRefresh();
       if (_sendingAmount == 0)
@@ -380,9 +421,11 @@ namespace atomex_frontend.Storages
             ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
             : 0;
 
-        var feeAmount = _sendingFee;
+        var feeAmount = this.GetEthreumBasedCurrency
+            ? SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice)
+            : _sendingFee;
 
-        if (feeAmount > estimatedFeeAmount.Value)
+        if ((feeAmount > estimatedFeeAmount.Value) && SelectedCurrency != AccountStorage.Tether && SelectedCurrency != AccountStorage.FA12)
         {
           var (maxAmount, maxFee, _) = await accountStorage.Account
               .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, true);
@@ -392,10 +435,15 @@ namespace atomex_frontend.Storages
               : maxAmount + maxFee;
 
           if (_sendingAmount + feeAmount > availableAmount)
+          {
             _sendingAmount = Math.Max(availableAmount - feeAmount, 0);
+          }
         }
         else if (feeAmount < estimatedFeeAmount.Value)
-          _sendingFee = estimatedFeeAmount.Value;
+
+          _sendingFee = this.GetEthreumBasedCurrency
+            ? SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount.Value, SelectedCurrency.GetDefaultFeePrice())
+            : estimatedFeeAmount.Value;
 
         if (_sendingAmount == 0)
           _sendingFee = 0;
@@ -403,5 +451,15 @@ namespace atomex_frontend.Storages
       this.CallUIRefresh();
     }
 
+
+    public void ResetSendData()
+    {
+      this.SendingToAddress = "";
+      this._sendingAmount = 0;
+      this._sendingFee = 0;
+      this._sendingFeePrice = _selectedCurrency.GetDefaultFeePrice();
+      this._useDefaultFee = true;
+      this.CallUIRefresh();
+    }
   }
 }
