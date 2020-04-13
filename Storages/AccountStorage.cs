@@ -70,6 +70,12 @@ namespace atomex_frontend.Storages
     public static ICurrencies Currencies { get; set; }
     public BitfinexQuotesProvider QuotesProvider { get; set; }
 
+    public event Action InitializeCallback;
+    private void CallInitialize()
+    {
+      InitializeCallback?.Invoke();
+    }
+
     private CurrenciesProvider currenciesProvider;
     private IConfiguration currenciesConfiguration;
     private IConfiguration symbolsConfiguration;
@@ -186,6 +192,7 @@ namespace atomex_frontend.Storages
       AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
       Console.WriteLine("Subscribing to BalanceUpdated event.");
       AtomexApp.Account.BalanceUpdated += OnBalanceChangedEventHandler;
+      this.CallInitialize();
     }
 
     private void OnQuotesUpdatedEventHandler(object sender, EventArgs args)
@@ -203,7 +210,7 @@ namespace atomex_frontend.Storages
 
     private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
     {
-      Console.WriteLine("New trans!!!!!!!!!!!!!");
+      Console.WriteLine($"New trans!!!!!!!!!!!!! {e.Transaction.State}");
       //   Console.WriteLine($"New transaction!! {e.Transaction.Id}");
       //   if (!e.Transaction.IsConfirmed && e.Transaction.State != BlockchainTransactionState.Failed)
       //     Console.WriteLine($"New transaction!! {e.Transaction.Id}");

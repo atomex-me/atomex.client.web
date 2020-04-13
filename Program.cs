@@ -36,7 +36,14 @@ namespace atomex_frontend
     public static T GetAttribute<T>(this Enum value) where T : Attribute
     {
       var type = value.GetType();
+      // Console.WriteLine($"ENUM value IS {value}");
+      // Console.WriteLine($"ENUM type IS {type}");
       var memberInfo = type.GetMember(value.ToString());
+      // Console.WriteLine($"ENUM memberInfo len IS {memberInfo.Length}");
+      if (memberInfo.Length == 0)
+      {
+        return null;
+      }
       var attributes = memberInfo[0].GetCustomAttributes(typeof(T), false);
       return attributes.Length > 0
         ? (T)attributes[0]

@@ -190,14 +190,13 @@
 
   private void SendOpenCloseHandler()
   {
-    // WalletStorage.ResetSendData();
+    WalletStorage.ResetSendData();
     SendModalOpened = !SendModalOpened;
   }
 
   private void ReceiveOpenCloseHandler()
   {
     ReceiveModalOpened = !ReceiveModalOpened;
-    Console.WriteLine();
   }
 
   private static decimal GetAmount(TezosTransaction tx)
@@ -225,7 +224,7 @@
 
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
-    WalletStorage.Initialize();
+
     WalletStorage.RefreshRequested += StateHasChanged;
   }
 }

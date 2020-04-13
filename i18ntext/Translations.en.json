@@ -65,5 +65,6 @@
   "EstimatedPaymentFee": "Estimated payment fee",
   "EstimatedRedeemFee": "Estimated redeem fee",
   "No": "No",
-  "Yes": "Yes"
+  "Yes": "Yes",
+  "Error": "Error"
 }

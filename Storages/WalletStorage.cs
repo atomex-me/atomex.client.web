@@ -28,6 +28,8 @@ namespace atomex_frontend.Storages
     public WalletStorage(AccountStorage accountStorage)
     {
       this.accountStorage = accountStorage;
+
+      this.accountStorage.InitializeCallback += Initialize;
     }
 
     public event Action RefreshRequested;
@@ -116,7 +118,7 @@ namespace atomex_frontend.Storages
 
     public string SendingToAddress { get; set; } = "";
 
-    public decimal _sendingFee = 0;
+    private decimal _sendingFee = 0;
     public decimal SendingFee
     {
       get => this._sendingFee;
@@ -130,6 +132,10 @@ namespace atomex_frontend.Storages
     }
 
     private decimal _sendingFeePrice = 1;
+    public decimal SendingFeePrice
+    {
+      get => this._sendingFeePrice;
+    }
 
     public decimal TotalFee
     {
@@ -173,7 +179,7 @@ namespace atomex_frontend.Storages
     }
 
 
-    public void Initialize()
+    public async void Initialize()
     {
       if (accountStorage.AtomexApp != null)
       {
@@ -182,6 +188,17 @@ namespace atomex_frontend.Storages
           accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatePortfolioAsync();
         }
         accountStorage.AtomexApp.Account.BalanceUpdated += async (object sender, CurrencyEventArgs args) => await UpdatePortfolioAsync();
+
+        List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
+        foreach (Currency currency in currenciesList)
+        {
+          if (!PortfolioData.TryGetValue(currency, out CurrencyData currencyData))
+          {
+            CurrencyData initialCurrencyData = new CurrencyData(currency, 0, 0, 0.0m);
+            PortfolioData.Add(currency, initialCurrencyData);
+            initialCurrencyData.FreeExternalAddress = (await this.accountStorage.Account.GetFreeExternalAddressAsync(initialCurrencyData.Currency.Name)).Address;
+          }
+        }
       }
     }
 
@@ -222,8 +239,10 @@ namespace atomex_frontend.Storages
 
       foreach (Currency currency in currenciesList)
       {
-        Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name)); //todo: Fix zero - Balance for FA12
+        Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name));
         var availableBalance = balance.Available;
+
+        Console.WriteLine($"Balance for  {currency.Name} = {availableBalance}");
         if (!PortfolioData.TryGetValue(currency, out CurrencyData currencyData))
         {
           PortfolioData.Add(currency, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency, availableBalance), 0.0m));
