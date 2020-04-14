@@ -241,8 +241,6 @@ namespace atomex_frontend.Storages
       {
         Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name));
         var availableBalance = balance.Available;
-
-        Console.WriteLine($"Balance for  {currency.Name} = {availableBalance}");
         if (!PortfolioData.TryGetValue(currency, out CurrencyData currencyData))
         {
           PortfolioData.Add(currency, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency, availableBalance), 0.0m));
@@ -330,7 +328,6 @@ namespace atomex_frontend.Storages
     protected async void UpdateSendingAmount(decimal amount)
     {
       bool TetherOrFa12 = SelectedCurrency == AccountStorage.FA12 || SelectedCurrency == AccountStorage.Tether;
-      Console.WriteLine($"TetherOrFa12 {TetherOrFa12}");
 
       if ((SelectedCurrency == AccountStorage.FA12 || SelectedCurrency == AccountStorage.Tezos) && !SelectedCurrency.IsValidAddress(SendingToAddress))
       {
@@ -350,8 +347,6 @@ namespace atomex_frontend.Storages
         var availableAmount = SelectedCurrency is BitcoinBasedCurrency
           ? SelectedCurrencyData.Balance
           : !TetherOrFa12 ? maxAmount + maxFeeAmount : maxAmount;
-
-        Console.WriteLine($"availableAmount {availableAmount}");
 
         var estimatedFeeAmount = _sendingAmount != 0
             ? (_sendingAmount < availableAmount
