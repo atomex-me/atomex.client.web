@@ -6,6 +6,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Atomex;
+using Atomex.Common;
 using Atomex.Core;
 using Atomex.Wallet;
 using Atomex.Abstract;
@@ -20,6 +21,9 @@ using Atomex.EthereumTokens;
 using Atomex.TezosTokens;
 using atomex_frontend.Common;
 
+using LiteDB;
+using Atomex.Common.Bson;
+
 namespace atomex_frontend.Storages
 {
 
@@ -33,9 +37,15 @@ namespace atomex_frontend.Storages
     }
 
     public event Action RefreshRequested;
-    public void CallUIRefresh()
+    private void CallUIRefresh()
     {
       RefreshRequested?.Invoke();
+    }
+
+    public event Action<bool> RefreshMarket;
+    private void CallMarketRefresh(bool force = true)
+    {
+      RefreshMarket?.Invoke(force);
     }
 
     private AccountStorage accountStorage;
@@ -66,7 +76,7 @@ namespace atomex_frontend.Storages
 
     public decimal GetTotalDollars
     {
-      get => PortfolioData.Values.Sum(x => x.DollarValue);
+      get => Helper.SetPrecision(PortfolioData.Values.Sum(x => x.DollarValue), 2);
     }
 
     public CurrencyData SelectedCurrencyData
@@ -84,12 +94,18 @@ namespace atomex_frontend.Storages
         {
           this._selectedCurrency = value;
 
+          if (CurrentWalletSection == WalletSection.Conversion)
+          {
+            this.CheckForSimilarCurrencies();
+            this.CallMarketRefresh();
+          }
+
           this.ResetSendData();
         }
       }
     }
 
-    private Currency _selectedSecondCurrency = AccountStorage.Litecoin;
+    private Currency _selectedSecondCurrency = AccountStorage.Tezos;
     public Currency SelectedSecondCurrency
     {
       get => _selectedSecondCurrency;
@@ -98,7 +114,9 @@ namespace atomex_frontend.Storages
         if (this._selectedSecondCurrency.Name != value.Name)
         {
           this._selectedSecondCurrency = value;
+
           this.CallUIRefresh();
+          this.CallMarketRefresh();
         }
       }
     }
@@ -159,7 +177,7 @@ namespace atomex_frontend.Storages
 
     public decimal SendingAmountDollars
     {
-      get => this.GetDollarValue(this.SelectedCurrency, this._sendingAmount);
+      get => Helper.SetPrecision(this.GetDollarValue(this.SelectedCurrency, this._sendingAmount), 2);
     }
 
     public bool GetEthreumBasedCurrency
@@ -178,6 +196,24 @@ namespace atomex_frontend.Storages
       }
     }
 
+    private bool _forceMarketUpdate = true;
+    private WalletSection _currentWalletSection = WalletSection.Portfolio;
+    public WalletSection CurrentWalletSection
+    {
+      get => _currentWalletSection;
+      set
+      {
+        _currentWalletSection = value;
+
+        if (_currentWalletSection == WalletSection.Conversion)
+        {
+          this.CheckForSimilarCurrencies();
+          this.CallMarketRefresh(force: _forceMarketUpdate);
+          _forceMarketUpdate = false;
+        }
+      }
+    }
+
 
     public async void Initialize()
     {
@@ -188,6 +224,7 @@ namespace atomex_frontend.Storages
           accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatePortfolioAsync();
         }
         accountStorage.AtomexApp.Account.BalanceUpdated += async (object sender, CurrencyEventArgs args) => await UpdatePortfolioAsync();
+        accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
 
         List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
         foreach (Currency currency in currenciesList)
@@ -199,7 +236,14 @@ namespace atomex_frontend.Storages
             initialCurrencyData.FreeExternalAddress = (await this.accountStorage.Account.GetFreeExternalAddressAsync(initialCurrencyData.Currency.Name)).Address;
           }
         }
+
+        CreateBsonMapper();
       }
+    }
+
+    private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
+    {
+      handleTransaction(e.Transaction);
     }
 
     public decimal GetCurrencyData(Currency currency, string dataType)
@@ -268,38 +312,7 @@ namespace atomex_frontend.Storages
       var transactions = await accountStorage.Account.GetTransactionsAsync(currency.Name);
       foreach (var tx in transactions)
       {
-        decimal amount = 0;
-        string description = "";
-
-        switch (tx.Currency)
-        {
-          case BitcoinBasedCurrency _:
-            IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
-            amount = CurrHelper.GetTransAmount(btcBasedTrans);
-            description = CurrHelper.GetTransDescription(tx, amount);
-            AddTransaction(new Transaction(currency, btcBasedTrans.Id, btcBasedTrans.State, btcBasedTrans.Type, btcBasedTrans.CreationTime, btcBasedTrans.IsConfirmed, amount, description), currency);
-            break;
-          case Tether _:
-            EthereumTransaction usdtTrans = (EthereumTransaction)tx;
-            amount = CurrHelper.GetTransAmount(usdtTrans);
-            description = CurrHelper.GetTransDescription(tx, amount);
-            AddTransaction(new Transaction(currency, usdtTrans.Id, usdtTrans.State, usdtTrans.Type, usdtTrans.CreationTime, usdtTrans.IsConfirmed, amount, description), currency);
-            break;
-          case Ethereum _:
-            EthereumTransaction ethTrans = (EthereumTransaction)tx;
-            amount = CurrHelper.GetTransAmount(ethTrans);
-            description = CurrHelper.GetTransDescription(tx, amount);
-            AddTransaction(new Transaction(currency, ethTrans.Id, ethTrans.State, ethTrans.Type, ethTrans.CreationTime, ethTrans.IsConfirmed, amount, description), currency);
-            break;
-
-          case FA12 _:
-          case Tezos _:
-            TezosTransaction xtzTrans = (TezosTransaction)tx;
-            amount = CurrHelper.GetTransAmount(xtzTrans);
-            description = CurrHelper.GetTransDescription(tx, amount);
-            AddTransaction(new Transaction(currency, xtzTrans.Id, xtzTrans.State, xtzTrans.Type, xtzTrans.CreationTime, xtzTrans.IsConfirmed, amount, description), currency);
-            break;
-        }
+        handleTransaction(tx);
       }
     }
 
@@ -316,13 +329,48 @@ namespace atomex_frontend.Storages
       }
     }
 
+    private void handleTransaction(IBlockchainTransaction tx)
+    {
+      decimal amount = 0;
+      string description = "";
+      switch (tx.Currency)
+      {
+        case BitcoinBasedCurrency _:
+          IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
+          amount = CurrHelper.GetTransAmount(btcBasedTrans);
+          description = CurrHelper.GetTransDescription(tx, amount);
+          AddTransaction(new Transaction(tx.Currency, btcBasedTrans.Id, btcBasedTrans.State, btcBasedTrans.Type, btcBasedTrans.CreationTime, btcBasedTrans.IsConfirmed, amount, description), tx.Currency);
+          break;
+        case Tether _:
+          EthereumTransaction usdtTrans = (EthereumTransaction)tx;
+          amount = CurrHelper.GetTransAmount(usdtTrans);
+          description = CurrHelper.GetTransDescription(tx, amount);
+          AddTransaction(new Transaction(tx.Currency, usdtTrans.Id, usdtTrans.State, usdtTrans.Type, usdtTrans.CreationTime, usdtTrans.IsConfirmed, amount, description), tx.Currency);
+          break;
+        case Ethereum _:
+          EthereumTransaction ethTrans = (EthereumTransaction)tx;
+          amount = CurrHelper.GetTransAmount(ethTrans);
+          description = CurrHelper.GetTransDescription(ethTrans, amount);
+          AddTransaction(new Transaction(tx.Currency, ethTrans.Id, ethTrans.State, ethTrans.Type, ethTrans.CreationTime, ethTrans.IsConfirmed, amount, description), tx.Currency);
+          break;
+
+        case FA12 _:
+        case Tezos _:
+          TezosTransaction xtzTrans = (TezosTransaction)tx;
+          amount = CurrHelper.GetTransAmount(xtzTrans);
+          description = CurrHelper.GetTransDescription(xtzTrans, amount);
+          AddTransaction(new Transaction(tx.Currency, xtzTrans.Id, xtzTrans.State, xtzTrans.Type, xtzTrans.CreationTime, xtzTrans.IsConfirmed, amount, description), tx.Currency);
+          break;
+      }
+    }
+
     public decimal GetDollarValue(Currency currency, decimal amount)
     {
       if (accountStorage.QuotesProvider != null)
       {
-        return accountStorage.QuotesProvider.GetQuote(currency.Name, "USD").Bid * amount;
+        return Helper.SetPrecision(accountStorage.QuotesProvider.GetQuote(currency.Name, "USD").Bid * amount, 2);
       }
-      return 0.0m;
+      return 0;
     }
 
     protected async void UpdateSendingAmount(decimal amount)
@@ -463,6 +511,41 @@ namespace atomex_frontend.Storages
           _sendingFee = 0;
       }
       this.CallUIRefresh();
+    }
+
+    private void CheckForSimilarCurrencies()
+    {
+      if (SelectedCurrency.Name == SelectedSecondCurrency.Name || accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(SelectedCurrency, SelectedSecondCurrency) == null)
+      {
+        foreach (Currency availableCurrency in AvailableCurrencies)
+        {
+          if (accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(SelectedCurrency, availableCurrency) != null)
+          {
+            SelectedSecondCurrency = availableCurrency;
+            break;
+          }
+        }
+      }
+    }
+
+
+    public BsonMapper _bsonMapper;
+    public void CreateBsonMapper()
+    {
+      ICurrencies currencies = accountStorage.currenciesProvider.GetCurrencies(Network.TestNet);
+
+      Console.WriteLine("Creating bson mapper");
+      _bsonMapper = new BsonMapper()
+                .UseSerializer(new CurrencyToBsonSerializer(currencies))
+                .UseSerializer(new BigIntegerToBsonSerializer())
+                .UseSerializer(new JObjectToBsonSerializer())
+                .UseSerializer(new WalletAddressToBsonSerializer())
+                .UseSerializer(new OrderToBsonSerializer())
+                .UseSerializer(new BitcoinBasedTransactionToBsonSerializer(currencies))
+                .UseSerializer(new BitcoinBasedTxOutputToBsonSerializer())
+                .UseSerializer(new EthereumTransactionToBsonSerializer())
+                .UseSerializer(new TezosTransactionToBsonSerializer())
+                .UseSerializer(new SwapToBsonSerializer(currencies));
     }
 
 

@@ -6,6 +6,7 @@ using Atomex.Wallet;
 using Microsoft.AspNetCore.Components;
 using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
+using Microsoft.JSInterop;
 using System.IO;
 using System.Reflection;
 using Atomex.Common.Configuration;
@@ -21,16 +22,19 @@ using Atomex.Blockchain;
 using Atomex.Blockchain.Abstract;
 using Atomex.Abstract;
 using Atomex.Subsystems.Abstract;
+using Atomex.MarketData;
 
 namespace atomex_frontend.Storages
 {
   public class AccountStorage
   {
     public AccountStorage(HttpClient httpClient,
-        ILocalStorageService localStorage)
+      ILocalStorageService localStorage,
+      IJSRuntime jSRuntime)
     {
       this.httpClient = httpClient;
       this.localStorage = localStorage;
+      this.jSRuntime = jSRuntime;
 
       this.InitializeAtomexConfigs();
     }
@@ -64,6 +68,8 @@ namespace atomex_frontend.Storages
       get => Currencies.GetByName("FA12");
     }
 
+    public AccountDataRepository ADR;
+
     public Account Account { get; set; }
     public IAtomexApp AtomexApp { get; set; }
     public IAtomexClient Terminal { get; set; }
@@ -76,12 +82,15 @@ namespace atomex_frontend.Storages
       InitializeCallback?.Invoke();
     }
 
-    private CurrenciesProvider currenciesProvider;
+    public CurrenciesProvider currenciesProvider;
     private IConfiguration currenciesConfiguration;
     private IConfiguration symbolsConfiguration;
     private Assembly coreAssembly;
     private HttpClient httpClient;
     private ILocalStorageService localStorage;
+    public IJSRuntime jSRuntime;
+    private string CurrentWalletName;
+    private SecureString _password;
 
     public async Task<IList<string>> GetAvailableWallets()
     {
@@ -119,20 +128,7 @@ namespace atomex_frontend.Storages
 
     public async Task ConnectToWallet(string WalletName, SecureString Password)
     {
-      var confJson = await httpClient.GetJsonAsync<dynamic>("conf/configuration.json");
-      Stream confStream = Common.Helper.GenerateStreamFromString(confJson.ToString());
-
-      IConfiguration configuration = new ConfigurationBuilder()
-          .AddJsonStream(confStream)
-          .Build();
-
-      IConfiguration symbolsConfiguration = new ConfigurationBuilder()
-        .SetBasePath("/")
-        .AddEmbeddedJsonFile(this.coreAssembly, "symbols.json")
-        .Build();
-
-      var symbolsProvider = new SymbolsProvider(symbolsConfiguration);
-
+      _password = Password;
       bool walletFileExist = File.Exists($"/{WalletName}.wallet");
       if (!walletFileExist)
       {
@@ -154,10 +150,36 @@ namespace atomex_frontend.Storages
         Console.WriteLine($"Wallet {WalletName} founded on FS");
       }
 
+      CurrentWalletName = WalletName;
+      await jSRuntime.InvokeVoidAsync("getData", WalletName, DotNetObjectReference.Create(this));
+    }
+
+    [JSInvokableAttribute("LoadWallet")]
+    public async void LoadWallet(string data)
+    {
+      Console.WriteLine("Loading wallet....");
+
+      var confJson = await httpClient.GetJsonAsync<dynamic>("conf/configuration.json");
+      Stream confStream = Common.Helper.GenerateStreamFromString(confJson.ToString());
+
+      IConfiguration configuration = new ConfigurationBuilder()
+          .AddJsonStream(confStream)
+          .Build();
+
+      IConfiguration symbolsConfiguration = new ConfigurationBuilder()
+        .SetBasePath("/")
+        .AddEmbeddedJsonFile(this.coreAssembly, "symbols.json")
+        .Build();
+
+      var symbolsProvider = new SymbolsProvider(symbolsConfiguration);
+
+      ADR = new AccountDataRepository(currenciesProvider.GetCurrencies(Network.TestNet), initialData: data);
+      ADR.SaveDataCallback += SaveDataCallback;
+
       Account = new Account(
-        HdWallet.LoadFromFile($"/{WalletName}.wallet", Password),
-        Password,
-        new AccountDataRepository(),
+        HdWallet.LoadFromFile($"/{CurrentWalletName}.wallet", _password),
+        _password,
+        ADR,
         currenciesProvider,
         symbolsProvider
       );
@@ -167,7 +189,7 @@ namespace atomex_frontend.Storages
       if (AtomexApp != null)
       {
         AtomexApp.UseTerminal(Terminal, restart: true);
-        Console.WriteLine($"Restarting: switched to Account with {WalletName} wallet");
+        Console.WriteLine($"Restarting: switched to Account with {CurrentWalletName} wallet");
       }
       else
       {
@@ -179,20 +201,46 @@ namespace atomex_frontend.Storages
                 currencies: currenciesProvider.GetCurrencies(Network.TestNet),
                 baseCurrency: BitfinexQuotesProvider.Usd))
             .UseTerminal(Terminal);
-        Console.WriteLine($"Starting Atomex app with {WalletName} wallet");
+        Console.WriteLine($"Starting Atomex app with {CurrentWalletName} wallet with data {data.Length}");
         AtomexApp.Start();
       }
 
       if (AtomexApp.HasQuotesProvider)
       {
-        Console.WriteLine("Subscribing to QuotesUpdated Event.");
         AtomexApp.QuotesProvider.QuotesUpdated += OnQuotesUpdatedEventHandler;
       }
-      Console.WriteLine("Subscribing to New Trans Event Event.");
       AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
-      Console.WriteLine("Subscribing to BalanceUpdated event.");
       AtomexApp.Account.BalanceUpdated += OnBalanceChangedEventHandler;
+      AtomexApp.Terminal.ServiceConnected += OnTerminalServiceStateChangedEventHandler;
+
       this.CallInitialize();
+    }
+
+    private void SaveDataCallback(AccountDataRepository.AvailableDataType type, string key, string value)
+    {
+
+      // if (type == AccountDataRepository.AvailableDataType.Transaction)
+      // {
+      //   Console.WriteLine($"W3riting to JAvascript tx with ID {key}");
+      // }
+      jSRuntime.InvokeAsync<string>("saveData", new string[] { type.ToName(), CurrentWalletName, key, value });
+    }
+
+    private void OnTerminalServiceStateChangedEventHandler(object sender, TerminalServiceEventArgs args)
+    {
+      if (!(sender is IAtomexClient terminal))
+        return;
+
+      bool IsExchangeConnected = terminal.IsServiceConnected(TerminalService.Exchange);
+      bool IsMarketDataConnected = terminal.IsServiceConnected(TerminalService.MarketData);
+
+      // subscribe to symbols updates
+      if (args.Service == TerminalService.MarketData && IsMarketDataConnected)
+      {
+        Console.WriteLine("SUBSCRIBING TO WEBSOCKET MASRKET DATA");
+        terminal.SubscribeToMarketData(SubscriptionType.TopOfBook);
+        terminal.SubscribeToMarketData(SubscriptionType.DepthTwenty);
+      }
     }
 
     private void OnQuotesUpdatedEventHandler(object sender, EventArgs args)

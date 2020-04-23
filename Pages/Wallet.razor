@@ -1,34 +1,41 @@
 ﻿@page "/wallet"
 @using Atomex.Blockchain.Abstract
 @using Atomex.Blockchain.Tezos;
+@using Atomex.Wallet;
 @inject AccountStorage AccountStorage;
 @inject WalletStorage WalletStorage;
+@inject SwapStorage SwapStorage;
 @using System;
-@using System.Globalization;
+@using System.Timers;
+@using System.Threading;
+@using System.Text;
+@using Newtonsoft.Json;
+
+@using LiteDB;
 
 <div>
   <div class="wallet-page dark-background">
       <div class="wallet-page__left-nav dark-background">
           <div>
             <WalletMenuButton
-                Variant="@WalletMenuButton.ButtonVariants.Portfolio"
+                Variant="@WalletSection.Portfolio"
                 OnClick="@WalletMenuButtonClick"
-                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Portfolio)" />
+                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Portfolio)" />
 
             <WalletMenuButton
-                Variant="@WalletMenuButton.ButtonVariants.Wallets"
+                Variant="@WalletSection.Wallets"
                 OnClick="@WalletMenuButtonClick"
-                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Wallets)" />
+                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Wallets)" />
 
             <WalletMenuButton
-                Variant="@WalletMenuButton.ButtonVariants.Conversion"
+                Variant="@WalletSection.Conversion"
                 OnClick="@WalletMenuButtonClick"
-                IsActive="@(ActiveSection == WalletMenuButton.ButtonVariants.Conversion)" />
+                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Conversion)" />
 
           </div>
       </div>
       <div class="wallet-page__container">
-          @if (ActiveSection == WalletMenuButton.ButtonVariants.Portfolio) {
+          @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio) {
             <DonutChart
                 LTCPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Litecoin, "percent"))"
                 ETHPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Ethereum, "percent"))"
@@ -41,7 +48,7 @@
                 CurrenciesData="@WalletStorage.PortfolioData" />
           }
 
-          @if (ActiveSection == WalletMenuButton.ButtonVariants.Wallets) {
+          @if (WalletStorage.CurrentWalletSection == WalletSection.Wallets) {
             <div>
                 <CurrenciesRow />
                 <CurrencyCard
@@ -63,41 +70,41 @@
                 Variant="@WalletDataTable.AvailableVariants.Transactions"
                 TransactionsData="@WalletStorage.SelectedCurrencyTransactions" />
           }
-          @if (ActiveSection == WalletMenuButton.ButtonVariants.Conversion) {
+          @if (WalletStorage.CurrentWalletSection == WalletSection.Conversion) {
             <div class="exchange">
                 <CurrencyDropdown
                   SelectedCurrency="WalletStorage.SelectedCurrency"
                   Label="@Translations.From"
-                  OnChange="@((Currency currency) => WalletStorage.SelectedCurrency = currency)"/>
+                  IsOpened="@(OpenedDropdown == 1)"
+                  HandleOpen="@OnOpenClick" />
 
                 <CurrencyDropdown
                   SelectedCurrency="WalletStorage.SelectedSecondCurrency"
                   Label="@Translations.To"
                   IsSecondCurrency="@true"
-                  OnChange="@((Currency currency) => WalletStorage.SelectedSecondCurrency = currency)"/>
+                  IsOpened="@(OpenedDropdown == 2)"
+                  HandleOpen="@OnOpenClick" />
 
                 <AmountBadge
                     Label="@Translations.Amount"
                     OnChange="@OnAmountChange"
                     SelectedCurrency="@WalletStorage.SelectedCurrency" 
-                    Amount="@WalletStorage.SendingAmount"
-                    DollarAmount="@WalletStorage.SendingAmountDollars"
-                    TotalAmount="@WalletStorage.SelectedCurrencyData.Balance"
-                    TotalAmountDollars="@WalletStorage.SendingAmountDollars"/>
+                    Amount="@SwapStorage.Amount"
+                    DollarAmount="@SwapStorage.AmountDollars"
+                    TotalAmount="@SwapStorage.EstimatedMaxAmount" />
                 
-                <ConvertCard
-                  FromCurrency="@WalletStorage.SelectedCurrency"
-                  ToCurrency="@WalletStorage.SelectedSecondCurrency"
-                  FromAmount="@WalletStorage.SendingAmount"
-                  ToAmount="@(0.123m)"
-                />
+                <ConvertCard />
+
+                <Modal IsOpen="@ConvertModalOpened" OnClose="@ConvertOpenCloseHandler">
+                    <ConvertModal OnCancelClick="@ConvertOpenCloseHandler" />
+                </Modal>
 
                 <div class="exchange-button__container">
-                    <NavigateButton Variant="center">@Translations.Convert</NavigateButton>
+                    <NavigateButton Variant="center" OnClick="@ConvertOpenCloseHandler">@Translations.Convert</NavigateButton>
                 </div>
             </div>
             <WalletDataTable
-                Variant="@WalletDataTable.AvailableVariants.Transactions"
+                Variant="@WalletDataTable.AvailableVariants.Swaps"
                 TransactionsData="@WalletStorage.SelectedCurrencyTransactions" />
           }
       </div>
@@ -106,37 +113,47 @@
 </div>
 
 @code {
-  protected decimal ConvertedCurrencyAmount = 0.000000m;
+  private int OpenedDropdown = 0;
 
-  protected void OnAmountChange(decimal Amount)
+  private void OnOpenClick(int dropdown)
   {
-    WalletStorage.SendingAmount = Amount;
+    if (OpenedDropdown > 0)
+    {
+      OpenedDropdown = 0;
+    }
+    else
+    {
+      OpenedDropdown = dropdown;
+    }
   }
 
-  protected WalletMenuButton.ButtonVariants ActiveSection { get; set; }
+  private System.Timers.Timer debounceInputAmount;
+  private decimal Amount = 0m;
+
+  protected void OnAmountChange(decimal amount)
+  {
+    debounceInputAmount.Stop();
+    debounceInputAmount.Start();
+    Amount = amount;
+  }
+
+  private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+     {
+       SwapStorage.Amount = Amount;
+     });
+  }
 
   protected List<Transaction> Transactions { get; set; } = new List<Transaction>();
 
-  protected void WalletMenuButtonClick(WalletMenuButton.ButtonVariants Variant)
+  protected void WalletMenuButtonClick(WalletSection Variant)
   {
-    ActiveSection = Variant;
+    WalletStorage.CurrentWalletSection = Variant;
   }
 
   private async void OnUpdateHandler()
   {
-    // await WalletStorage.ScanCurrencyAsync(WalletStorage.AvailableCurrencies[2]);
-    // Console.WriteLine($"Scanning {WalletStorage.AvailableCurrencies[2].Name} done");
-
-    // List<IBlockchainTransaction> trans = await WalletStorage.GetTezosBalance();
-    // foreach(var tx in trans){
-    //     Console.WriteLine(tx.CreationTime);
-    //      Console.WriteLine(tx.State);
-    // }
-
-    // var balance = await AccountStorage.Account.GetBalanceAsync("LTC");
-    // Console.WriteLine($"LTC BALANCE: {balance.Available}");
-
-    // WalletAddress wa = await WalletStorage.GetFreeAddress("LTC");
     Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} starting to scan");
     await WalletStorage.ScanCurrencyAsync(WalletStorage.SelectedCurrency);
     Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} scanned");
@@ -144,48 +161,61 @@
 
   private async void OnConvertHandler()
   {
+    // var transactions = await AccountStorage.Account.GetTransactionsAsync("XTZ");
+    // IBlockchainTransaction tx = transactions.Last();
+    // Console.WriteLine(tx.Id);
+    // BsonDocument bd = WalletStorage._bsonMapper.ToDocument(tx);
 
-    Console.Write($"FREE ADDRESS TO {WalletStorage.SelectedCurrency.Name} ");
-    Console.WriteLine(await WalletStorage.GetFreeAddress());
-    Console.WriteLine($"FEE PRICE FOR {WalletStorage.SelectedCurrency.Name} IS {WalletStorage.SelectedCurrency.GetDefaultFeePrice()}");
+
+    // Console.WriteLine(bd == null);
+
+    // Console.WriteLine(bd.ToString());
+
+    // byte[] serialized = BsonSerializer.Serialize(bd);
+
+    // Console.WriteLine(serialized.Length);
+
+    // string hexStr = serialized.ToHexString();
+    // Console.WriteLine(hexStr);
+
+    // byte[] desBytes = Hex.FromString(hexStr);
+
+    // BsonDocument bdDes = BsonSerializer.Deserialize(desBytes);
+
+    // IBlockchainTransaction txDes = WalletStorage._bsonMapper.ToObject<IBlockchainTransaction>(bdDes);
+
+
+    // TezosTransaction xtzTrans = (TezosTransaction)tx;
+    // decimal amount = CurrHelper.GetTransAmount(xtzTrans);
+    // string description = CurrHelper.GetTransDescription(xtzTrans, amount);
+
+    // Console.WriteLine($"Parsed tx: Curr {xtzTrans.Currency.Name} {xtzTrans.Id} amount {amount} desc: {description}");
+
+    // EthereumTransaction ethTrans = (EthereumTransaction)tx;
+
+    // IEnumerable<IBlockchainTransaction> tx = AccountStorage.ADR.GetBsonTrans(WalletStorage.SelectedCurrency.Name);
+
+    // Console.WriteLine($"Trans length {tx.Count()}");
+
+    // AccountStorage.ADR.GetBsonWalletAddrs();
+
+    // AccountStorage.ADR.GetBsonOutputs();
+
+    // AccountStorage.ADR.GetSwaps();
+
+    // AccountStorage.ADR.GetOrders();
+
+    //foreach (var t in tx)
+    //{
+    //  Console.WriteLine($"{t.Type} {t.CreationTime.ToString()}");
+    //}
+
+    //s AccountStorage.ADR.Ava
   }
 
-  public async void OnSendClick()
+  private void ConvertOpenCloseHandler()
   {
-    Console.WriteLine("SEND CLICKED");
-    // SendModalOpened = !SendModalOpened;
-    ReceiveModalOpened = !ReceiveModalOpened;
-
-    WalletAddress WA = await AccountStorage.Account.GetFreeExternalAddressAsync("XTZ");
-    Console.WriteLine(WA.Address);
-
-    var addresses = await AccountStorage.Account
-    .GetUnspentAddressesAsync("XTZ")
-    .ConfigureAwait(false);
-
-    Console.WriteLine("Scanning start");
-
-    await new HdWalletScanner(AccountStorage.Account)
-    .ScanAddressAsync("XTZ", "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5")
-    .ConfigureAwait(false);
-
-    Console.WriteLine("Scanning end");
-
-    // var walletAddress = await AccountStorage.Account
-    // .ResolveAddressAsync("XTZ", "tz1Ufcd1ZSjs7b9BpdwfKExpY9MeQqnKJRe5")
-    // .ConfigureAwait(false);
-
-    // Console.WriteLine($"Balance is {walletAddress.Balance}");
-
-    var transactions = (await AccountStorage.Account
-    .GetTransactionsAsync("XTZ"))
-    .ToList();
-
-    foreach (TezosTransaction transaction in transactions)
-    {
-      Console.WriteLine($"ID: {transaction.Id}, IsConfirmed: {transaction.IsConfirmed} State: {transaction.State} Time: {String.Format("{0:d MMM yyyy, HH:MM}", transaction.CreationTime)} BlockInfo: {transaction.BlockInfo}");
-      Console.WriteLine($"AMOUNT: {GetAmount(transaction)}");
-    }
+    ConvertModalOpened = !ConvertModalOpened;
   }
 
   private void SendOpenCloseHandler()
@@ -214,8 +244,9 @@
     return result;
   }
 
-  protected bool SendModalOpened { get; set; } = false;
-  protected bool ReceiveModalOpened { get; set; } = false;
+  private bool SendModalOpened { get; set; } = false;
+  private bool ReceiveModalOpened { get; set; } = false;
+  private bool ConvertModalOpened { get; set; } = false;
 
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
@@ -223,8 +254,12 @@
     await AccountStorage.ConnectToWallet("[test] test wallet", "StoneGiant25".ToSecureString()); //todo: remove in prod
 
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-    ActiveSection = WalletMenuButton.ButtonVariants.Portfolio;
 
     WalletStorage.RefreshRequested += StateHasChanged;
+    SwapStorage.RefreshRequested += StateHasChanged;
+
+    debounceInputAmount = new System.Timers.Timer(1000);
+    debounceInputAmount.Elapsed += OnUserFinishAmount;
+    debounceInputAmount.AutoReset = false;
   }
 }

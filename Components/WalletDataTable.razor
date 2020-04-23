@@ -56,6 +56,24 @@
         }
         </tbody>
       }
+
+      @if (Variant == AvailableVariants.Swaps) {
+        <thead>
+        <tr>
+          <th>Description</th>
+          <th>State</th>
+          <th>Time</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        @* @foreach (Swap swap in SwapsData) {
+          <tr>
+            <td class="transaction-desc">@swap</td>
+          </tr>
+        } *@
+        </tbody>
+      }
   </table>
 </div>
 
@@ -69,10 +87,14 @@
   [Parameter]
   public List<Transaction> TransactionsData { get; set; }
 
+  [Parameter]
+  public IEnumerable<Swap> SwapsData { get; set; }
+
   public enum AvailableVariants
   {
     Currencies,
-    Transactions
+    Transactions,
+    Swaps
   }
 
   private string GetBadgeColor(BlockchainTransactionState state)

@@ -1,4 +1,5 @@
 @using atomex_frontend.Common;
+@inject SwapStorage swapStorage;
 
 <div class="exchange-amount-container">
   @if(Label.Length > 0) {
@@ -12,7 +13,7 @@
       <span class="currency-abbr">@SelectedCurrency.Name</span>
       <div class="exchange-amount-container__usd-amount">($@DollarAmount <span class="currency-abbr small">USD</span>)</div>
     </div>
-    <div class="exchange-amount__available-container">
+    <div class="exchange-amount__available-container" @onclick="@(() => swapStorage.Amount = swapStorage.EstimatedMaxAmount)">
       <RoundedContainer>
         Available: @(TotalAmount.ToString()) <span class="currency-abbr small">@SelectedCurrency.Name</span>
       </RoundedContainer>

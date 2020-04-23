@@ -37,39 +37,40 @@
   public string Label { get; set; } = "";
 
   [Parameter]
-  public EventCallback<Currency> OnChange { get; set; }
+  public bool IsOpened { get; set; }
 
-  private bool IsOpened { get; set; } = false;
+  [Parameter]
+  public EventCallback<int> HandleOpen { get; set; }
 
   private bool GetCurrencyIsConverted(Currency currency)
   {
     return accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(walletStorage.SelectedCurrency, currency) != null;
   }
 
-  private async void OnCurrencyClick(Currency currency)
+  private void OnCurrencyClick(Currency currency)
   {
-    SelectedCurrency = currency;
-    IsOpened = !IsOpened;
-
-    if (!IsSecondCurrency && (SelectedCurrency.Name == walletStorage.SelectedSecondCurrency.Name
-        || accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(SelectedCurrency, walletStorage.SelectedSecondCurrency) == null))
+    // IsOpened = !IsOpened;
+    OnDropdownClick();
+    if (IsSecondCurrency)
     {
-      foreach (Currency availableCurrency in walletStorage.AvailableCurrencies)
-      {
-        if (accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(currency, availableCurrency) != null)
-        {
-          walletStorage.SelectedSecondCurrency = availableCurrency;
-          break;
-        }
-      }
+      walletStorage.SelectedSecondCurrency = currency;
     }
-
-    await OnChange.InvokeAsync(SelectedCurrency);
+    else
+    {
+      walletStorage.SelectedCurrency = currency;
+    }
   }
 
   private void OnDropdownClick()
   {
-    IsOpened = !IsOpened;
+    if (IsSecondCurrency)
+    {
+      HandleOpen.InvokeAsync(2);
+    }
+    else
+    {
+      HandleOpen.InvokeAsync(1);
+    }
   }
 
   protected override void OnInitialized()

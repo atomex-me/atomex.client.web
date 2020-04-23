@@ -4,7 +4,7 @@
 <div class="modal-currency-title__container" @onclick="@OnClick">
   <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
   <div class="modal-currency-title__text-container">
-    <div>@SelectedCurrency.Name.ToUpper()</div>
+    <div>@SelectedCurrency.Description.ToUpper()</div>
     <div>@Amount <span>@SelectedCurrency.Name</span></div>
   </div>
 </div>

@@ -31,6 +31,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Convert"</summary>
         public string Convert;
 
+        /// <summary>"Convert confirmation"</summary>
+        public string ConvertConfirmation;
+
         /// <summary>"Delegate"</summary>
         public string Delegate;
 
@@ -39,6 +42,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Do you really want"</summary>
         public string DoYouReallyWant;
+
+        /// <summary>"Do you really want to convert"</summary>
+        public string DoYouReallyWantToConvert;
 
         /// <summary>"Wallet name could not be emty"</summary>
         public string EmptyWalletName;
@@ -99,6 +105,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"NoDelegationsFound"</summary>
         public string NoDelegationsFound;
+
+        /// <summary>"No liquidity"</summary>
+        public string NoLiquidity;
 
         /// <summary>"Passwords could not be empty"</summary>
         public string PasswordEmpty;
@@ -201,6 +210,15 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Wallets"</summary>
         public string Wallets;
+
+        /// <summary>"with payment fee"</summary>
+        public string WithPaymentFee;
+
+        /// <summary>"with price"</summary>
+        public string WithPrice;
+
+        /// <summary>"with redeem fee"</summary>
+        public string WithRedeemFee;
 
         /// <summary>"Word count"</summary>
         public string WordCount;

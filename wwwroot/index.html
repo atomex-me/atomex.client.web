@@ -13,7 +13,8 @@
 <body>
     <app>Loading...</app>
     <script src="_framework/blazor.webassembly.js"></script>
-    <script>
+    <script src="https://cdn.jsdelivr.net/npm/idb-keyval@3/dist/idb-keyval-iife.min.js"></script>
+    <script type="text/javascript">
         function copyTextToClipboard(text) {
             if (!navigator.clipboard) {
                 fallbackCopyTextToClipboard(text);
@@ -25,6 +26,114 @@
                 console.error('Async: Could not copy text: ', err);
             });
         }
+
+        var dataTypes = ["WalletAddress", "Transaction", "Output", "Swap", "Order"];
+        var dataStore = {};
+
+        async function getData(walletName, dotNetObject) {
+            var dataObj = {};
+
+            for (var dataType in dataTypes) {
+                const data = await idbKeyval.get(`${walletName}/${dataTypes[dataType]}`);
+                if (data) {
+                    dataObj[dataTypes[dataType]] = data;
+                }
+            }
+
+            var result = [];
+            dataTypes.forEach(dataType => {
+                var typeData = dataObj[dataType] || {};
+                result = [...result, ...Object.entries(typeData).map(keyVal => ({
+                    type: dataType,
+                    id: keyVal[0],
+                    data: keyVal[1]
+                }))]
+            })
+
+            dotNetObject.invokeMethodAsync('LoadWallet', JSON.stringify(result));
+        }
+
+        var savingAttempts = 0
+        var debouncedSavings = 0;
+
+        function saveData(type, walletName, dbId, value) {
+            const dbKey = `${walletName}/${type}`;
+            data = dataStore[dbKey];
+
+            if (!data) {
+                dataStore[dbKey] = {};
+                dataStore[dbKey][dbId] = value;
+                saveToStore(walletName);
+                console.log(`savingAttempts ${++savingAttempts}`);
+            } else {
+                if (data[dbId] !== value) {
+                    dataStore[dbKey][dbId] = value;
+                    console.log(`savingAttempts ${++savingAttempts}`);
+                    saveToStore(walletName);
+                }
+            }
+        }
+
+        async function syncWithDb(walletName) {
+            console.log(`debouncedSavings ${++debouncedSavings}`);
+            for (var i = 0; i < dataTypes.length; i++) {
+                var dataType = dataTypes[i];
+
+                var typeDataInMemory = dataStore[`${walletName}/${dataType}`];
+
+                if (typeDataInMemory) {
+                    var objEntries = Object.entries(typeDataInMemory);
+
+                    for (var x = 0; x < objEntries.length; x++) {
+                        var typeDataInStore = await idbKeyval.get(`${walletName}/${dataType}`);
+
+                        if (!typeDataInStore) {
+                            typeDataInStore = {}
+                        }
+
+                        var keyVal = objEntries[x];
+                        if (Object.keys(typeDataInStore).includes(keyVal[0])) {
+                            // if value exist in store but data is different
+                            if (typeDataInStore[keyVal[0]] !== keyVal[1]) {
+                                await idbKeyval.set(`${walletName}/${dataType}`, {
+                                    ...typeDataInStore,
+                                    ...{
+                                        [keyVal[0]]: keyVal[1],
+                                    },
+                                });
+                            }
+                        } else {
+                            // if value dont exist in store
+                            await idbKeyval.set(`${walletName}/${dataType}`, {
+                                ...{
+                                    [keyVal[0]]: keyVal[1],
+                                },
+                                ...typeDataInStore,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        function debounce(func, wait, immediate) {
+            var timeout;
+            return function executedFunction() {
+                var context = this;
+                var args = arguments;
+                var later = function () {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+
+                var callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        };
+
+        window.saveToStore = debounce(syncWithDb, 1500);
     </script>
 </body>
 

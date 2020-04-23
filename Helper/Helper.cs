@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Globalization;
+using System.Threading.Tasks;
 using Atomex;
 using Atomex.Blockchain.Abstract;
 using Atomex.Blockchain.Tezos;
@@ -44,6 +45,15 @@ namespace atomex_frontend.Common
     public static string DecimalToStr(decimal value, string format)
     {
       return value.ToString(format, CultureInfo.InvariantCulture).Replace(",", ".");
+    }
+
+    public static void RunAsync(Task task)
+    {
+      task.ContinueWith(t =>
+      {
+        Console.WriteLine("Unexpected Error", t.Exception);
+
+      }, TaskContinuationOptions.OnlyOnFaulted);
     }
   }
 
@@ -101,26 +111,32 @@ namespace atomex_frontend.Common
       if (tx.Type.HasFlag(BlockchainTransactionType.SwapPayment))
       {
         Description = $"Swap payment {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
       {
         Description = $"Swap refund {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem))
       {
         Description = $"Swap redeem {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.TokenApprove))
       {
         Description = $"Token approve";
+        return Description;
       }
       else if (Amount < 0) //tx.Type.HasFlag(BlockchainTransactionType.Output))
       {
         Description = $"Sent {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        return Description;
       }
       else if (Amount >= 0) //tx.Type.HasFlag(BlockchainTransactionType.Input)) // has outputs
       {
         Description = $"Received {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        return Description;
       }
 
       return Description;

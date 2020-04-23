@@ -66,5 +66,11 @@
   "EstimatedRedeemFee": "Estimated redeem fee",
   "No": "No",
   "Yes": "Yes",
-  "Error": "Error"
+  "Error": "Error",
+  "NoLiquidity": "No liquidity",
+  "ConvertConfirmation": "Convert confirmation",
+  "DoYouReallyWantToConvert": "Do you really want to convert",
+  "WithPrice": "with price",
+  "WithPaymentFee": "with payment fee",
+  "WithRedeemFee": "with redeem fee"
 }

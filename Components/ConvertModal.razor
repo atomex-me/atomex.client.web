@@ -1,0 +1,56 @@
+
+@inject SwapStorage swapStorage;
+@inject WalletStorage walletStorage;
+
+<div class="modal__container">
+  <div class="dark-background modal-title">
+    @Translations.ConvertConfirmation
+  </div>
+
+  <div class="modal-subtitle">
+    @(Translations.DoYouReallyWantToConvert):
+  </div>
+
+  <ConvertCard NoInfo="@true" />
+
+  <div class="send-confirmation__container convert">
+    <div>
+      <span class="send-confirmation__label convert">@(Translations.WithPrice):</span>
+      <span class="send-confirmation__coin">@swapStorage.EstimatedPrice</span>
+    </div>
+    <div>
+      <span class="send-confirmation__label convert">@(Translations.WithPaymentFee):</span>
+      <span class="send-confirmation__address">@swapStorage.EstimatedPaymentFee <span class="currency-code">@swapStorage.FromCurrency.Name</span></span>
+      <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(swapStorage.FromCurrency, swapStorage.EstimatedPaymentFee) <span class="currency-code">USD</span>)</span>
+    </div>
+    <div>
+      <span class="send-confirmation__label convert">@(Translations.WithRedeemFee):</span>
+      <span class="send-confirmation__address">@swapStorage.EstimatedRedeemFee <span class="currency-code">@swapStorage.ToCurrency.Name</span></span>
+      <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(swapStorage.ToCurrency, swapStorage.EstimatedRedeemFee) <span class="currency-code">USD</span>)</span>
+    </div>
+  </div>
+
+  <div class="modal-buttons-container">
+    <div>
+      <NavigateButton Variant="left" OnClick="@OnCancelClick">
+        @Translations.No
+      </NavigateButton>
+      <NavigateButton Variant="right" OnClick="@swapStorage.Send">
+        @Translations.Yes
+      </NavigateButton>
+    </div>
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public EventCallback OnCancelClick { get; set; }
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    swapStorage.RefreshRequested += StateHasChanged;
+  }
+
+}

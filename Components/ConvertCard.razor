@@ -1,59 +1,57 @@
 @inject WalletStorage walletStorage;
+@inject SwapStorage swapStorage;
 
-<div class="light-background">
+<div class="@(NoInfo ? "rounded-dark-container inside-modal" : "light-background")">
     <div class="currencies-exchange-row">
         <div class="currencies-exchange__currency-usd">
-            <span>@FromAmount.ToString() <span class="currency-abbr">@(FromCurrency.Name.ToUpper())</span></span>
-            <span class="exchange-amount-container__usd-amount">$@(walletStorage.SendingAmountDollars) <span class="currency-abbr small">USD</span></span>
+            <span>@swapStorage.Amount.ToString() <span class="currency-abbr">@(swapStorage.FromCurrency.Name.ToUpper())</span></span>
+            <span class="exchange-amount-container__usd-amount">$@(walletStorage.GetDollarValue(swapStorage.FromCurrency, swapStorage.Amount)) <span class="currency-abbr small">USD</span></span>
         </div>
-        <i class="icon currency-icon-big @(FromCurrency.Description.ToLower())"></i>
+        <i class="icon currency-icon-big @(swapStorage.FromCurrency.Description.ToLower())"></i>
         <i class="convert-arrow-icon"></i>
-        <i class="icon currency-icon-big @(ToCurrency.Description.ToLower())"></i>
+        <i class="icon currency-icon-big @(swapStorage.ToCurrency.Description.ToLower())"></i>
         <div class="currencies-exchange__currency-usd">
-            <span>@ToAmount.ToString()  <span class="currency-abbr">@(ToCurrency.Name.ToUpper())</span></span>
-            <span class="exchange-amount-container__usd-amount">$0.00 <span class="currency-abbr small">USD</span></span>
+            @if(swapStorage.IsNoLiquidity) {
+                <span class="no-liquidity">@Translations.NoLiquidity</span>
+                <span class="exchange-amount-container__usd-amount">@(walletStorage.GetDollarValue(swapStorage.ToCurrency, swapStorage.TargetAmount)) <span class="currency-abbr small">USD</span></span>
+            }
+            else
+            {
+                <span>@swapStorage.TargetAmount.ToString()  <span class="currency-abbr">@(swapStorage.ToCurrency.Name.ToUpper())</span></span>
+                <span class="exchange-amount-container__usd-amount">@(walletStorage.GetDollarValue(swapStorage.ToCurrency, swapStorage.TargetAmount)) <span class="currency-abbr small">USD</span></span>
+            }
         </div>
     </div>
-    <div class="exchange-info">
-        <RoundedContainer>
-            <div class="gray-text">@Translations.EstimatedPrice: <span class="white-text">@EstimatedPrice.ToString()</span></div>
-            <div class="gray-text">@Translations.EstimatedPaymentFee: <span class="white-text">@EstimatedPaymentFee.ToString()</span>
-                <span class="currency-abbr small white-text">@(FromCurrency.Name.ToUpper())</span>
-                <span class="currency-abbr small">$@(walletStorage.SendingAmountDollars)</span>
-            </div>
-            <div class="gray-text">@Translations.EstimatedRedeemFee: <span class="white-text">@EstimatedRedeemFee.ToString()</span>
-                <span class="currency-abbr small white-text">@(FromCurrency.Name.ToUpper())</span>
-                <span class="currency-abbr small">$0.01</span>
-            </div>
-        </RoundedContainer>
-    </div>
+    @if(!NoInfo) {
+        <div class="exchange-info">
+            <RoundedContainer>
+                <div class="gray-text">@Translations.EstimatedPrice: <span class="white-text">@swapStorage.EstimatedPrice.ToString()</span></div>
+                <div class="gray-text">@Translations.EstimatedPaymentFee: <span class="white-text">@swapStorage.EstimatedPaymentFee.ToString()</span>
+                    <span class="currency-abbr small white-text">@(swapStorage.FromCurrency.Name.ToUpper())</span>
+                    <span class="currency-abbr small">$@(walletStorage.GetDollarValue(swapStorage.FromCurrency, swapStorage.EstimatedPaymentFee))</span>
+                </div>
+                <div class="gray-text">@Translations.EstimatedRedeemFee: <span class="white-text">@swapStorage.EstimatedRedeemFee.ToString()</span>
+                    <span class="currency-abbr small white-text">@(swapStorage.ToCurrency.Name.ToUpper())</span>
+                    <span class="currency-abbr small">$@(walletStorage.GetDollarValue(swapStorage.ToCurrency, swapStorage.EstimatedRedeemFee))</span>
+                </div>
+            </RoundedContainer>
+        </div>
+    }
 </div>
 
 @code {
     [Parameter]
-    public Currency FromCurrency { get; set; }
+    public bool NoInfo { get; set; } = false;
 
-    [Parameter]
-    public Currency ToCurrency { get; set; }
-
-    [Parameter]
-    public decimal FromAmount { get; set; } = 0.0000m;
-
-    [Parameter]
-    public decimal ToAmount { get; set; } = 0.0000m;
-
-    [Parameter]
-    public decimal EstimatedPrice { get; set; } = 0.0000m;
-
-    [Parameter]
-    public decimal EstimatedPaymentFee { get; set; } = 0.0000m;
-
-    [Parameter]
-    public decimal EstimatedRedeemFee { get; set; } = 0.0000m;
+    private string GetIsModal
+    {
+      get => NoInfo ? "inside-modal" : "";
+    }
 
     I18nText.Translations Translations = new I18nText.Translations();
     protected override async Task OnInitializedAsync()
     {
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+      swapStorage.RefreshRequested += StateHasChanged;
     }
 }

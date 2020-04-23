@@ -3,15 +3,15 @@
  <button class="wallet-menu__button @(IsActive ? "active" : "")" @onclick="@handleClick">
    <i class="wallet-menu-icon @(Variant.ToName().ToLower())" />
    <span>
-     @if(Variant == ButtonVariants.Portfolio) {
+     @if(Variant == WalletSection.Portfolio) {
        @Translations.Portfolio
      }
 
-     @if(Variant == ButtonVariants.Wallets) {
+     @if(Variant == WalletSection.Wallets) {
        @Translations.Wallets
      }
 
-     @if(Variant == ButtonVariants.Conversion) {
+     @if(Variant == WalletSection.Conversion) {
        @Translations.Conversion
      }
    </span>
@@ -19,27 +19,23 @@
  
 @code {
   [Parameter]
-  public ButtonVariants Variant { get; set; }
+  public WalletSection Variant { get; set; }
 
   [Parameter]
-  public bool IsActive { get; set; } 
+  public bool IsActive { get; set; }
 
   [Parameter]
-  public EventCallback<ButtonVariants> OnClick { get; set; }
+  public EventCallback<WalletSection> OnClick { get; set; }
 
-  private async void handleClick() {
+  private async void handleClick()
+  {
     await OnClick.InvokeAsync(Variant);
   }
 
-  public enum ButtonVariants {
-    Portfolio,
-    Wallets,
-    Conversion
-  }
-
   I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync() {
-  Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
   }
 }

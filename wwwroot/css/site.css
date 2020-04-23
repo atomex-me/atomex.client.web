@@ -756,6 +756,10 @@ table>thead>tr>th {
     background-image: url('images/refunded.png');
 }
 
+.swappayment {
+    background-image: url('icons/conversion.svg');
+}
+
 .unknown {
     background-image: url('images/unknown.png');
 }
@@ -962,6 +966,11 @@ table>thead>tr>th {
     background-color: var(--dark-input-dark-blue);
     padding: 10px 20px;
     border-radius: 20px;
+}
+
+.rounded-dark-container.inside-modal {
+    margin: 0 -15px;
+    border-radius: 0;
 }
 
 .modal-currency-title__container {
@@ -1272,11 +1281,20 @@ table>thead>tr>th {
     transform: translateX(100%)
 }
 
+.exchange-amount__available-container>*:hover {
+    background-color: var(--dark-blue);
+    cursor: pointer;
+}
+
 .send-confirmation__container {
     display: flex;
     flex-direction: column;
     width: 80%;
     margin: 0 auto;
+}
+
+.send-confirmation__container.convert {
+    margin-top: 20px;
 }
 
 .send-confirmation__container>div {
@@ -1288,6 +1306,10 @@ table>thead>tr>th {
     margin-right: 10px;
     font-family: RobotoLight;
     flex-basis: 35.5%
+}
+
+.send-confirmation__label.convert {
+    flex-basis: 46%;
 }
 
 .send-confirmation__coin {
@@ -1308,4 +1330,10 @@ table>thead>tr>th {
 
 .currency-code {
     font-size: 0.8rem;
+}
+
+.no-liquidity {
+    font-size: 18px;
+    font-family: RobotoRegular;
+    color: var(--red);
 }
