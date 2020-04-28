@@ -84,6 +84,8 @@ namespace atomex_frontend.Common
       if (tx.Type.HasFlag(BlockchainTransactionType.Output))
         result += -Ethereum.WeiToEth(tx.Amount + tx.GasUsed * tx.GasPrice);
 
+      tx.InternalTxs?.ForEach(t => result += GetTransAmount(t));
+
       return result;
     }
 
@@ -96,6 +98,8 @@ namespace atomex_frontend.Common
 
       if (tx.Type.HasFlag(BlockchainTransactionType.Output))
         result += -Tezos.MtzToTz(tx.Amount + tx.Fee);
+
+      tx.InternalTxs?.ForEach(t => result += GetTransAmount(t));
 
       return result;
     }

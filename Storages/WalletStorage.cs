@@ -339,19 +339,80 @@ namespace atomex_frontend.Storages
           IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
           amount = CurrHelper.GetTransAmount(btcBasedTrans);
           description = CurrHelper.GetTransDescription(tx, amount);
-          AddTransaction(new Transaction(tx.Currency, btcBasedTrans.Id, btcBasedTrans.State, btcBasedTrans.Type, btcBasedTrans.CreationTime, btcBasedTrans.IsConfirmed, amount, description), tx.Currency);
+          var BtcFee = btcBasedTrans.Fees != null
+            ? btcBasedTrans.Fees.Value / (decimal)tx.Currency.DigitsMultiplier
+            : 0;
+
+          AddTransaction(
+            new Transaction(
+              tx.Currency,
+              btcBasedTrans.Id,
+              btcBasedTrans.State,
+              btcBasedTrans.Type,
+              btcBasedTrans.CreationTime,
+              btcBasedTrans.IsConfirmed,
+              amount,
+              description,
+              BtcFee
+            ), tx.Currency);
           break;
         case Tether _:
           EthereumTransaction usdtTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(usdtTrans);
           description = CurrHelper.GetTransDescription(tx, amount);
-          AddTransaction(new Transaction(tx.Currency, usdtTrans.Id, usdtTrans.State, usdtTrans.Type, usdtTrans.CreationTime, usdtTrans.IsConfirmed, amount, description), tx.Currency);
+          string FromUsdt = usdtTrans.From;
+          string ToUsdt = usdtTrans.To;
+          decimal GasPriceUsdt = (decimal)usdtTrans.GasPrice;
+          decimal GasLimitUsdt = (decimal)usdtTrans.GasLimit;
+          decimal GasUsedUsdt = (decimal)usdtTrans.GasUsed;
+          bool IsInternalUsdt = usdtTrans.IsInternal;
+
+          AddTransaction(
+            new Transaction(
+              tx.Currency,
+              usdtTrans.Id,
+              usdtTrans.State,
+              usdtTrans.Type,
+              usdtTrans.CreationTime,
+              usdtTrans.IsConfirmed,
+              amount,
+              description,
+              from: FromUsdt,
+              to: ToUsdt,
+              gasPrice: GasPriceUsdt,
+              gasLimit: GasLimitUsdt,
+              gasUsed: GasUsedUsdt,
+              isInternal: IsInternalUsdt
+            ), tx.Currency);
           break;
         case Ethereum _:
           EthereumTransaction ethTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(ethTrans);
           description = CurrHelper.GetTransDescription(ethTrans, amount);
-          AddTransaction(new Transaction(tx.Currency, ethTrans.Id, ethTrans.State, ethTrans.Type, ethTrans.CreationTime, ethTrans.IsConfirmed, amount, description), tx.Currency);
+          string FromEth = ethTrans.From;
+          string ToEth = ethTrans.To;
+          decimal GasPriceEth = (decimal)ethTrans.GasPrice;
+          decimal GasLimitEth = (decimal)ethTrans.GasLimit;
+          decimal GasUsedEth = (decimal)ethTrans.GasUsed;
+          bool IsInternalEth = ethTrans.IsInternal;
+
+          AddTransaction(
+            new Transaction(
+              tx.Currency,
+              ethTrans.Id,
+              ethTrans.State,
+              ethTrans.Type,
+              ethTrans.CreationTime,
+              ethTrans.IsConfirmed,
+              amount,
+              description,
+              from: FromEth,
+              to: ToEth,
+              gasPrice: GasPriceEth,
+              gasLimit: GasLimitEth,
+              gasUsed: GasUsedEth,
+              isInternal: IsInternalEth
+            ), tx.Currency);
           break;
 
         case FA12 _:
@@ -359,7 +420,28 @@ namespace atomex_frontend.Storages
           TezosTransaction xtzTrans = (TezosTransaction)tx;
           amount = CurrHelper.GetTransAmount(xtzTrans);
           description = CurrHelper.GetTransDescription(xtzTrans, amount);
-          AddTransaction(new Transaction(tx.Currency, xtzTrans.Id, xtzTrans.State, xtzTrans.Type, xtzTrans.CreationTime, xtzTrans.IsConfirmed, amount, description), tx.Currency);
+          string FromXtz = xtzTrans.From;
+          string ToXtz = xtzTrans.To;
+          decimal GasLimitXtz = xtzTrans.GasLimit;
+          decimal FeeXtz = xtzTrans.Fee;
+          bool IsInternalXtz = xtzTrans.IsInternal;
+
+          AddTransaction(
+            new Transaction(
+              tx.Currency,
+              xtzTrans.Id,
+              xtzTrans.State,
+              xtzTrans.Type,
+              xtzTrans.CreationTime,
+              xtzTrans.IsConfirmed,
+              amount,
+              description,
+              xtzTrans.Fee,
+              from: FromXtz,
+              to: ToXtz,
+              gasLimit: GasLimitXtz,
+              isInternal: IsInternalXtz
+            ), tx.Currency);
           break;
       }
     }

@@ -82,6 +82,12 @@ namespace atomex_frontend.Storages
       InitializeCallback?.Invoke();
     }
 
+    public event Action RefreshUI;
+    private void CallRefreshUI()
+    {
+      RefreshUI?.Invoke();
+    }
+
     public CurrenciesProvider currenciesProvider;
     private IConfiguration currenciesConfiguration;
     private IConfiguration symbolsConfiguration;
@@ -91,6 +97,27 @@ namespace atomex_frontend.Storages
     public IJSRuntime jSRuntime;
     private string CurrentWalletName;
     private SecureString _password;
+
+    private bool _isQuotesProviderAvailable = false;
+    public bool IsQuotesProviderAvailable
+    {
+      get => this._isQuotesProviderAvailable;
+      set { this._isQuotesProviderAvailable = value; CallRefreshUI(); }
+    }
+
+    private bool _isExchangeConnected = false;
+    public bool IsExchangeConnected
+    {
+      get => this._isExchangeConnected;
+      set { this._isExchangeConnected = value; CallRefreshUI(); }
+    }
+
+    private bool _isMarketDataConnected = false;
+    public bool IsMarketDataConnected
+    {
+      get => this._isMarketDataConnected;
+      set { this._isMarketDataConnected = value; CallRefreshUI(); }
+    }
 
     public async Task<IList<string>> GetAvailableWallets()
     {
@@ -201,17 +228,21 @@ namespace atomex_frontend.Storages
                 currencies: currenciesProvider.GetCurrencies(Network.TestNet),
                 baseCurrency: BitfinexQuotesProvider.Usd))
             .UseTerminal(Terminal);
-        Console.WriteLine($"Starting Atomex app with {CurrentWalletName} wallet with data {data.Length}");
-        AtomexApp.Start();
       }
 
       if (AtomexApp.HasQuotesProvider)
       {
+        Console.WriteLine("Subscribing for quotes Provider");
         AtomexApp.QuotesProvider.QuotesUpdated += OnQuotesUpdatedEventHandler;
+        AtomexApp.QuotesProvider.AvailabilityChanged += OnQuotesProviderAvailabilityChangedEventHandler;
       }
       AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
       AtomexApp.Account.BalanceUpdated += OnBalanceChangedEventHandler;
       AtomexApp.Terminal.ServiceConnected += OnTerminalServiceStateChangedEventHandler;
+      AtomexApp.Terminal.ServiceDisconnected += OnTerminalServiceStateChangedEventHandler;
+
+      Console.WriteLine($"Starting Atomex app with {CurrentWalletName} wallet with data {data.Length}");
+      AtomexApp.Start();
 
       this.CallInitialize();
     }
@@ -231,8 +262,8 @@ namespace atomex_frontend.Storages
       if (!(sender is IAtomexClient terminal))
         return;
 
-      bool IsExchangeConnected = terminal.IsServiceConnected(TerminalService.Exchange);
-      bool IsMarketDataConnected = terminal.IsServiceConnected(TerminalService.MarketData);
+      IsExchangeConnected = terminal.IsServiceConnected(TerminalService.Exchange);
+      IsMarketDataConnected = terminal.IsServiceConnected(TerminalService.MarketData);
 
       // subscribe to symbols updates
       if (args.Service == TerminalService.MarketData && IsMarketDataConnected)
@@ -249,6 +280,14 @@ namespace atomex_frontend.Storages
       {
         QuotesProvider = quotesProvider;
       }
+    }
+
+    private void OnQuotesProviderAvailabilityChangedEventHandler(object sender, EventArgs args)
+    {
+      if (!(sender is ICurrencyQuotesProvider provider))
+        return;
+
+      IsQuotesProviderAvailable = provider.IsAvailable;
     }
 
     private void OnBalanceChangedEventHandler(object sender, CurrencyEventArgs args)

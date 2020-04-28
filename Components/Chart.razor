@@ -1,0 +1,14 @@
+@inject IJSRuntime JSRuntime;
+
+<div id="tv_chart_container" style="height: 400px;"></div>
+
+@code {
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      Console.WriteLine("CALLING OnAfterRenderAsync");
+      await JSRuntime.InvokeVoidAsync("initOnReady");
+    }
+  }
+}

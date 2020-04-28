@@ -7,11 +7,7 @@
 @inject SwapStorage SwapStorage;
 @using System;
 @using System.Timers;
-@using System.Threading;
-@using System.Text;
-@using Newtonsoft.Json;
-
-@using LiteDB;
+@inject IJSRuntime JSRuntime;
 
 <div>
   <div class="wallet-page dark-background">
@@ -95,6 +91,8 @@
                 
                 <ConvertCard />
 
+                @* <Chart /> *@
+
                 <Modal IsOpen="@ConvertModalOpened" OnClose="@ConvertOpenCloseHandler">
                     <ConvertModal OnCancelClick="@ConvertOpenCloseHandler" />
                 </Modal>
@@ -147,7 +145,7 @@
 
   protected List<Transaction> Transactions { get; set; } = new List<Transaction>();
 
-  protected void WalletMenuButtonClick(WalletSection Variant)
+  protected async void WalletMenuButtonClick(WalletSection Variant)
   {
     WalletStorage.CurrentWalletSection = Variant;
   }
@@ -161,56 +159,6 @@
 
   private async void OnConvertHandler()
   {
-    // var transactions = await AccountStorage.Account.GetTransactionsAsync("XTZ");
-    // IBlockchainTransaction tx = transactions.Last();
-    // Console.WriteLine(tx.Id);
-    // BsonDocument bd = WalletStorage._bsonMapper.ToDocument(tx);
-
-
-    // Console.WriteLine(bd == null);
-
-    // Console.WriteLine(bd.ToString());
-
-    // byte[] serialized = BsonSerializer.Serialize(bd);
-
-    // Console.WriteLine(serialized.Length);
-
-    // string hexStr = serialized.ToHexString();
-    // Console.WriteLine(hexStr);
-
-    // byte[] desBytes = Hex.FromString(hexStr);
-
-    // BsonDocument bdDes = BsonSerializer.Deserialize(desBytes);
-
-    // IBlockchainTransaction txDes = WalletStorage._bsonMapper.ToObject<IBlockchainTransaction>(bdDes);
-
-
-    // TezosTransaction xtzTrans = (TezosTransaction)tx;
-    // decimal amount = CurrHelper.GetTransAmount(xtzTrans);
-    // string description = CurrHelper.GetTransDescription(xtzTrans, amount);
-
-    // Console.WriteLine($"Parsed tx: Curr {xtzTrans.Currency.Name} {xtzTrans.Id} amount {amount} desc: {description}");
-
-    // EthereumTransaction ethTrans = (EthereumTransaction)tx;
-
-    // IEnumerable<IBlockchainTransaction> tx = AccountStorage.ADR.GetBsonTrans(WalletStorage.SelectedCurrency.Name);
-
-    // Console.WriteLine($"Trans length {tx.Count()}");
-
-    // AccountStorage.ADR.GetBsonWalletAddrs();
-
-    // AccountStorage.ADR.GetBsonOutputs();
-
-    // AccountStorage.ADR.GetSwaps();
-
-    // AccountStorage.ADR.GetOrders();
-
-    //foreach (var t in tx)
-    //{
-    //  Console.WriteLine($"{t.Type} {t.CreationTime.ToString()}");
-    //}
-
-    //s AccountStorage.ADR.Ava
   }
 
   private void ConvertOpenCloseHandler()
@@ -227,21 +175,6 @@
   private void ReceiveOpenCloseHandler()
   {
     ReceiveModalOpened = !ReceiveModalOpened;
-  }
-
-  private static decimal GetAmount(TezosTransaction tx)
-  {
-    var result = 0m;
-
-    if (tx.Type.HasFlag(BlockchainTransactionType.Input))
-      result += Tezos.MtzToTz(tx.Amount);
-
-    if (tx.Type.HasFlag(BlockchainTransactionType.Output))
-      result += -Tezos.MtzToTz(tx.Amount + tx.Fee);
-
-    tx.InternalTxs?.ForEach(t => result += GetAmount(t));
-
-    return result;
   }
 
   private bool SendModalOpened { get; set; } = false;
@@ -261,5 +194,7 @@
     debounceInputAmount = new System.Timers.Timer(1000);
     debounceInputAmount.Elapsed += OnUserFinishAmount;
     debounceInputAmount.AutoReset = false;
+
+    await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
   }
 }

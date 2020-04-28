@@ -1,6 +1,14 @@
 @inject WalletStorage walletStorage;
+@inject IJSRuntime JSRuntime;
 
-<div class="tableFixHead @(Variant == AvailableVariants.Currencies ? "portfolio" : "")">
+<div class="tableFixHead @(Variant.ToName().ToLower())">
+  @if (Variant == AvailableVariants.Transactions && OpenedTx?.Currency.Name == walletStorage.SelectedCurrency.Name) {
+    <DetailTxInfo
+      OpenedTx="@OpenedTx"
+      TransactionsData="@TransactionsData"
+      TxHeight="@TX_HEIGHT"
+      TxInfoBlockHeight="@GetTxInfoBlockHeight" />
+  }
   <table>
       @if (Variant == AvailableVariants.Currencies) {
         <thead>
@@ -38,20 +46,23 @@
         </tr>
         </thead>
 
-        <tbody>
+        <tbody class="transactions-body">
         @foreach (var transaction in TransactionsData) {
-          <tr>
-            <td>
+          <tr
+            class="tx-row"
+            @onclick="@(() => OpenedTx = OpenedTx?.Id != transaction.Id ? transaction : null )"
+            style="height: @(OpenedTx?.Id == transaction.Id ? $"{GetTxInfoBlockHeight}px" : $"{TX_HEIGHT}px");">
+            <td valign="@(OpenedTx?.Id == transaction.Id ? "top" : "")">
               <div class="icon-vertical-text">
                 <i class="icon transaction-icon @transaction.Type.ToName().ToLower()" title="@transaction.Type.ToName()" />
               </div>
             </td>
-            <td class="transaction-desc">@transaction.Description</td>
-            <td class="transaction-desc @(transaction.Amount < 0 ? "negative-transaction-amount" : "")">@transaction.Amount</td>
-            <td class="transaction-desc">
+            <td valign="@(OpenedTx?.Id == transaction.Id ? "top" : "")" class="transaction-desc">@transaction.Description</td>
+            <td valign="@(OpenedTx?.Id == transaction.Id ? "top" : "")" class="transaction-desc @(transaction.Amount < 0 ? "negative-transaction-amount" : "")">@transaction.Amount</td>
+            <td valign="@(OpenedTx?.Id == transaction.Id ? "top" : "")" class="transaction-desc">
               <span class="badge badge-@(GetBadgeColor(transaction.State))">@transaction.State.ToName()</span>
             </td>
-            <td class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:mm}", transaction.CreationTime))</td>
+            <td valign="@(OpenedTx?.Id == transaction.Id ? "top" : "")" class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:mm}", transaction.CreationTime))</td>
           </tr>
         }
         </tbody>
@@ -97,6 +108,20 @@
     Swaps
   }
 
+  private Transaction OpenedTx = null;
+  private int TX_HEIGHT = 43;
+  private Dictionary<string, int> TX_INFO_BLOCK_HEIGHT = new Dictionary<string, int>();
+
+  private int GetTxInfoBlockHeight
+  {
+    get
+    {
+      int height = 150;
+      TX_INFO_BLOCK_HEIGHT.TryGetValue(OpenedTx?.Currency.Name, out height);
+      return height;
+    }
+  }
+
   private string GetBadgeColor(BlockchainTransactionState state)
   {
     switch (state)
@@ -119,5 +144,15 @@
   protected override void OnInitialized()
   {
     walletStorage.RefreshRequested += StateHasChanged;
+
+    // height of Detail tx view block for Currencies;
+    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Bitcoin.Name, 118);
+    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Litecoin.Name, 118);
+
+    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Ethereum.Name, 220);
+    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Tether.Name, 220);
+
+    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Tezos.Name, 200);
+    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.FA12.Name, 200);
   }
 }

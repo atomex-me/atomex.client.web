@@ -659,10 +659,15 @@ button:hover {
 .tableFixHead {
     overflow-y: auto;
     height: 220px;
+    position: relative;
 }
 
-.tableFixHead.portfolio {
+.tableFixHead.currencies {
     height: 320px;
+}
+
+.tableFixHead.transactions {
+    height: 280px;
 }
 
 .tableFixHead thead th {
@@ -687,7 +692,7 @@ td {
     padding: 8px 16px;
 }
 
-table>thead>tr>th:last-child {
+td[attribute*="value"] table>thead>tr>th:last-child {
     border-right: none;
 }
 
@@ -703,6 +708,10 @@ table>tbody>tr>td {
     padding-left: 15px;
 }
 
+table>tbody>tr>td[valign="top"] {
+    padding-top: 9px;
+}
+
 table>thead>tr>th {
     padding: 6px;
     padding-left: 15px;
@@ -710,6 +719,11 @@ table>thead>tr>th {
     background-color: var(--dark-gradient-color);
     border-bottom: 3px solid var(--light-gray);
     border-right: 1px solid var(--light-gray);
+}
+
+.transactions-body>tr {
+    height: 43px;
+    cursor: pointer;
 }
 
 .icon-vertical-text {
@@ -1062,11 +1076,18 @@ table>thead>tr>th {
 .copy-button {
     border: none;
     background-image: url('icons/copy.svg');
-    background-size: 25px;
     background-repeat: no-repeat;
+    background-size: 25px;
     width: 25px;
     height: 25px;
     cursor: pointer;
+    background-color: inherit;
+}
+
+.copy-button.small {
+    background-size: 17px;
+    width: 17px;
+    height: 17px;
 }
 
 .receive-modal-dropdown__container {
@@ -1336,4 +1357,29 @@ table>thead>tr>th {
     font-size: 18px;
     font-family: RobotoRegular;
     color: var(--red);
+}
+
+.tx-info__container {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    padding: 0 16px;
+}
+
+.tx-info__row {
+    display: flex;
+}
+
+.tx-info__row>*:first-child {
+    padding-right: 10px;
+    flex-basis: 15%;
+    text-align: right;
+
+}
+
+.tx-info__row>*:last-child {
+    flex-basis: 85%;
 }
