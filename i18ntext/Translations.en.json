@@ -53,6 +53,9 @@
   "Sent": "Sent",
   "Recevived": "Received",
   "Convert": "Convert",
+  "Converting": "Converting",
+  "ConvertingError": "Converting error",
+  "CantConvert": "Can not convert",
   "Update": "Upadte",
   "Type": "Type",
   "Description": "Description",
@@ -72,5 +75,7 @@
   "DoYouReallyWantToConvert": "Do you really want to convert",
   "WithPrice": "with price",
   "WithPaymentFee": "with payment fee",
-  "WithRedeemFee": "with redeem fee"
+  "WithRedeemFee": "with redeem fee",
+  "SwapNote": "NOTE: Do not sign out or close the application until the swap is completed, otherwise it may result in a loss of funds.",
+  "SwapSuccessfullyCreated": "Swap successfully created."
 }

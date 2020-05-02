@@ -1,28 +1,31 @@
 ﻿@inject WalletStorage walletStorage;
 
 <div class="donut-chart__container">
-    <figure>
+    @* <figure>
         <div class="figure-content">
             <svg width="100%" height="100%" viewBox="0 0 42 42" class="donut">
                 <circle class="donut-hole" cx="21" cy="21" r="15.91549430918954" opacity="0">
                     <title id="none"></title>
                 </circle>
                 <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#40537e" stroke-width="5"></circle>
-                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#ce4b99" stroke-width="5" stroke-dasharray="@GetLTCPercent @(100 - GetLTCPercent)" stroke-dashoffset="@START_SVG_OFFSET">
-                    <title id="ltc">LTC @(GetLTCPercent)%</title>
 
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#526C7F" stroke-width="5" stroke-dasharray="@GetLTCPercent @(100 - GetLTCPercent)" stroke-dashoffset="@START_SVG_OFFSET">
+                    <title id="ltc">LTC @(LTCPercent)%</title>
                 </circle>
-                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#b1c94e" stroke-width="5" stroke-dasharray="@GetETHPercent @(100 - GetETHPercent)" stroke-dashoffset="@GetSecondSD">
-                    <title id="eth">ETH @(GetETHPercent)%</title>
-
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#5B7E9B" stroke-width="5" stroke-dasharray="@GetETHPercent @(100 - GetETHPercent)" stroke-dashoffset="@GetSecondSD">
+                    <title id="eth">ETH @(ETHPercent)%</title>
                 </circle>
-                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#212D4e" stroke-width="5" stroke-dasharray="@GetXTZPercent @(100 - GetXTZPercent)" stroke-dashoffset="@GetThirdSD">
-                    <title id="xtz">XTZ @(GetXTZPercent)%</title>
-
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#6591B8" stroke-width="5" stroke-dasharray="@GetXTZPercent @(100 - GetXTZPercent)" stroke-dashoffset="@GetThirdSD">
+                    <title id="xtz">XTZ @(XTZPercent)%</title>
                 </circle>
-                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#377bbc" stroke-width="5" stroke-dasharray="@GetBTCPercent @(100 - GetBTCPercent)" stroke-dashoffset="@GetFourthSD">
-                    <title id="btc">BTC @(GetBTCPercent)%</title>
-
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#6DA3D4" stroke-width="5" stroke-dasharray="@GetBTCPercent @(100 - GetBTCPercent)" stroke-dashoffset="@GetFourthSD">
+                    <title id="btc">BTC @(BTCPercent)%</title>
+                </circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#76B5F1" stroke-width="5" stroke-dasharray="@GetUSDTPercent @(100 - GetUSDTPercent)" stroke-dashoffset="@GetFifthSD">
+                    <title id="btc">USDT @(USDTPercent)%</title>
+                </circle>
+                <circle class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#495A63" stroke-width="5" stroke-dasharray="@GetFA12Percent @(100 - GetFA12Percent)" stroke-dashoffset="@GetSixSD">
+                    <title id="btc">tzBTC @(FA12Percent)%</title>
                 </circle>
 
                 <g class="chart-text">
@@ -35,10 +38,17 @@
                 </g>
             </svg>
         </div>
-    </figure>
+    </figure> *@
+<canvas id="currencies-donut"></canvas>
 </div>
 
 @code {
+    [Parameter]
+    public decimal FA12Percent { get; set; } = 0.0m;
+
+    [Parameter]
+    public decimal USDTPercent { get; set; } = 0.0m;
+
     [Parameter]
     public decimal BTCPercent { get; set; } = 0.0m;
 
@@ -54,20 +64,28 @@
     [Parameter]
     public decimal TotalDollars { get; set; } = 0.0m;
 
-
+    private int GetFA12Percent { get => Decimal.ToInt32(FA12Percent); }
+    private int GetUSDTPercent { get => Decimal.ToInt32(USDTPercent); }
     private int GetBTCPercent { get => Decimal.ToInt32(BTCPercent); }
     private int GetXTZPercent { get => Decimal.ToInt32(XTZPercent); }
     private int GetETHPercent { get => Decimal.ToInt32(ETHPercent); }
     private int GetLTCPercent { get => Decimal.ToInt32(LTCPercent); }
+
     private decimal GetTotalDollars { get => decimal.Round(TotalDollars, 1, MidpointRounding.AwayFromZero); }
+
     private int GetSecondSD { get => 100 - GetLTCPercent + START_SVG_OFFSET; }
     private int GetThirdSD { get => 100 - GetLTCPercent - GetETHPercent + START_SVG_OFFSET; }
     private int GetFourthSD { get => 100 - GetLTCPercent - GetETHPercent - GetXTZPercent + START_SVG_OFFSET; }
+    private int GetFifthSD { get => 100 - GetLTCPercent - GetETHPercent - GetXTZPercent - GetBTCPercent + START_SVG_OFFSET; }
+    private int GetSixSD { get => 100 - GetLTCPercent - GetETHPercent - GetXTZPercent - GetBTCPercent - GetUSDTPercent + START_SVG_OFFSET; }
 
     private int START_SVG_OFFSET = 25;
 
-    protected override void OnInitialized()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-      walletStorage.RefreshRequested += StateHasChanged;
+      if (firstRender)
+      {
+        await walletStorage.DrawDonutChart();
+      }
     }
 }

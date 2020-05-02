@@ -18,7 +18,7 @@
             else
             {
                 <span>@swapStorage.TargetAmount.ToString()  <span class="currency-abbr">@(swapStorage.ToCurrency.Name.ToUpper())</span></span>
-                <span class="exchange-amount-container__usd-amount">@(walletStorage.GetDollarValue(swapStorage.ToCurrency, swapStorage.TargetAmount)) <span class="currency-abbr small">USD</span></span>
+                <span class="exchange-amount-container__usd-amount">$@(walletStorage.GetDollarValue(swapStorage.ToCurrency, swapStorage.TargetAmount)) <span class="currency-abbr small">USD</span></span>
             }
         </div>
     </div>

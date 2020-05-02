@@ -19,7 +19,6 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Atomex.Blockchain;
-using Atomex.Blockchain.Abstract;
 using Atomex.Abstract;
 using Atomex.Subsystems.Abstract;
 using Atomex.MarketData;
@@ -32,6 +31,7 @@ namespace atomex_frontend.Storages
       ILocalStorageService localStorage,
       IJSRuntime jSRuntime)
     {
+      Console.WriteLine("ACC CONSTR");
       this.httpClient = httpClient;
       this.localStorage = localStorage;
       this.jSRuntime = jSRuntime;
@@ -76,10 +76,10 @@ namespace atomex_frontend.Storages
     public static ICurrencies Currencies { get; set; }
     public BitfinexQuotesProvider QuotesProvider { get; set; }
 
-    public event Action InitializeCallback;
-    private void CallInitialize()
+    public event Action<bool> InitializeCallback;
+    private void CallInitialize(bool IsRestarting)
     {
-      InitializeCallback?.Invoke();
+      InitializeCallback?.Invoke(IsRestarting);
     }
 
     public event Action RefreshUI;
@@ -97,6 +97,36 @@ namespace atomex_frontend.Storages
     public IJSRuntime jSRuntime;
     private string CurrentWalletName;
     private SecureString _password;
+
+    private bool _passwordIncorrect = false;
+    public bool PasswordIncorrect
+    {
+      get => this._passwordIncorrect;
+      set
+      {
+        this._passwordIncorrect = value;
+
+        if (this._passwordIncorrect)
+        {
+          this.WalletLoading = false;
+        }
+        else
+        {
+          this.CallRefreshUI();
+        }
+      }
+    }
+
+    private bool _walletLoading = false;
+    public bool WalletLoading
+    {
+      get => this._walletLoading;
+      set
+      {
+        this._walletLoading = value;
+        this.CallRefreshUI();
+      }
+    }
 
     private bool _isQuotesProviderAvailable = false;
     public bool IsQuotesProviderAvailable
@@ -155,6 +185,7 @@ namespace atomex_frontend.Storages
 
     public async Task ConnectToWallet(string WalletName, SecureString Password)
     {
+      WalletLoading = true;
       _password = Password;
       bool walletFileExist = File.Exists($"/{WalletName}.wallet");
       if (!walletFileExist)
@@ -203,20 +234,37 @@ namespace atomex_frontend.Storages
       ADR = new AccountDataRepository(currenciesProvider.GetCurrencies(Network.TestNet), initialData: data);
       ADR.SaveDataCallback += SaveDataCallback;
 
-      Account = new Account(
-        HdWallet.LoadFromFile($"/{CurrentWalletName}.wallet", _password),
-        _password,
-        ADR,
-        currenciesProvider,
-        symbolsProvider
-      );
+      try
+      {
+        Account = new Account(
+          HdWallet.LoadFromFile($"/{CurrentWalletName}.wallet", _password),
+          _password,
+          ADR,
+          currenciesProvider,
+          symbolsProvider
+        );
+      }
+      catch (Exception e)
+      {
+        PasswordIncorrect = true;
+        Console.WriteLine(e.ToString());
+        return;
+      }
 
       Terminal = new WebSocketAtomexClient(configuration, Account);
 
       if (AtomexApp != null)
       {
         AtomexApp.UseTerminal(Terminal, restart: true);
+
+        AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
+        AtomexApp.Account.BalanceUpdated += OnBalanceChangedEventHandler;
+        AtomexApp.Terminal.ServiceConnected += OnTerminalServiceStateChangedEventHandler;
+        AtomexApp.Terminal.ServiceDisconnected += OnTerminalServiceStateChangedEventHandler;
+
+        this.CallInitialize(IsRestarting: true);
         Console.WriteLine($"Restarting: switched to Account with {CurrentWalletName} wallet");
+        return;
       }
       else
       {
@@ -243,8 +291,7 @@ namespace atomex_frontend.Storages
 
       Console.WriteLine($"Starting Atomex app with {CurrentWalletName} wallet with data {data.Length}");
       AtomexApp.Start();
-
-      this.CallInitialize();
+      this.CallInitialize(IsRestarting: false);
     }
 
     private void SaveDataCallback(AccountDataRepository.AvailableDataType type, string key, string value)
@@ -254,7 +301,7 @@ namespace atomex_frontend.Storages
       // {
       //   Console.WriteLine($"W3riting to JAvascript tx with ID {key}");
       // }
-      jSRuntime.InvokeAsync<string>("saveData", new string[] { type.ToName(), CurrentWalletName, key, value });
+      jSRuntime.InvokeAsync<string>("saveData", new string[] { type.ToName(), CurrentWalletName, key, value }); // todo: delete tx in InexedDB
     }
 
     private void OnTerminalServiceStateChangedEventHandler(object sender, TerminalServiceEventArgs args)

@@ -34,7 +34,7 @@
 
   protected string[] DropOptions
   {
-    get => new string[1] { $"{walletStorage.SelectedCurrencyData.FreeExternalAddress} {walletStorage.SelectedCurrencyData.Balance}" };
+    get => new string[1] { $"{walletStorage.SelectedCurrencyData.FreeExternalAddress} {Helper.SetPrecision(walletStorage.SelectedCurrencyData.Balance, 4)}" };
   }
 
   protected string CurrentValue

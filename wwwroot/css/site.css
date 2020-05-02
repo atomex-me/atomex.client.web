@@ -180,6 +180,14 @@ app {
     --dark-input-light-blue: #273F73;
     --orange: #FA9517;
     --atomex-yellow: #E4F463;
+
+    --btc-color: rgb(255, 148, 0);
+    --eth-color: rgb(183, 208, 225);
+    --fa12-color: rgb(188, 212, 247);
+    --ltc-color: rgb(231, 231, 231);
+    --usdt-color: rgb(183, 208, 225);
+    --xtz-color: rgb(188, 212, 247);
+    --tzbtc-color: rgb(188, 212, 247);
 }
 
 @font-face {
@@ -648,12 +656,14 @@ button:hover {
 
 .donut-chart__container {
     display: flex;
-    width: 100%;
+    width: 560px;
+    margin: 0 auto;
+    margin-top: 30px;
 }
 
-.donut-chart__container figure {
+/* .donut-chart__container figure {
     margin: 0 auto;
-}
+} */
 
 
 .tableFixHead {
@@ -670,6 +680,10 @@ button:hover {
     height: 280px;
 }
 
+.tableFixHead.swaps {
+    height: 205px;
+}
+
 .tableFixHead thead th {
     position: sticky;
     top: 0;
@@ -684,12 +698,16 @@ table {
     margin: 0 20px 20px;
     font-family: RobotoRegular;
     font-size: 16px;
-    text-transform: uppercase;
+
 }
 
 th,
 td {
     padding: 8px 16px;
+}
+
+th {
+    text-transform: uppercase;
 }
 
 td[attribute*="value"] table>thead>tr>th:last-child {
@@ -710,6 +728,10 @@ table>tbody>tr>td {
 
 table>tbody>tr>td[valign="top"] {
     padding-top: 9px;
+}
+
+table>tbody>tr:first-child>td[valign="top"] {
+    padding-top: 8px;
 }
 
 table>thead>tr>th {
@@ -767,6 +789,10 @@ table>thead>tr>th {
 }
 
 .swapredeem {
+    background-image: url('images/refunded.png');
+}
+
+.swaprefund {
     background-image: url('images/refunded.png');
 }
 
@@ -974,6 +1000,7 @@ table>thead>tr>th {
     font-family: RobotoLight;
     display: flex;
     justify-content: center;
+    text-align: center;
 }
 
 .rounded-dark-container {
@@ -1108,7 +1135,7 @@ table>thead>tr>th {
 }
 
 .exchange>* {
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .exchange>*:last-child {
@@ -1247,6 +1274,7 @@ table>thead>tr>th {
 .currencies-exchange__currency-usd {
     display: flex;
     flex-direction: column;
+    width: 140px;
 }
 
 .currencies-exchange-row>*:first-child {
@@ -1330,7 +1358,7 @@ table>thead>tr>th {
 }
 
 .send-confirmation__label.convert {
-    flex-basis: 46%;
+    flex-basis: 49%;
 }
 
 .send-confirmation__coin {
@@ -1382,4 +1410,32 @@ table>thead>tr>th {
 
 .tx-info__row>*:last-child {
     flex-basis: 85%;
+}
+
+.btc-brush {
+    color: var(--btc-color);
+}
+
+.eth-brush {
+    color: var(--eth-color);
+}
+
+.fa12-brush {
+    color: var(--fa12-color);
+}
+
+.ltc-brush {
+    color: var(--ltc-color);
+}
+
+.usdt-brush {
+    color: var(--usdt-color);
+}
+
+.xtz-brush {
+    color: var(--xtz-color);
+}
+
+.tzbtc-brush {
+    color: var(--tzbtc-color);
 }

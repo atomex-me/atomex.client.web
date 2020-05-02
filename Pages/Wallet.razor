@@ -1,13 +1,11 @@
 ﻿@page "/wallet"
-@using Atomex.Blockchain.Abstract
-@using Atomex.Blockchain.Tezos;
-@using Atomex.Wallet;
+@using System;
+@using System.Timers;
 @inject AccountStorage AccountStorage;
 @inject WalletStorage WalletStorage;
 @inject SwapStorage SwapStorage;
-@using System;
-@using System.Timers;
 @inject IJSRuntime JSRuntime;
+@inject NavigationManager UriHelper;
 
 <div>
   <div class="wallet-page dark-background">
@@ -37,6 +35,8 @@
                 ETHPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Ethereum, "percent"))"
                 XTZPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Tezos, "percent"))"
                 BTCPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Bitcoin, "percent"))"
+                USDTPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Tether, "percent"))"
+                FA12Percent="@(WalletStorage.GetCurrencyData(AccountStorage.FA12, "percent"))"
                 TotalDollars="@(WalletStorage.GetTotalDollars)" />
 
             <WalletDataTable
@@ -72,14 +72,14 @@
                   SelectedCurrency="WalletStorage.SelectedCurrency"
                   Label="@Translations.From"
                   IsOpened="@(OpenedDropdown == 1)"
-                  HandleOpen="@OnOpenClick" />
+                  HandleOpen="@OnOpenDropdownClick" />
 
                 <CurrencyDropdown
                   SelectedCurrency="WalletStorage.SelectedSecondCurrency"
                   Label="@Translations.To"
                   IsSecondCurrency="@true"
                   IsOpened="@(OpenedDropdown == 2)"
-                  HandleOpen="@OnOpenClick" />
+                  HandleOpen="@OnOpenDropdownClick" />
 
                 <AmountBadge
                     Label="@Translations.Amount"
@@ -98,12 +98,15 @@
                 </Modal>
 
                 <div class="exchange-button__container">
-                    <NavigateButton Variant="center" OnClick="@ConvertOpenCloseHandler">@Translations.Convert</NavigateButton>
+                    <NavigateButton Variant="center" OnClick="@ConvertOpenCloseHandler">
+                      @Translations.Convert
+                    </NavigateButton>
                 </div>
             </div>
             <WalletDataTable
                 Variant="@WalletDataTable.AvailableVariants.Swaps"
-                TransactionsData="@WalletStorage.SelectedCurrencyTransactions" />
+                TransactionsData="@WalletStorage.SelectedCurrencyTransactions"
+                SwapsData="@SwapStorage.Swaps" />
           }
       </div>
   </div>
@@ -113,7 +116,7 @@
 @code {
   private int OpenedDropdown = 0;
 
-  private void OnOpenClick(int dropdown)
+  private void OnOpenDropdownClick(int dropdown)
   {
     if (OpenedDropdown > 0)
     {
@@ -145,7 +148,7 @@
 
   protected List<Transaction> Transactions { get; set; } = new List<Transaction>();
 
-  protected async void WalletMenuButtonClick(WalletSection Variant)
+  protected void WalletMenuButtonClick(WalletSection Variant)
   {
     WalletStorage.CurrentWalletSection = Variant;
   }
@@ -157,8 +160,9 @@
     Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} scanned");
   }
 
-  private async void OnConvertHandler()
+  private void OnConvertHandler()
   {
+    WalletStorage.CurrentWalletSection = WalletSection.Conversion;
   }
 
   private void ConvertOpenCloseHandler()
@@ -184,7 +188,7 @@
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
   {
-    await AccountStorage.ConnectToWallet("[test] test wallet", "StoneGiant25".ToSecureString()); //todo: remove in prod
+    // await AccountStorage.ConnectToWallet("[test] test wallet", "StoneGiant25".ToSecureString()); //todo: remove in prod
 
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
 
@@ -196,5 +200,11 @@
     debounceInputAmount.AutoReset = false;
 
     await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
+
+    if (AccountStorage.Account == null)
+    {
+      UriHelper.NavigateTo("/wallets-list");
+    }
+
   }
 }

@@ -22,6 +22,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Cancel"</summary>
         public string Cancel;
 
+        /// <summary>"Can not convert"</summary>
+        public string CantConvert;
+
         /// <summary>"Confirm password:"</summary>
         public string ConfirmPasswordPlaceholder;
 
@@ -33,6 +36,12 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Convert confirmation"</summary>
         public string ConvertConfirmation;
+
+        /// <summary>"Converting"</summary>
+        public string Converting;
+
+        /// <summary>"Converting error"</summary>
+        public string ConvertingError;
 
         /// <summary>"Delegate"</summary>
         public string Delegate;
@@ -181,8 +190,14 @@ namespace atomex_frontend.I18nText
         /// <summary>"Success"</summary>
         public string Success;
 
+        /// <summary>"NOTE: Do not sign out or close the application until the swap is completed, otherwise it may result in a loss of funds."</summary>
+        public string SwapNote;
+
         /// <summary>"Swap redeem"</summary>
         public string SwapRedeem;
+
+        /// <summary>"Swap successfully created."</summary>
+        public string SwapSuccessfullyCreated;
 
         /// <summary>"Time"</summary>
         public string Time;

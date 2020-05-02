@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
 using Atomex;
 using Atomex.Abstract;
 using Atomex.Blockchain.Abstract;
@@ -155,16 +152,17 @@ namespace atomex_frontend.Storages
     private static TimeSpan SwapTimeout = TimeSpan.FromSeconds(60);
     private static TimeSpan SwapCheckInterval = TimeSpan.FromSeconds(3);
 
-    public List<Swap> Swaps { get; set; } = new List<Swap>();
+    public IEnumerable<Swap> Swaps { get; set; } = new List<Swap>();
 
-
-    private void SubscribeToServices()
+    private void SubscribeToServices(bool IsRestarting)
     {
-      Console.WriteLine("SWAP STORAGE: Subscribed to OnTerminalChangedEventHandler");
-
-      App.TerminalChanged += OnTerminalChangedEventHandler;
-      App.Terminal.QuotesUpdated += OnQuotesUpdatedEventHandler;
-      App.Terminal.SwapUpdated += OnSwapEventHandler;
+      if (!IsRestarting)
+      {
+        Console.WriteLine("SWAP STORAGE: Subscribed to OnTerminalChangedEventHandler");
+        App.TerminalChanged += OnTerminalChangedEventHandler;
+        App.Terminal.QuotesUpdated += OnQuotesUpdatedEventHandler;
+        App.Terminal.SwapUpdated += OnSwapEventHandler;
+      }
       OnSwapEventHandler(this, null);
     }
 
@@ -241,12 +239,13 @@ namespace atomex_frontend.Storages
       Console.WriteLine("SWAP EVENT!!!!!!!!");
       try
       {
-        var swaps = await App.Account
-            .GetSwapsAsync();
+        Swaps = (await App.Account
+            .GetSwapsAsync())
+            .ToList()
+            .OrderByDescending(sw => sw.TimeStamp.ToUniversalTime());
 
-        Console.WriteLine(Swaps.Count);
-
-        Swaps = swaps.ToList();
+        Console.WriteLine(Swaps.Count());
+        this.CallUIRefresh();
       }
       catch (Exception e)
       {
@@ -344,34 +343,24 @@ namespace atomex_frontend.Storages
       this.CallUIRefresh();
     }
 
-    public async void Send()
+    public async Task<string> Send()
     {
       try
       {
-        Console.WriteLine("Starting to convert....");
         var error = await ConvertAsync();
 
         if (error != null)
         {
-          if (error.Code == Errors.PriceHasChanged)
-          {
-            Console.WriteLine(error.Description); // todo: go back to confirmation;
-          }
-          else
-          {
-            Console.WriteLine(error.Description); // todo: go back to confirmation;
-          }
-
-          Console.WriteLine("Error..........");
-          return;
+          Console.WriteLine(error.Description); // todo: go back to confirmation;
+          return error?.Description ?? "An error has occurred while sending swap.";
         }
 
-        Console.WriteLine("Convertder Successfully");
+        Console.WriteLine("Swap successfully created");
+        return null;
       }
       catch (Exception e)
       {
-        Console.WriteLine("An error has occurred while sending swap.");
-        Log.Error(e, "Swap error.");
+        return "An error has occurred while sending swap.";
       }
     }
 
@@ -475,6 +464,54 @@ namespace atomex_frontend.Storages
         Log.Error(e, "Conversion error");
 
         return new Error(Errors.SwapError, "Conversion error. Please contant technical support.");
+      }
+    }
+
+    public string NotReadyConvertMessage
+    {
+      get
+      {
+        if (Amount == 0)
+        {
+          var msg = "Amount to convert must be greater than zero.";
+          return msg;
+        }
+
+        if (EstimatedPrice == 0)
+        {
+          var msg = "Not enough liquidity to convert a specified amount.";
+          return msg;
+        }
+
+        if (!App.Terminal.IsServiceConnected(TerminalService.All))
+        {
+          var msg = "Atomex services unavailable. Please check your network connection or contact technical support.";
+          return msg;
+        }
+
+        var symbol = Symbols.SymbolByCurrencies(FromCurrency, ToCurrency);
+        if (symbol == null)
+        {
+          var msg = "This symbol does not support direct conversion.";
+          return msg;
+        }
+
+        var side = symbol.OrderSideForBuyCurrency(ToCurrency);
+        var price = EstimatedPrice;
+        var baseCurrency = Currencies.GetByName(symbol.Base);
+        var qty = AmountHelper.AmountToQty(side, Amount, price, baseCurrency.DigitsMultiplier);
+
+        if (qty < symbol.MinimumQty)
+        {
+          var minimumAmount = AmountHelper.QtyToAmount(side, symbol.MinimumQty, price, FromCurrency.DigitsMultiplier);
+
+          var msg = "The amount must be greater than or equal to the minimum allowed amount";
+          var message = string.Format(CultureInfo.InvariantCulture, "{0} {1} {2}", msg, minimumAmount, FromCurrency.Name);
+
+          return message;
+        }
+
+        return null;
       }
     }
 

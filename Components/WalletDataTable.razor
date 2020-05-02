@@ -1,4 +1,6 @@
 @inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
+@inject SwapStorage swapStorage;
 @inject IJSRuntime JSRuntime;
 
 <div class="tableFixHead @(Variant.ToName().ToLower())">
@@ -78,11 +80,19 @@
         </thead>
 
         <tbody>
-        @* @foreach (Swap swap in SwapsData) {
+        @foreach (Swap swap in SwapsData) {
           <tr>
-            <td class="transaction-desc">@swap</td>
+            <td class="transaction-desc">
+              Convert <span class="@(swap.SoldCurrency.ToLower())-brush">@(AmountHelper.QtyToAmount(swap.Side, swap.Qty, swap.Price, getCurrency(swap.SoldCurrency).DigitsMultiplier)) <span class="currency-abbr">@swap.SoldCurrency</span></span> to <span class="@(swap.PurchasedCurrency.ToLower())-brush">@(AmountHelper.QtyToAmount(swap.Side.Opposite(), swap.Qty, swap.Price, getCurrency(swap.PurchasedCurrency).DigitsMultiplier)) <span class="currency-abbr">@swap.PurchasedCurrency</span></span>
+            </td>
+            <td class="transaction-desc">
+              <span class="badge badge-@(GetBadgeColor(swap))">@CompactStateBySwap(swap)</span>
+            </td>
+            <td>
+              @(String.Format("{0:d MMM yyyy, HH:mm}", swap.TimeStamp.ToLocalTime()))
+            </td>
           </tr>
-        } *@
+        }
         </tbody>
       }
   </table>
@@ -100,6 +110,11 @@
 
   [Parameter]
   public IEnumerable<Swap> SwapsData { get; set; }
+
+  private Currency getCurrency(string Currency)
+  {
+    return AccountStorage.Currencies.GetByName(Currency);
+  }
 
   public enum AvailableVariants
   {
@@ -122,6 +137,23 @@
     }
   }
 
+  private static string CompactStateBySwap(Swap swap)
+  {
+    if (swap.IsComplete)
+      return "Completed";
+
+    if (swap.IsCanceled)
+      return "Canceled";
+
+    if (swap.IsUnsettled)
+      return "Unsettled";
+
+    if (swap.IsRefunded)
+      return "Refunded";
+
+    return "In Progress";
+  }
+
   private string GetBadgeColor(BlockchainTransactionState state)
   {
     switch (state)
@@ -141,9 +173,27 @@
     }
   }
 
+  private static string GetBadgeColor(Swap swap)
+  {
+    if (swap.IsComplete)
+      return "primary";
+
+    if (swap.IsCanceled)
+      return "warning";
+
+    if (swap.IsUnsettled)
+      return "danger";
+
+    if (swap.IsRefunded)
+      return "dark";
+
+    return "info";
+  }
+
   protected override void OnInitialized()
   {
     walletStorage.RefreshRequested += StateHasChanged;
+    swapStorage.RefreshRequested += StateHasChanged;
 
     // height of Detail tx view block for Currencies;
     TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Bitcoin.Name, 118);

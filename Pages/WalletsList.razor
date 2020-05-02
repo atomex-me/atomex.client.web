@@ -1,6 +1,7 @@
 ﻿@page "/wallets-list"
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AccountStorage AccountStorage
+@inject WalletStorage WalletStorage;
 
 <div class="wallets-list__page light-background">
     @if (AvailableWallets != null)
@@ -29,11 +30,11 @@
         else
         {
             <div class="loading-container">
-                @if (Loading)
+                @if (AccountStorage.WalletLoading)
                 {
                     <Loader />
                 }
-                <div class="wallets-list__unlock-container @(Loading ? "loading" : "")">
+                <div class="wallets-list__unlock-container @(AccountStorage.WalletLoading ? "loading" : "")">
                     <p>Please enter password to unlock "@AvailableWallets[SelectedWalletIndex]"</p>
                     <Input InputType="password"
                             InputName="walletPassword"
@@ -64,11 +65,14 @@
 </div>
 
 @code {
-    string[] AvailableWallets { get; set; }
-    int SelectedWalletIndex { get; set; }
-    string WalletPassword { get; set; }
-    string WalletPasswordError { get; set; }
-    bool Loading { get; set; }
+    private string[] AvailableWallets { get; set; }
+    private int SelectedWalletIndex { get; set; }
+    private string WalletPassword { get; set; }
+    private string WalletPasswordError
+    {
+      get => AccountStorage.PasswordIncorrect ? Translations.InvalidPassword : "";
+      set { }
+    }
 
     private void OnWalletClick(int index)
     {
@@ -79,9 +83,9 @@
     private void OnWalletPasswordChange(string pass)
     {
       WalletPassword = pass;
-      if (WalletPasswordError.Length > 0)
+      if (AccountStorage.PasswordIncorrect)
       {
-    WalletPasswordError = "";
+    AccountStorage.PasswordIncorrect = false;
       }
     }
 
@@ -93,31 +97,19 @@
 
     private async Task OnUlockClick()
     {
-      try
-      {
-    Loading = true;
-    await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
-    Loading = false;
-      }
-      catch (Exception e)
-      {
-    Console.WriteLine("PASS INCORRECT");
-    WalletPasswordError = Translations.InvalidPassword;
-    Loading = false;
-      }
+      await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
     }
 
     I18nText.Translations Translations = new I18nText.Translations();
     protected override async Task OnInitializedAsync()
     {
+      AccountStorage.RefreshUI += StateHasChanged;
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
       await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
 
       IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
       AvailableWallets = availableWalletsList.ToArray<string>();
       SelectedWalletIndex = -1;
-      WalletPasswordError = "";
-      Loading = false;
     }
 }
 

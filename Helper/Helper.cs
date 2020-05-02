@@ -114,17 +114,17 @@ namespace atomex_frontend.Common
       string Description = "Unknown transaction";
       if (tx.Type.HasFlag(BlockchainTransactionType.SwapPayment))
       {
-        Description = $"Swap payment {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        Description = $"Swap payment {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
         return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
       {
-        Description = $"Swap refund {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        Description = $"Swap refund {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
         return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem))
       {
-        Description = $"Swap redeem {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        Description = $"Swap redeem {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
         return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.TokenApprove))
@@ -134,12 +134,12 @@ namespace atomex_frontend.Common
       }
       else if (Amount < 0) //tx.Type.HasFlag(BlockchainTransactionType.Output))
       {
-        Description = $"Sent {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        Description = $"Sent {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
         return Description;
       }
       else if (Amount >= 0) //tx.Type.HasFlag(BlockchainTransactionType.Input)) // has outputs
       {
-        Description = $"Received {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture)} {tx.Currency.Name}";
+        Description = $"Received {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
         return Description;
       }
 

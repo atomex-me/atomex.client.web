@@ -3,7 +3,7 @@
 @inject AccountStorage accountStorage;
 
 <div class="exchange-container @(IsOpened ? "opened" : "") noselect">
-  @if(Label.Length > 0) {
+  @if(Label?.Length > 0) {
     <span>
       @(Label):
     </span>
