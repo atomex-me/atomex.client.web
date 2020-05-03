@@ -216,6 +216,12 @@
                 theme: 'dark',
             });
         };
+
+        function showNotification(title, data) {
+            new Notification(title, {
+                body: data,
+            });
+        }
     </script>
 </body>
 

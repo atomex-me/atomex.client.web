@@ -165,22 +165,21 @@ namespace atomex_frontend.Storages
       return availableWalletsList;
     }
 
-    public async Task SaveWallet(HdWallet wallet, SecureString pass, string walletName)
+    public async Task SaveWallet(HdWallet wallet, SecureString storagePass, string walletName)
     {
       IList<string> availableWalletsList = await GetAvailableWallets();
       availableWalletsList.Add(walletName);
 
       var newSerializedWalletNames = JsonConvert.SerializeObject(availableWalletsList.ToArray<string>());
 
-      await wallet.EncryptAsync(pass);
+      await wallet.EncryptAsync(storagePass);
 
-      wallet.SaveToFile($"/{walletName}.wallet", pass);
+      wallet.SaveToFile($"/{walletName}.wallet", storagePass);
       byte[] walletBytes = File.ReadAllBytes($"/{walletName}.wallet");
       string walletBase64 = Convert.ToBase64String(walletBytes);
 
       await localStorage.SetItemAsync("available_wallets", newSerializedWalletNames);
       await localStorage.SetItemAsync($"{walletName}.wallet", walletBase64);
-
     }
 
     public async Task ConnectToWallet(string WalletName, SecureString Password)
@@ -248,8 +247,10 @@ namespace atomex_frontend.Storages
       {
         PasswordIncorrect = true;
         Console.WriteLine(e.ToString());
+        _password = null;
         return;
       }
+      _password = null;
 
       Terminal = new WebSocketAtomexClient(configuration, Account);
 

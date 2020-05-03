@@ -97,14 +97,32 @@ namespace atomex_frontend.I18nText
         /// <summary>"Instantly sending of currency."</summary>
         public string InstantlySendingOfCurrency;
 
+        /// <summary>"Invalid mnemonic phrase."</summary>
+        public string InvalidMnemonic;
+
+        /// <summary>"Word count should be 12,15,18,21 or 24."</summary>
+        public string InvalidMnemonicWordCount;
+
         /// <summary>"Invalid password"</summary>
         public string InvalidPassword;
+
+        /// <summary>"Word {0} is not in the wordlist for this language."</summary>
+        public string IsNotInTheWorldList;
 
         /// <summary>"Language"</summary>
         public string Language;
 
         /// <summary>"Fee"</summary>
         public string MinersFee;
+
+        /// <summary>"Mnemonic phrase could not be empty"</summary>
+        public string MnemonicCouldNotBeEmpty;
+
+        /// <summary>"Mnemonic phrase"</summary>
+        public string MnemonicPhras;
+
+        /// <summary>"Mnemonic phrase"</summary>
+        public string MnemonicPhrase;
 
         /// <summary>"Next"</summary>
         public string Next;
@@ -168,6 +186,24 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Step 5: Storage password"</summary>
         public string RegisterStep5Title;
+
+        /// <summary>"Restore"</summary>
+        public string Restore;
+
+        /// <summary>"Please select your wallet type."</summary>
+        public string RestoreStep1Description;
+
+        /// <summary>"Please enter a name for your wallet."</summary>
+        public string RestoreStep2Description;
+
+        /// <summary>"Please enter a mnemonic phrase for your wallet:"</summary>
+        public string RestoreStep3Description;
+
+        /// <summary>"If you used a password to additioonal protect the secret key, please enter it in the box below. If you enter the wrong password, you will not be able to access your secret key and wallet."</summary>
+        public string RestoreStep4Description;
+
+        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start youe wallet application."</summary>
+        public string RestoreStep5Description;
 
         /// <summary>"Send"</summary>
         public string Send;

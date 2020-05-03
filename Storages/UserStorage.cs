@@ -4,59 +4,44 @@ using NBitcoin;
 
 namespace atomex_frontend.Storages
 {
-    public class UserStorage
+  public class UserStorage
+  {
+    public UserStorage()
     {
-        public UserStorage()
-        {
-            SelectedLanguage = nameof(Languages.English);
+      SelectedLanguage = nameof(Languages.English);
 
-            LanguageCode = new Dictionary<string, string>();
-            LanguageCode.Add(Languages.English.ToName(), LangCodes.en.ToName());
-            LanguageCode.Add(Languages.China.ToName(), LangCodes.ch.ToName());
-            LanguageCode.Add(Languages.Spanish.ToName(), LangCodes.sp.ToName());
-            LanguageCode.Add(Languages.Russian.ToName(), LangCodes.ru.ToName());
-        }
+      LanguageCode = new Dictionary<string, string>();
+      LanguageCode.Add(Languages.English.ToName(), LangCodes.en.ToName());
+      LanguageCode.Add(Languages.China.ToName(), LangCodes.ch.ToName());
+      LanguageCode.Add(Languages.Spanish.ToName(), LangCodes.sp.ToName());
+      LanguageCode.Add(Languages.Russian.ToName(), LangCodes.ru.ToName());
+    }
 
-        public enum Languages
-        {
-            English,
-            China,
-            Spanish,
-            Russian
-        }
+    public enum Languages
+    {
+      English,
+      China,
+      Spanish,
+      Russian
+    }
 
-        public enum LangCodes
-        {
-            en,
-            ch,
-            sp,
-            ru
-        }
+    public enum LangCodes
+    {
+      en,
+      ch,
+      sp,
+      ru
+    }
 
 
 
-        private Dictionary<string, string> LanguageCode;
+    private Dictionary<string, string> LanguageCode;
 
-        public void TestServiceInjection(string param) {
-            Console.WriteLine(param);
-        }
-
-        public string[] LanguageOptions = new string[] {
+    public string[] LanguageOptions = new string[] {
             Languages.English.ToName(), Languages.China.ToName(),
             Languages.Spanish.ToName(), Languages.Russian.ToName()
         };
 
-        public string SelectedLanguage { get; private set; }
-
-        public string GetCurrentLanguageCode()
-        {
-            return LanguageCode[SelectedLanguage];
-        }
-
-        public void SetSelectedLanguage(string language) {
-            SelectedLanguage = language;
-            Wordlist english = Wordlist.English;
-            Console.Write(english);
-        }
-    }
+    public string SelectedLanguage { get; private set; }
+  }
 }

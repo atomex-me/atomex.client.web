@@ -28,41 +28,7 @@ namespace atomex_frontend.Storages
       this.accountStorage = accountStorage;
       this.localStorage = localStorage;
 
-      CurrentStep = Steps.WalletType;
-      SelectedNetType = Nets.MainNet.ToName();
-      DerivedPasswordStrongness = PassStrongness.Blank;
-      StoragePasswordStrongness = PassStrongness.Blank;
-      WalletName = "";
-      _walletNameError = WalletNameErrors.None;
-      DerivedKeyPassword1 = "";
-      DerivedKeyPassword2 = "";
-      StoragePassword1 = "";
-      StoragePassword2 = "";
-      DerivedPassword2Typed = false;
-      StoragePassword2Typed = false;
-      WalletNameTyped = false;
-      Loading = false;
-
-      MnemonicWordCount = MnemonicWordsAmount.Eighteen.ToName();
-      _entropyLength = 192;
-      MnemonicString = "";
-      CurrentMnemonicLang = Wordlist.English;
-
-      AvailableMnemonicLangs = new Dictionary<string, Wordlist>();
-      AvailableMnemonicLangs.Add("English", Wordlist.English);
-      AvailableMnemonicLangs.Add("Spanish", Wordlist.Spanish);
-      AvailableMnemonicLangs.Add("French", Wordlist.French);
-      AvailableMnemonicLangs.Add("Japanese", Wordlist.Japanese);
-      AvailableMnemonicLangs.Add("Portuguese Brazil", Wordlist.PortugueseBrazil);
-      AvailableMnemonicLangs.Add("Chinese Traditional", Wordlist.ChineseTraditional);
-      AvailableMnemonicLangs.Add("Chinese Simplified", Wordlist.ChineseSimplified);
-
-      MnemonicWordsToEntropy = new Dictionary<string, int>();
-      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.Twelve.ToName(), 128);
-      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.Fifteen.ToName(), 160);
-      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.Eighteen.ToName(), 192);
-      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.TwentyOne.ToName(), 224);
-      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.TwentyFour.ToName(), 256);
+      ResetData();
     }
 
     private AccountStorage accountStorage;
@@ -176,6 +142,12 @@ namespace atomex_frontend.Storages
       set { _walletNameError = value; }
     }
 
+    public string RestoreMnemonic { get; set; }
+
+    public void SetRestoreMnemonic(string value)
+    {
+      RestoreMnemonic = value;
+    }
 
     public async Task IncrementCurrentStep()
     {
@@ -186,18 +158,46 @@ namespace atomex_frontend.Storages
         string walletName = NetCode == Atomex.Core.Network.MainNet ?
             WalletName : $"[test] {WalletName}";
 
-        SecureString pass = new NetworkCredential("", DerivedKeyPassword1).SecurePassword;
         var wallet = new HdWallet(
                 mnemonic: MnemonicString,
                 wordList: CurrentMnemonicLang,
-                passPhrase: pass,
+                passPhrase: DerivedKeyPassword1.Length == 0 ? null : DerivedKeyPassword1.ToSecureString(),
+                network: NetCode);
+
+        await accountStorage
+            .SaveWallet(wallet, StoragePassword1.ToSecureString(), walletName);
+
+        await accountStorage.ConnectToWallet(walletName, StoragePassword1.ToSecureString());
+
+        ResetData();
+      }
+
+      if ((int)CurrentStep < TotalSteps)
+      {
+        CurrentStep = CurrentStep.Next();
+      }
+    }
+
+    public async void RestoreIncrementStep()
+    {
+      if (CurrentStep == Steps.StoragePassword)
+      {
+        Loading = true;
+        Atomex.Core.Network NetCode = GetNetworkCode();
+        string walletName = NetCode == Atomex.Core.Network.MainNet ?
+            WalletName : $"[test] {WalletName}";
+
+        var wallet = new HdWallet(
+                mnemonic: RestoreMnemonic,
+                wordList: CurrentMnemonicLang,
+                passPhrase: DerivedKeyPassword1.Length == 0 ? null : DerivedKeyPassword1.ToSecureString(),
                 network: NetCode);
 
         await accountStorage
             .SaveWallet(wallet, StoragePassword1.ToSecureString(), walletName);
         await accountStorage.ConnectToWallet(walletName, StoragePassword1.ToSecureString());
-        //GOTO WALLET PAGE
-        Loading = false;
+
+        ResetData();
       }
 
       if ((int)CurrentStep < TotalSteps)
@@ -352,6 +352,48 @@ namespace atomex_frontend.Storages
         return PasswordErrors.Weak;
       }
       else return PasswordErrors.None;
+    }
+
+    public void ResetData()
+    {
+      CurrentStep = Steps.WalletType;
+      SelectedNetType = Nets.MainNet.ToName();
+      DerivedPasswordStrongness = PassStrongness.Blank;
+      StoragePasswordStrongness = PassStrongness.Blank;
+      WalletName = "";
+      _walletNameError = WalletNameErrors.None;
+      DerivedKeyPassword1 = "";
+      DerivedKeyPassword2 = "";
+      StoragePassword1 = "";
+      StoragePassword2 = "";
+      DerivedPassword2Typed = false;
+      StoragePassword2Typed = false;
+      WalletNameTyped = false;
+      Loading = false;
+
+      MnemonicWordCount = MnemonicWordsAmount.Eighteen.ToName();
+      _entropyLength = 192;
+      MnemonicString = "";
+
+      RestoreMnemonic = null;
+
+      CurrentMnemonicLang = Wordlist.English;
+
+      AvailableMnemonicLangs = new Dictionary<string, Wordlist>();
+      AvailableMnemonicLangs.Add("English", Wordlist.English);
+      AvailableMnemonicLangs.Add("Spanish", Wordlist.Spanish);
+      AvailableMnemonicLangs.Add("French", Wordlist.French);
+      AvailableMnemonicLangs.Add("Japanese", Wordlist.Japanese);
+      AvailableMnemonicLangs.Add("Portuguese Brazil", Wordlist.PortugueseBrazil);
+      AvailableMnemonicLangs.Add("Chinese Traditional", Wordlist.ChineseTraditional);
+      AvailableMnemonicLangs.Add("Chinese Simplified", Wordlist.ChineseSimplified);
+
+      MnemonicWordsToEntropy = new Dictionary<string, int>();
+      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.Twelve.ToName(), 128);
+      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.Fifteen.ToName(), 160);
+      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.Eighteen.ToName(), 192);
+      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.TwentyOne.ToName(), 224);
+      MnemonicWordsToEntropy.Add(MnemonicWordsAmount.TwentyFour.ToName(), 256);
     }
   }
 }

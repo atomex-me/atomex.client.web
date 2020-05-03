@@ -4,11 +4,18 @@
   "RegisterStep3Title": "Step 3: Mnemonic phrase",
   "RegisterStep4Title": "Step 4: Derived key password (optional)",
   "RegisterStep5Title": "Step 5: Storage password",
+
   "RegisterStep1Description": "Please select your wallet type.",
   "RegisterStep2Description": "Please enter a name for your wallet.",
   "RegisterStep3Description": "Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in in safe place.",
   "RegisterStep4Description": "This password can be used for secret key additional protection. To restore a secret key, you will need to enter a mnemonic phrase and this password.",
   "RegisterStep5Description": "This password is used to protect the stored secret keys and will be needed every time you start youe wallet application.",
+
+  "RestoreStep1Description": "Please select your wallet type.",
+  "RestoreStep2Description": "Please enter a name for your wallet.",
+  "RestoreStep3Description": "Please enter a mnemonic phrase for your wallet:",
+  "RestoreStep4Description": "If you used a password to additioonal protect the secret key, please enter it in the box below. If you enter the wrong password, you will not be able to access your secret key and wallet.",
+  "RestoreStep5Description": "This password is used to protect the stored secret keys and will be needed every time you start youe wallet application.",
 
   "EnterPasswordPlaceholder": "Enter password:",
   "ConfirmPasswordPlaceholder": "Confirm password:",
@@ -21,6 +28,7 @@
   "Cancel": "Cancel",
   "Unlock": "Unlock",
   "Finish": "Finish",
+  "Restore": "Restore",
   "PasswordMismatchError": "Passwords mismatch",
   "PasswordEmpty": "Passwords could not be empty",
   "PasswordWeak": "Create at least \"Meduim\" strongness password",
@@ -77,5 +85,10 @@
   "WithPaymentFee": "with payment fee",
   "WithRedeemFee": "with redeem fee",
   "SwapNote": "NOTE: Do not sign out or close the application until the swap is completed, otherwise it may result in a loss of funds.",
-  "SwapSuccessfullyCreated": "Swap successfully created."
+  "SwapSuccessfullyCreated": "Swap successfully created.",
+  "MnemonicPhras": "Mnemonic phrase",
+  "MnemonicCouldNotBeEmpty": "Mnemonic phrase could not be empty",
+  "IsNotInTheWorldList": "Word {0} is not in the wordlist for this language.",
+  "InvalidMnemonicWordCount": "Word count should be 12,15,18,21 or 24.",
+  "InvalidMnemonic": "Invalid mnemonic phrase."
 }

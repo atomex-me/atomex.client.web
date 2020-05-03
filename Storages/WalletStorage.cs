@@ -248,13 +248,15 @@ namespace atomex_frontend.Storages
         CreateBsonMapper();
         await UpdatePortfolioAsync();
         URIHelper.NavigateTo("/wallet");
+        accountStorage.WalletLoading = false;
       }
     }
 
-    private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
+    private async void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
     {
       Console.WriteLine($"New Transaction on {e.Transaction.Currency.Name}, HANDLING with id  {e.Transaction.Id}");
       handleTransaction(e.Transaction);
+      await jSRuntime.InvokeVoidAsync("showNotification", "You have new transaction", $"ID: {e.Transaction.Id}");
     }
 
     public decimal GetCurrencyData(Currency currency, string dataType)
