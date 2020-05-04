@@ -102,8 +102,8 @@ function drawChart(data,labels,totalDollars)
     return;
   }
   var ctx=canv.getContext('2d');
-
   var animations=false;
+  var zeroData=isZeroChart(data);
 
   if (window.donutChart)
   {
@@ -115,7 +115,54 @@ function drawChart(data,labels,totalDollars)
 
   initChartService();
 
-  var options={
+  var options=getChartOptions(totalDollars,zeroData);
+
+  if (!animations)
+  {
+    options[ 'animation' ]=false;
+  }
+
+  window.donutChart=new Chart(ctx,{
+    type: 'doughnut',
+    data: {
+      labels: zeroData? [ 'No tokens' ]:labels,
+      datasets: [ {
+        data: zeroData? [ 1 ]:data,
+        borderWidth: 0,
+        backgroundColor: [
+          '#003f5c',
+          '#444e86',
+          '#955196',
+          '#dd5182',
+          '#ff6e54',
+          '#ffa600'
+        ]
+      } ]
+    },
+    options
+  });
+}
+
+function updateChart(data,labels,totalDollars)
+{
+  var zeroData=isZeroChart(data);
+  if (window.donutChart&&document.getElementById('currencies-donut')&&!zeroData)
+  {
+    var animation=window.donutChart.options[ 'animation' ];
+    window.donutChart.options=getChartOptions(totalDollars,zeroData);
+    if (animation===false)
+    {
+      window.donutChart.options[ 'animation' ]=false;
+    }
+    window.donutChart.data.datasets[ 0 ].data=data;
+    window.donutChart.data.labels=labels;
+    window.donutChart.update();
+  }
+}
+
+function getChartOptions(totalDollars,zeroData)
+{
+  return {
     legend: {
       display: false
     },
@@ -139,6 +186,10 @@ function drawChart(data,labels,totalDollars)
         },
         label: function (tooltipItem,data)
         {
+          if (zeroData)
+          {
+            return ``;
+          }
           var dataset=data[ 'datasets' ][ 0 ];
           var percent=(dataset[ 'data' ][ tooltipItem[ 'index' ] ]/dataset[ "_meta" ][ Object.keys(dataset[ "_meta" ])[ 0 ] ][ 'total' ])*100;
           return `$${data[ 'datasets' ][ 0 ][ 'data' ][ tooltipItem[ 'index' ] ]} (${percent.toFixed(1)}%)`;
@@ -153,40 +204,6 @@ function drawChart(data,labels,totalDollars)
       displayColors: false
     }
   }
-
-  if (!animations)
-  {
-    options[ 'animation' ]=false;
-  }
-
-  window.donutChart=new Chart(ctx,{
-    type: 'doughnut',
-    data: {
-      labels: labels,
-      datasets: [ {
-        data: data,
-        borderWidth: 0,
-        backgroundColor: [
-          '#003f5c',
-          '#444e86',
-          '#955196',
-          '#dd5182',
-          '#ff6e54',
-          '#ffa600'
-        ]
-      } ]
-    },
-    options
-  });
 }
 
-function updateChart(data,labels,totalDollars)
-{
-  if (window.donutChart&&document.getElementById('currencies-donut'))
-  {
-    window.donutChart.options.elements.center.text=`${totalDollars}$`;
-    window.donutChart.data.datasets[ 0 ].data=data;
-    window.donutChart.data.labels=labels;
-    window.donutChart.update();
-  }
-}
+var isZeroChart=data => data.reduce((acc,val) => acc+val,0)==0;

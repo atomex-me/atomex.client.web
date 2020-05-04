@@ -16,6 +16,7 @@
                name="@InputName"
                @oninput="HandleChange"
                onkeydown="@GetNumberValidator"
+               onkeypress="@OnKeyPress"
                disabled="@Disabled" />
         @if(AdditionalRightInfo.Length > 0) {
             <span class="additional-input-info">@AdditionalRightInfo</span>
@@ -43,6 +44,9 @@
 
     [Parameter]
     public EventCallback<string> OnChange { get; set; }
+
+    [Parameter]
+    public EventCallback<KeyboardEventArgs> OnKeyPress { get; set; }
 
     [Parameter]
     public string Value { get; set; }

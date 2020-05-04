@@ -22,6 +22,7 @@ using Atomex.EthereumTokens;
 using Atomex.TezosTokens;
 using atomex_frontend.Common;
 using Microsoft.AspNetCore.Components;
+using System.Timers;
 
 using LiteDB;
 using Atomex.Common.Bson;
@@ -38,6 +39,14 @@ namespace atomex_frontend.Storages
       this.URIHelper = uriHelper;
 
       this.accountStorage.InitializeCallback += Initialize;
+
+      debounceFirstCurrencySelection = new System.Timers.Timer(1);
+      debounceFirstCurrencySelection.Elapsed += OnAfterChangeFirstCurrency;
+      debounceFirstCurrencySelection.AutoReset = false;
+
+      debounceSecondCurrencySelection = new System.Timers.Timer(1);
+      debounceSecondCurrencySelection.Elapsed += OnAfterChangeSecondCurrency;
+      debounceSecondCurrencySelection.AutoReset = false;
     }
 
     private IJSRuntime jSRuntime;
@@ -90,6 +99,16 @@ namespace atomex_frontend.Storages
       get => PortfolioData.TryGetValue(SelectedCurrency, out CurrencyData data) ? data : new CurrencyData(AccountStorage.Bitcoin, 0.0m, 0.0m, 0.0m);
     }
 
+    private System.Timers.Timer debounceFirstCurrencySelection;
+    private void OnAfterChangeFirstCurrency(Object source, ElapsedEventArgs e)
+    {
+      Task.Run(() =>
+      {
+        this.CheckForSimilarCurrencies();
+        this.CallMarketRefresh();
+      });
+    }
+
     private Currency _selectedCurrency = AccountStorage.Bitcoin;
     public Currency SelectedCurrency
     {
@@ -102,13 +121,23 @@ namespace atomex_frontend.Storages
 
           if (CurrentWalletSection == WalletSection.Conversion)
           {
-            this.CheckForSimilarCurrencies();
-            this.CallMarketRefresh();
+            debounceFirstCurrencySelection.Stop();
+            debounceFirstCurrencySelection.Start();
           }
 
           this.ResetSendData();
         }
       }
+    }
+
+    private System.Timers.Timer debounceSecondCurrencySelection;
+    private void OnAfterChangeSecondCurrency(Object source, ElapsedEventArgs e)
+    {
+      Task.Run(() =>
+      {
+        this.CallUIRefresh();
+        this.CallMarketRefresh();
+      });
     }
 
     private Currency _selectedSecondCurrency = AccountStorage.Tezos;
@@ -121,8 +150,8 @@ namespace atomex_frontend.Storages
         {
           this._selectedSecondCurrency = value;
 
-          this.CallUIRefresh();
-          this.CallMarketRefresh();
+          debounceSecondCurrencySelection.Stop();
+          debounceSecondCurrencySelection.Start();
         }
       }
     }

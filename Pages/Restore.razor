@@ -67,9 +67,8 @@
 
             <div>
                 <div class="buttons-container">
-                    <NavigateButton Variant="left" OnClick="RegisterStorage.DecrementCurrentStep"
-                        Disabled="@(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType)">
-                        @Translations.Previous
+                    <NavigateButton Variant="left" OnClick="RegisterStorage.DecrementCurrentStep" >
+                        @(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType ? Translations.Cancel : Translations.Previous)
                     </NavigateButton>
                     <NavigateButton Variant="right" OnClick="RegisterStorage.RestoreIncrementStep"
                         Disabled="@GetCurrentStepIsError">

@@ -3,7 +3,7 @@
 @inject AccountStorage AccountStorage
 @inject WalletStorage WalletStorage;
 
-<div class="wallets-list__page light-background">
+<div class="atomex__page light-background">
     @if (AvailableWallets != null)
     {
         if (SelectedWalletIndex == -1)
@@ -23,7 +23,7 @@
                     }
                 </div>
                 <div class="text-center">
-                    <NavigateButton Variant="center">Cancel</NavigateButton>
+                    <NavigateButton Variant="center" To="/">Cancel</NavigateButton>
                 </div>
             </div>
         }
@@ -40,6 +40,7 @@
                             InputName="walletPassword"
                             Value="@WalletPassword"
                             OnChange="@OnWalletPasswordChange"
+                            OnKeyPress="@OnKeyPress"
                             InputPlaceholder="@Translations.EnterPasswordPlaceholder"
                             Error="@(WalletPasswordError.Length > 0)"
                             ErrorDescription="@WalletPasswordError" />
@@ -72,6 +73,14 @@
     {
       get => AccountStorage.PasswordIncorrect ? Translations.InvalidPassword : "";
       set { }
+    }
+
+    private async void OnKeyPress(KeyboardEventArgs e)
+    {
+      if (e.Key == "Enter")
+      {
+    await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
+      }
     }
 
     private void OnWalletClick(int index)

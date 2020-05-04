@@ -162,6 +162,7 @@ namespace atomex_frontend.Storages
         App.TerminalChanged += OnTerminalChangedEventHandler;
         App.Terminal.QuotesUpdated += OnQuotesUpdatedEventHandler;
         App.Terminal.SwapUpdated += OnSwapEventHandler;
+        Console.WriteLine("Subscribed to swap events in start");
       }
       OnSwapEventHandler(this, null);
     }
@@ -176,6 +177,7 @@ namespace atomex_frontend.Storages
 
       terminal.QuotesUpdated += OnQuotesUpdatedEventHandler;
       terminal.SwapUpdated += OnSwapEventHandler;
+      Console.WriteLine("Subscribed to swap events");
       OnSwapEventHandler(this, null);
     }
 

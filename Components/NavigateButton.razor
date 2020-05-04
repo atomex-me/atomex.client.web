@@ -1,6 +1,12 @@
-﻿<button class="navigate-button @Variant" @onclick="OnClick" disabled="@Disabled">
-    @ChildContent
-</button>
+﻿@if(!String.IsNullOrEmpty(To)) {
+    <span class="navigate-button @Variant" disabled="@Disabled">
+        <NavLink class="button-link" href="@To">@ChildContent</NavLink>
+    </span>
+} else {
+    <button class="navigate-button @Variant" @onclick="OnClick" disabled="@Disabled">
+        @ChildContent
+    </button>
+}
 
 @code {
     [Parameter]
@@ -14,4 +20,7 @@
 
     [Parameter]
     public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public string To { get; set; }
 }

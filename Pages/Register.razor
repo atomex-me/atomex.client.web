@@ -1,4 +1,4 @@
-﻿@page "/register"
+﻿@page "/create"
 @inject RegisterStorage RegisterStorage
 @inject UserStorage UserStorage
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
@@ -70,9 +70,8 @@
 
             <div>
                 <div class="buttons-container">
-                    <NavigateButton Variant="left" OnClick="RegisterStorage.DecrementCurrentStep"
-                        Disabled="@(RegisterStorage.CurrentStep ==RegisterStorage.Steps.WalletType)">
-                        @Translations.Previous
+                    <NavigateButton Variant="left" OnClick="RegisterStorage.DecrementCurrentStep">
+                      @(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType ? Translations.Cancel : Translations.Previous)
                     </NavigateButton>
                     <NavigateButton Variant="right" OnClick="RegisterStorage.IncrementCurrentStep"
                         Disabled="@GetCurrentStepIsError">

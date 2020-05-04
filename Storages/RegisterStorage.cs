@@ -11,6 +11,7 @@ using NBitcoin;
 using System.Net;
 using Blazored.LocalStorage;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
 
 namespace atomex_frontend.Storages
 {
@@ -23,16 +24,19 @@ namespace atomex_frontend.Storages
   public class RegisterStorage
   {
     public RegisterStorage(AccountStorage accountStorage,
-        ILocalStorageService localStorage)
+        ILocalStorageService localStorage,
+        NavigationManager navigationManager)
     {
       this.accountStorage = accountStorage;
       this.localStorage = localStorage;
+      this.URIHelper = navigationManager;
 
       ResetData();
     }
 
     private AccountStorage accountStorage;
     private ILocalStorageService localStorage;
+    private NavigationManager URIHelper;
 
     public enum MnemonicWordsAmount
     {
@@ -211,6 +215,10 @@ namespace atomex_frontend.Storages
       if (CurrentStep > Steps.WalletType)
       {
         CurrentStep = CurrentStep.Previous();
+      }
+      else
+      {
+        URIHelper.NavigateTo("/");
       }
     }
 
