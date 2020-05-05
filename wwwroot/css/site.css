@@ -10,7 +10,6 @@ body {
 
 * {
     outline: none !important;
-    overflow: hidden !important;
 }
 
 input::-webkit-outer-spin-button,
@@ -206,7 +205,7 @@ app {
 
 
 .atomex-input-container {
-    font-family: RobotoRegular;
+    font-family: RobotoLight;
     font-size: 16px;
     font-weight: 700;
     position: relative;
@@ -502,6 +501,10 @@ button:hover {
     overflow-y: scroll;
 }
 
+.wallets-list__container::-webkit-scrollbar {
+    display: none;
+}
+
 .wallet-icon {
     display: block;
     width: 50px;
@@ -568,6 +571,7 @@ button:hover {
 .wallet-page__left-nav {
     flex-basis: 15%;
     max-width: 200px;
+    min-width: 165px;
     height: 100%;
 }
 
@@ -601,6 +605,10 @@ button:hover {
     position: relative;
 }
 
+.tableFixHead::-webkit-scrollbar {
+    display: none;
+}
+
 .tableFixHead.currencies {
     height: 320px;
 }
@@ -611,6 +619,10 @@ button:hover {
 
 .tableFixHead.swaps {
     height: 205px;
+}
+
+.js-resize-height {
+    cursor: ns-resize;
 }
 
 .tableFixHead thead th {
@@ -1396,4 +1408,8 @@ table>thead>tr>th {
 
 .first-page__controls>*:last-child {
     margin: 0;
+}
+
+.badge {
+    font-family: RobotoLight;
 }

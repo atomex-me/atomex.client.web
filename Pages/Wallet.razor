@@ -30,14 +30,7 @@
       </div>
       <div class="wallet-page__container">
           @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio) {
-            <DonutChart
-                LTCPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Litecoin, "percent"))"
-                ETHPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Ethereum, "percent"))"
-                XTZPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Tezos, "percent"))"
-                BTCPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Bitcoin, "percent"))"
-                USDTPercent="@(WalletStorage.GetCurrencyData(AccountStorage.Tether, "percent"))"
-                FA12Percent="@(WalletStorage.GetCurrencyData(AccountStorage.FA12, "percent"))"
-                TotalDollars="@(WalletStorage.GetTotalDollars)" />
+            <DonutChart />
 
             <WalletDataTable
                 Variant="@WalletDataTable.AvailableVariants.Currencies"

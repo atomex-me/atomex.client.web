@@ -239,9 +239,6 @@
             var startX, startY, startWidth, startHeight;
 
             function doDrag(e) {
-                console.log(`startHeight ${startHeight}`);
-                console.log(`e.clientY ${e.clientY}`);
-                console.log(`startY ${startY}`);
                 p.style.height = (startHeight - e.clientY + startY) + 'px';
                 localStorage.setItem(section, p.style.height);
             }

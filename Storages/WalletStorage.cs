@@ -698,7 +698,7 @@ namespace atomex_frontend.Storages
     public BsonMapper _bsonMapper;
     public void CreateBsonMapper()
     {
-      ICurrencies currencies = accountStorage.currenciesProvider.GetCurrencies(Network.TestNet);
+      ICurrencies currencies = AccountStorage.Currencies;
 
       Console.WriteLine("Creating bson mapper");
       _bsonMapper = new BsonMapper()

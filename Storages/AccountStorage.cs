@@ -98,6 +98,11 @@ namespace atomex_frontend.Storages
     private string CurrentWalletName;
     private SecureString _password;
 
+    private Network CurrentNetwork
+    {
+      get => !String.IsNullOrEmpty(CurrentWalletName) && !CurrentWalletName.Contains("[test]") ? Network.MainNet : Network.TestNet;
+    }
+
     private bool _passwordIncorrect = false;
     public bool PasswordIncorrect
     {
@@ -185,6 +190,7 @@ namespace atomex_frontend.Storages
     public async Task ConnectToWallet(string WalletName, SecureString Password)
     {
       WalletLoading = true;
+      CurrentWalletName = WalletName;
       _password = Password;
       bool walletFileExist = File.Exists($"/{WalletName}.wallet");
       if (!walletFileExist)
@@ -207,7 +213,6 @@ namespace atomex_frontend.Storages
         Console.WriteLine($"Wallet {WalletName} founded on FS");
       }
 
-      CurrentWalletName = WalletName;
       await jSRuntime.InvokeVoidAsync("getData", WalletName, DotNetObjectReference.Create(this));
     }
 
@@ -228,9 +233,11 @@ namespace atomex_frontend.Storages
         .AddEmbeddedJsonFile(this.coreAssembly, "symbols.json")
         .Build();
 
+      Currencies = currenciesProvider.GetCurrencies(CurrentNetwork);
+
       var symbolsProvider = new SymbolsProvider(symbolsConfiguration);
 
-      ADR = new AccountDataRepository(currenciesProvider.GetCurrencies(Network.TestNet), initialData: data);
+      ADR = new AccountDataRepository(Currencies, initialData: data);
       ADR.SaveDataCallback += SaveDataCallback;
 
       try
@@ -274,7 +281,7 @@ namespace atomex_frontend.Storages
             .UseSymbolsProvider(symbolsProvider)
             // .UseCurrenciesUpdater(new CurrenciesUpdater(currenciesProvider))
             .UseQuotesProvider(new BitfinexQuotesProvider(
-                currencies: currenciesProvider.GetCurrencies(Network.TestNet),
+                currencies: currenciesProvider.GetCurrencies(CurrentNetwork),
                 baseCurrency: BitfinexQuotesProvider.Usd))
             .UseTerminal(Terminal);
       }
@@ -297,11 +304,6 @@ namespace atomex_frontend.Storages
 
     private void SaveDataCallback(AccountDataRepository.AvailableDataType type, string key, string value)
     {
-
-      // if (type == AccountDataRepository.AvailableDataType.Transaction)
-      // {
-      //   Console.WriteLine($"W3riting to JAvascript tx with ID {key}");
-      // }
       jSRuntime.InvokeAsync<string>("saveData", new string[] { type.ToName(), CurrentWalletName, key, value }); // todo: delete tx in InexedDB
     }
 
@@ -367,7 +369,7 @@ namespace atomex_frontend.Storages
 
       this.currenciesProvider = new CurrenciesProvider(this.currenciesConfiguration);
 
-      Currencies = currenciesProvider.GetCurrencies(Network.TestNet); // todo: Make actual Net;
+      Currencies = currenciesProvider.GetCurrencies(CurrentNetwork);
     }
   }
 }

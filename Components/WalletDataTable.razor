@@ -190,7 +190,7 @@
     return "info";
   }
 
-  protected override async void OnInitialized()
+  protected override void OnInitialized()
   {
     walletStorage.RefreshRequested += StateHasChanged;
     swapStorage.RefreshRequested += StateHasChanged;
