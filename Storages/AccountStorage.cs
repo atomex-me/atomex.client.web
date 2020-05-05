@@ -291,8 +291,8 @@ namespace atomex_frontend.Storages
       AtomexApp.Terminal.ServiceDisconnected += OnTerminalServiceStateChangedEventHandler;
 
       Console.WriteLine($"Starting Atomex app with {CurrentWalletName} wallet with data {data.Length}");
-      AtomexApp.Start();
       this.CallInitialize(IsRestarting: false);
+      AtomexApp.Start();
     }
 
     private void SaveDataCallback(AccountDataRepository.AvailableDataType type, string key, string value)

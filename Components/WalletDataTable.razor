@@ -13,7 +13,7 @@
   }
   <table>
       @if (Variant == AvailableVariants.Currencies) {
-        <thead>
+        <thead class="js-resize-height">
         <tr>
           <th>Currency</th>
           <th>Balance</th>
@@ -38,7 +38,7 @@
       </tbody>
       }
       @if (Variant == AvailableVariants.Transactions) {
-        <thead>
+        <thead class="js-resize-height">
         <tr>
           <th>Type</th>
           <th>Description</th>
@@ -71,7 +71,7 @@
       }
 
       @if (Variant == AvailableVariants.Swaps) {
-        <thead>
+        <thead class="js-resize-height">
         <tr>
           <th>Description</th>
           <th>State</th>
@@ -190,7 +190,7 @@
     return "info";
   }
 
-  protected override void OnInitialized()
+  protected override async void OnInitialized()
   {
     walletStorage.RefreshRequested += StateHasChanged;
     swapStorage.RefreshRequested += StateHasChanged;
@@ -204,5 +204,13 @@
 
     TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Tezos.Name, 200);
     TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.FA12.Name, 200);
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await JSRuntime.InvokeVoidAsync("dragTable");
+    }
   }
 }

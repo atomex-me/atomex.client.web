@@ -10,6 +10,7 @@ body {
 
 * {
     outline: none !important;
+    overflow: hidden !important;
 }
 
 input::-webkit-outer-spin-button,
@@ -553,12 +554,12 @@ button:hover {
 }
 
 .wallet-page {
-    height: 96vh;
+    height: calc(100vh - 28px);
     display: flex;
 }
 
 .wallet-page__container {
-    flex-basis: 85%;
+    width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -566,6 +567,7 @@ button:hover {
 
 .wallet-page__left-nav {
     flex-basis: 15%;
+    max-width: 200px;
     height: 100%;
 }
 
@@ -574,7 +576,7 @@ button:hover {
 }
 
 .wallet-page__footer {
-    height: 4vh;
+    height: 28px;
     background-color: var(--dark-gradient-color);
     display: flex;
     justify-content: space-between;

@@ -158,7 +158,6 @@ namespace atomex_frontend.Storages
     {
       if (!IsRestarting)
       {
-        Console.WriteLine("SWAP STORAGE: Subscribed to OnTerminalChangedEventHandler");
         App.TerminalChanged += OnTerminalChangedEventHandler;
         App.Terminal.QuotesUpdated += OnQuotesUpdatedEventHandler;
         App.Terminal.SwapUpdated += OnSwapEventHandler;

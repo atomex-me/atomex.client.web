@@ -172,8 +172,6 @@ namespace atomex_frontend.Storages
             .SaveWallet(wallet, StoragePassword1.ToSecureString(), walletName);
 
         await accountStorage.ConnectToWallet(walletName, StoragePassword1.ToSecureString());
-
-        ResetData();
       }
 
       if ((int)CurrentStep < TotalSteps)
@@ -200,8 +198,6 @@ namespace atomex_frontend.Storages
         await accountStorage
             .SaveWallet(wallet, StoragePassword1.ToSecureString(), walletName);
         await accountStorage.ConnectToWallet(walletName, StoragePassword1.ToSecureString());
-
-        ResetData();
       }
 
       if ((int)CurrentStep < TotalSteps)
