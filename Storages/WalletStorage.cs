@@ -16,6 +16,7 @@ using Atomex.Blockchain.Abstract;
 using atomex_frontend.atomex_data_structures;
 using Atomex.MarketData.Abstract;
 using Atomex.Blockchain.Tezos;
+
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.Blockchain.Ethereum;
 using Atomex.EthereumTokens;
@@ -217,7 +218,7 @@ namespace atomex_frontend.Storages
 
     public bool GetEthreumBasedCurrency
     {
-      get => this.SelectedCurrency == AccountStorage.Ethereum || this.SelectedCurrency == AccountStorage.Tether;
+      get => this.SelectedCurrency is Ethereum || this.SelectedCurrency is Tether;
     }
 
     private bool _isUpdating = false;
@@ -541,9 +542,9 @@ namespace atomex_frontend.Storages
 
     protected async void UpdateSendingAmount(decimal amount)
     {
-      bool TetherOrFa12 = SelectedCurrency == AccountStorage.FA12 || SelectedCurrency == AccountStorage.Tether;
+      bool TetherOrFa12 = SelectedCurrency is FA12 || SelectedCurrency is Tether;
 
-      if ((SelectedCurrency == AccountStorage.FA12 || SelectedCurrency == AccountStorage.Tezos) && !SelectedCurrency.IsValidAddress(SendingToAddress))
+      if ((SelectedCurrency is FA12 || SelectedCurrency is Tezos) && !SelectedCurrency.IsValidAddress(SendingToAddress))
       {
         this.ResetSendData();
         return;
@@ -653,7 +654,7 @@ namespace atomex_frontend.Storages
             ? SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice)
             : _sendingFee;
 
-        if ((feeAmount > estimatedFeeAmount.Value) && SelectedCurrency != AccountStorage.Tether && SelectedCurrency != AccountStorage.FA12)
+        if ((feeAmount > estimatedFeeAmount.Value) && !(SelectedCurrency is Tether) && !(SelectedCurrency is FA12))
         {
           var (maxAmount, maxFee, _) = await accountStorage.Account
               .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, true);

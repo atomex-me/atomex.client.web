@@ -1,5 +1,6 @@
 @using Atomex;
-@using Atomex.Blockchain.Tezos
+@using Atomex.TezosTokens;
+@using Atomex.EthereumTokens;
 @inject IJSRuntime JSRuntime;
 
 <div class="tx-info__container" style="top: @(GetTxInfoTop); height: @(GetTxInfoHeight)">
@@ -20,7 +21,7 @@
     </div>
   </div>
 
-  @if (OpenedTx.Currency.Name == AccountStorage.Ethereum.Name || OpenedTx.Currency.Name == AccountStorage.Tether.Name) {
+  @if (OpenedTx.Currency is Ethereum || OpenedTx.Currency is Tether) {
     <div class="tx-info__row">
       <div>From:</div>
       <div>
@@ -70,7 +71,7 @@
     </div>
   }
 
-  @if(OpenedTx is TezosTransaction) {
+  @if(OpenedTx.Currency is FA12 || OpenedTx.Currency is Tezos) {
     <div class="tx-info__row">
       <div>From:</div>
       <div>

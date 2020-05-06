@@ -3,6 +3,7 @@
 @using System.Timers;
 @using atomex_frontend.Common;
 @using Atomex;
+@using Atomex.EthereumTokens;
 
 <div class="modal__container loading-container">
   <div class="dark-background modal-title">
@@ -157,7 +158,7 @@
 
   private bool GetDefaultFeeDisabled
   {
-    get => walletStorage.SelectedCurrency == AccountStorage.Ethereum || walletStorage.SelectedCurrency == AccountStorage.Tether;
+    get => walletStorage.SelectedCurrency is Ethereum || walletStorage.SelectedCurrency is Tether;
   }
 
   private bool GetFormValid

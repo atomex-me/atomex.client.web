@@ -61,7 +61,7 @@ namespace atomex_frontend.Common
   {
     public static decimal GetTransAmount(EthereumTransaction tx)
     {
-      if (tx.Currency.Name == AccountStorage.Tether.Name)
+      if (tx.Currency is Tether)
       {
         var Erc20 = tx.Currency as ERC20;
         var usdtResult = 0m;

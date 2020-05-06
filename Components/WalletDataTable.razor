@@ -132,7 +132,7 @@
     get
     {
       int height = 150;
-      TX_INFO_BLOCK_HEIGHT.TryGetValue(OpenedTx?.Currency.Name, out height);
+      TX_INFO_BLOCK_HEIGHT.TryGetValue(OpenedTx?.Currency.Name.ToUpper(), out height);
       return height;
     }
   }
@@ -196,14 +196,15 @@
     swapStorage.RefreshRequested += StateHasChanged;
 
     // height of Detail tx view block for Currencies;
-    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Bitcoin.Name, 118);
-    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Litecoin.Name, 118);
+    TX_INFO_BLOCK_HEIGHT.Add("BTC", 118);
+    TX_INFO_BLOCK_HEIGHT.Add("LTC", 118);
 
-    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Ethereum.Name, 220);
-    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Tether.Name, 220);
+    TX_INFO_BLOCK_HEIGHT.Add("ETH", 220);
+    TX_INFO_BLOCK_HEIGHT.Add("USDT", 220);
 
-    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.Tezos.Name, 200);
-    TX_INFO_BLOCK_HEIGHT.Add(AccountStorage.FA12.Name, 200);
+    TX_INFO_BLOCK_HEIGHT.Add("XTZ", 200);
+    TX_INFO_BLOCK_HEIGHT.Add("FA12", 200);
+    TX_INFO_BLOCK_HEIGHT.Add("TZBTC", 200);
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
