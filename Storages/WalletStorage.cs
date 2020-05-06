@@ -25,9 +25,6 @@ using atomex_frontend.Common;
 using Microsoft.AspNetCore.Components;
 using System.Timers;
 
-using LiteDB;
-using Atomex.Common.Bson;
-
 namespace atomex_frontend.Storages
 {
 
@@ -275,7 +272,6 @@ namespace atomex_frontend.Storages
 
         }
 
-        CreateBsonMapper();
         await UpdatePortfolioAsync();
         URIHelper.NavigateTo("/wallet");
         accountStorage.WalletLoading = false;
@@ -694,27 +690,6 @@ namespace atomex_frontend.Storages
         }
       }
     }
-
-
-    public BsonMapper _bsonMapper;
-    public void CreateBsonMapper()
-    {
-      ICurrencies currencies = AccountStorage.Currencies;
-
-      Console.WriteLine("Creating bson mapper");
-      _bsonMapper = new BsonMapper()
-                .UseSerializer(new CurrencyToBsonSerializer(currencies))
-                .UseSerializer(new BigIntegerToBsonSerializer())
-                .UseSerializer(new JObjectToBsonSerializer())
-                .UseSerializer(new WalletAddressToBsonSerializer())
-                .UseSerializer(new OrderToBsonSerializer())
-                .UseSerializer(new BitcoinBasedTransactionToBsonSerializer(currencies))
-                .UseSerializer(new BitcoinBasedTxOutputToBsonSerializer())
-                .UseSerializer(new EthereumTransactionToBsonSerializer())
-                .UseSerializer(new TezosTransactionToBsonSerializer())
-                .UseSerializer(new SwapToBsonSerializer(currencies));
-    }
-
 
     public void ResetSendData()
     {
