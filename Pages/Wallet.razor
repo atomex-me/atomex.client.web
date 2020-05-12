@@ -6,6 +6,7 @@
 @inject SwapStorage SwapStorage;
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager UriHelper;
+@using Atomex.Blockchain.Ethereum;
 
 <div>
   <div class="wallet-page dark-background">
@@ -156,6 +157,8 @@
   private void OnConvertHandler()
   {
     WalletStorage.CurrentWalletSection = WalletSection.Conversion;
+
+    Console.WriteLine(WalletStorage.SelectedCurrencyData.FreeExternalAddress);
   }
 
   private void ConvertOpenCloseHandler()

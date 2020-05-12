@@ -8,6 +8,7 @@ using Atomex.Blockchain.Tezos;
 using Atomex.Blockchain.Ethereum;
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.EthereumTokens;
+
 using Atomex.TezosTokens;
 using atomex_frontend.Storages;
 
@@ -66,10 +67,13 @@ namespace atomex_frontend.Common
         var Erc20 = tx.Currency as ERC20;
         var usdtResult = 0m;
 
-        if (tx.Type.HasFlag(BlockchainTransactionType.Input))
+        if (tx.Type.HasFlag(BlockchainTransactionType.Input) ||
+            tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ||
+            tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
+
           usdtResult += Erc20.TokenDigitsToTokens(tx.Amount);
 
-        if (tx.Type.HasFlag(BlockchainTransactionType.Output))
+        else if (tx.Type.HasFlag(BlockchainTransactionType.Output))
           usdtResult += -Erc20.TokenDigitsToTokens(tx.Amount);
 
         tx.InternalTxs?.ForEach(t => usdtResult += GetTransAmount(t));
@@ -89,17 +93,62 @@ namespace atomex_frontend.Common
       return result;
     }
 
-    public static decimal GetTransAmount(TezosTransaction tx)
+    public static decimal GetFee(EthereumTransaction tx)
     {
       var result = 0m;
 
+      if (tx.Type.HasFlag(BlockchainTransactionType.Output))
+        result += Ethereum.WeiToEth(tx.GasUsed * tx.GasPrice);
+
+      tx.InternalTxs?.ForEach(t => result += GetFee(t));
+
+      return result;
+    }
+
+    public static decimal GetTransAmount(TezosTransaction tx)
+    {
+      if (tx.Currency is FA12)
+      {
+        var Erc20 = tx.Currency as ERC20;
+
+        var resultErc20 = 0m;
+
+        if (tx.Type.HasFlag(BlockchainTransactionType.Input) ||
+            tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ||
+            tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
+          resultErc20 += tx.Amount.FromTokenDigits(tx.Currency.DigitsMultiplier);
+        else if (tx.Type.HasFlag(BlockchainTransactionType.Output))
+          resultErc20 += -tx.Amount.FromTokenDigits(tx.Currency.DigitsMultiplier);
+
+        tx.InternalTxs?.ForEach(t => resultErc20 += GetTransAmount(t));
+
+        return resultErc20;
+      }
+
+      var result = 0m;
+
       if (tx.Type.HasFlag(BlockchainTransactionType.Input))
-        result += Tezos.MtzToTz(tx.Amount);
+        result += tx.Amount / tx.Currency.DigitsMultiplier;
+
+      var includeFee = tx.Currency.Name == tx.Currency.FeeCurrencyName;
+      var fee = includeFee ? tx.Fee : 0;
 
       if (tx.Type.HasFlag(BlockchainTransactionType.Output))
-        result += -Tezos.MtzToTz(tx.Amount + tx.Fee);
+        result += -(tx.Amount + fee) / tx.Currency.DigitsMultiplier;
 
       tx.InternalTxs?.ForEach(t => result += GetTransAmount(t));
+
+      return result;
+    }
+
+    public static decimal GetFee(TezosTransaction tx)
+    {
+      var result = 0m;
+
+      if (tx.Type.HasFlag(BlockchainTransactionType.Output))
+        result += Tezos.MtzToTz(tx.Fee);
+
+      tx.InternalTxs?.ForEach(t => result += GetFee(t));
 
       return result;
     }
@@ -109,22 +158,32 @@ namespace atomex_frontend.Common
       return tx.Amount / (decimal)tx.Currency.DigitsMultiplier;
     }
 
-    public static string GetTransDescription(IBlockchainTransaction tx, decimal Amount)
+    public static decimal GetFee(IBitcoinBasedTransaction tx)
     {
+      return tx.Fees != null
+          ? tx.Type.HasFlag(BlockchainTransactionType.Output)
+              ? tx.Fees.Value / (decimal)tx.Currency.DigitsMultiplier
+              : 0
+          : 0;
+    }
+
+    public static string GetTransDescription(IBlockchainTransaction tx, decimal amount, decimal fee)
+    {
+      var netAmount = amount + fee;
       string Description = "Unknown transaction";
       if (tx.Type.HasFlag(BlockchainTransactionType.SwapPayment))
       {
-        Description = $"Swap payment {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
+        Description = $"Swap payment {Math.Abs(netAmount).ToString("0." + new String('#', tx.Currency.Digits))} {tx.Currency.Name}";
         return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
       {
-        Description = $"Swap refund {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
+        Description = $"Swap refund {Math.Abs(netAmount).ToString("0." + new String('#', tx.Currency.Digits))} {tx.Currency.Name}";
         return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem))
       {
-        Description = $"Swap redeem {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
+        Description = $"Swap redeem {Math.Abs(netAmount).ToString("0." + new String('#', tx.Currency.Digits))} {tx.Currency.Name}";
         return Description;
       }
       else if (tx.Type.HasFlag(BlockchainTransactionType.TokenApprove))
@@ -132,14 +191,22 @@ namespace atomex_frontend.Common
         Description = $"Token approve";
         return Description;
       }
-      else if (Amount < 0) //tx.Type.HasFlag(BlockchainTransactionType.Output))
+      else if (tx.Type.HasFlag(BlockchainTransactionType.TokenCall))
       {
-        Description = $"Sent {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
+        Description = $"Token call";
+      }
+      else if (tx.Type.HasFlag(BlockchainTransactionType.SwapCall))
+      {
+        Description = $"Token swap call";
+      }
+      else if (amount < 0) //tx.Type.HasFlag(BlockchainTransactionType.Output))
+      {
+        Description = $"Sent {Math.Abs(netAmount).ToString("0." + new String('#', tx.Currency.Digits))} {tx.Currency.Name}";
         return Description;
       }
-      else if (Amount >= 0) //tx.Type.HasFlag(BlockchainTransactionType.Input)) // has outputs
+      else if (amount > 0) //tx.Type.HasFlag(BlockchainTransactionType.Input)) // has outputs
       {
-        Description = $"Received {Math.Abs(Amount).ToString(CultureInfo.InvariantCulture).Replace(".", ",")} {tx.Currency.Name}";
+        Description = $"Received {Math.Abs(netAmount).ToString("0." + new String('#', tx.Currency.Digits))} {tx.Currency.Name}";
         return Description;
       }
 

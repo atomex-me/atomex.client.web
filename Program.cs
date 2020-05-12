@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Blazored.LocalStorage;
 using atomex_frontend.Storages;
+using Serilog;
+using Serilog.Debugging;
 
 namespace atomex_frontend
 {
@@ -15,6 +17,14 @@ namespace atomex_frontend
     {
       var builder = WebAssemblyHostBuilder.CreateDefault(args);
       builder.RootComponents.Add<App>("app");
+
+      // SelfLog.Enable(m => Console.Error.WriteLine(m));
+
+      // Log.Logger = new LoggerConfiguration()
+      //     .MinimumLevel.Debug()
+      //     .WriteTo.BrowserConsole()
+      //     .CreateLogger();
+
 
       builder.Services.AddBaseAddressHttpClient();
       builder.Services.AddI18nText();

@@ -247,6 +247,7 @@ namespace atomex_frontend.Storages
       }
     }
 
+    public List<WalletAddressView> FromAddressList = new List<WalletAddressView>();
 
     public async void Initialize(bool IsRestarting)
     {
@@ -263,13 +264,14 @@ namespace atomex_frontend.Storages
         Transactions = new List<Transaction>();
         PortfolioData = new Dictionary<Currency, CurrencyData>();
 
+
         foreach (Currency currency in currenciesList)
         {
           CurrencyData initialCurrencyData = new CurrencyData(currency, 0, 0, 0.0m);
           PortfolioData.Add(currency, initialCurrencyData);
           Console.WriteLine("Getting free address on initialize");
           initialCurrencyData.FreeExternalAddress = (await this.accountStorage.Account.GetFreeExternalAddressAsync(initialCurrencyData.Currency.Name)).Address;
-
+          GetFreeAddresses(initialCurrencyData.Currency);
         }
 
         await UpdatePortfolioAsync();
@@ -281,6 +283,7 @@ namespace atomex_frontend.Storages
     private async void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
     {
       Console.WriteLine($"New Transaction on {e.Transaction.Currency.Name}, HANDLING with id  {e.Transaction.Id}");
+
       handleTransaction(e.Transaction);
       await jSRuntime.InvokeVoidAsync("showNotification", "You have new transaction", $"ID: {e.Transaction.Id}");
     }
@@ -348,10 +351,13 @@ namespace atomex_frontend.Storages
         await GetTransactions(currency);
       }
 
+      FromAddressList = new List<WalletAddressView>();
       foreach (CurrencyData currencyData in PortfolioData.Values)
       {
         currencyData.Percent = this.GetTotalDollars != 0 ? Helper.SetPrecision(currencyData.DollarValue / this.GetTotalDollars * 100.0m, 2) : 0;
         currencyData.FreeExternalAddress = (await this.accountStorage.Account.GetFreeExternalAddressAsync(currencyData.Currency.Name)).Address;
+
+        GetFreeAddresses(currencyData.Currency);
       }
 
       this.CallUIRefresh();
@@ -360,6 +366,26 @@ namespace atomex_frontend.Storages
       {
         await DrawDonutChart(updateData: true);
       }
+    }
+
+    private void GetFreeAddresses(Currency Currency)
+    {
+      var activeAddresses = accountStorage.Account
+          .GetUnspentAddressesAsync(Currency.Name)
+          .WaitForResult();
+
+      var freeAddress = accountStorage.Account
+          .GetFreeExternalAddressAsync(Currency.Name)
+          .WaitForResult();
+
+      var receiveAddresses = activeAddresses
+          .Select(wa => new WalletAddressView(wa, Currency.Format))
+          .ToList();
+
+      if (activeAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
+        receiveAddresses.AddEx(new WalletAddressView(freeAddress, Currency.Format, isFreeAddress: true));
+
+      FromAddressList.AddRange(receiveAddresses);
     }
 
     public async Task DrawDonutChart(bool updateData = false)
@@ -419,7 +445,7 @@ namespace atomex_frontend.Storages
         case BitcoinBasedCurrency _:
           IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
           amount = CurrHelper.GetTransAmount(btcBasedTrans);
-          description = CurrHelper.GetTransDescription(tx, amount);
+          description = CurrHelper.GetTransDescription(tx, amount, CurrHelper.GetFee(btcBasedTrans));
           var BtcFee = btcBasedTrans.Fees != null
             ? btcBasedTrans.Fees.Value / (decimal)tx.Currency.DigitsMultiplier
             : 0;
@@ -440,10 +466,10 @@ namespace atomex_frontend.Storages
         case Tether _:
           EthereumTransaction usdtTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(usdtTrans);
-          description = CurrHelper.GetTransDescription(tx, amount);
+          description = CurrHelper.GetTransDescription(tx, amount, 0);
           string FromUsdt = usdtTrans.From;
           string ToUsdt = usdtTrans.To;
-          decimal GasPriceUsdt = (decimal)usdtTrans.GasPrice;
+          decimal GasPriceUsdt = Ethereum.WeiToGwei((decimal)usdtTrans.GasPrice);
           decimal GasLimitUsdt = (decimal)usdtTrans.GasLimit;
           decimal GasUsedUsdt = (decimal)usdtTrans.GasUsed;
           bool IsInternalUsdt = usdtTrans.IsInternal;
@@ -469,12 +495,15 @@ namespace atomex_frontend.Storages
         case Ethereum _:
           EthereumTransaction ethTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(ethTrans);
-          description = CurrHelper.GetTransDescription(ethTrans, amount);
+          description = CurrHelper.GetTransDescription(ethTrans, amount, CurrHelper.GetFee(ethTrans));
           string FromEth = ethTrans.From;
           string ToEth = ethTrans.To;
-          decimal GasPriceEth = (decimal)ethTrans.GasPrice;
+          decimal GasPriceEth = Ethereum.WeiToGwei((decimal)ethTrans.GasPrice);
           decimal GasLimitEth = (decimal)ethTrans.GasLimit;
           decimal GasUsedEth = (decimal)ethTrans.GasUsed;
+
+          decimal FeeEth = Ethereum.WeiToEth(ethTrans.GasUsed * ethTrans.GasPrice);
+
           bool IsInternalEth = ethTrans.IsInternal;
 
           AddTransaction(
@@ -487,6 +516,7 @@ namespace atomex_frontend.Storages
               ethTrans.IsConfirmed,
               amount,
               description,
+              fee: FeeEth,
               from: FromEth,
               to: ToEth,
               gasPrice: GasPriceEth,
@@ -497,14 +527,41 @@ namespace atomex_frontend.Storages
           break;
 
         case FA12 _:
+          TezosTransaction fa12Trans = (TezosTransaction)tx;
+          amount = CurrHelper.GetTransAmount(fa12Trans);
+          description = CurrHelper.GetTransDescription(fa12Trans, amount, 0);
+          string FromFa12 = fa12Trans.From;
+          string ToFa12 = fa12Trans.To;
+          decimal GasLimitFa12 = fa12Trans.GasLimit;
+          decimal FeeFa12 = Tezos.MtzToTz(fa12Trans.Fee);
+          bool IsInternalFa12 = fa12Trans.IsInternal;
+
+          AddTransaction(
+            new Transaction(
+              tx.Currency,
+              fa12Trans.Id,
+              fa12Trans.State,
+              fa12Trans.Type,
+              fa12Trans.CreationTime,
+              fa12Trans.IsConfirmed,
+              amount,
+              description,
+              fa12Trans.Fee,
+              from: FromFa12,
+              to: ToFa12,
+              gasLimit: GasLimitFa12,
+              isInternal: IsInternalFa12
+            ), tx.Currency);
+          break;
+
         case Tezos _:
           TezosTransaction xtzTrans = (TezosTransaction)tx;
           amount = CurrHelper.GetTransAmount(xtzTrans);
-          description = CurrHelper.GetTransDescription(xtzTrans, amount);
+          decimal FeeXtz = CurrHelper.GetFee(xtzTrans);
+          description = CurrHelper.GetTransDescription(xtzTrans, amount, FeeXtz);
           string FromXtz = xtzTrans.From;
           string ToXtz = xtzTrans.To;
           decimal GasLimitXtz = xtzTrans.GasLimit;
-          decimal FeeXtz = xtzTrans.Fee;
           bool IsInternalXtz = xtzTrans.IsInternal;
 
           AddTransaction(

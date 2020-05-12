@@ -34,17 +34,35 @@
 
   protected string[] DropOptions
   {
-    get => new string[1] { $"{walletStorage.SelectedCurrencyData.FreeExternalAddress} {Helper.SetPrecision(walletStorage.SelectedCurrencyData.Balance, 4)}" };
+    // get => new string[1] { $"{walletStorage.SelectedCurrencyData.FreeExternalAddress} {Helper.SetPrecision(walletStorage.SelectedCurrencyData.Balance, 4)}" };
+    get
+    {
+      IEnumerable<WalletAddressView> SelectedCurrencyAddreses = walletStorage.FromAddressList.Where(wa => wa.WalletAddress.Currency == walletStorage.SelectedCurrency.Name);
+      var res = SelectedCurrencyAddreses.Select(wa => $"{wa.Address} {Helper.SetPrecision(wa.AvailableBalance, 4)}").ToArray();
+      return res;
+    }
   }
 
+  private string _currentValue;
   protected string CurrentValue
   {
-    get => walletStorage.SelectedCurrencyData.FreeExternalAddress;
+    get
+    {
+      if (_currentValue == null)
+      {
+        IEnumerable<WalletAddressView> SelectedCurrencyAddreses = walletStorage.FromAddressList.Where(wa => wa.WalletAddress.Currency == walletStorage.SelectedCurrency.Name);
+        return SelectedCurrencyAddreses.LastOrDefault().Address;
+      }
+      else
+      {
+        return _currentValue;
+      }
+    }
     set { }
   }
   protected void OnChange(string value)
   {
-    CurrentValue = value;
+    _currentValue = value;
   }
 
   protected async void OnCopyClick()
