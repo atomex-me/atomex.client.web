@@ -777,6 +777,10 @@ table>thead>tr>th {
     background-image: url('images/fa12_90x90.png');
 }
 
+.tzbtc {
+    background-image: url('images/tzbtc_90x90_dark.png');
+}
+
 .currency-name {
     margin-left: 10px;
 }
