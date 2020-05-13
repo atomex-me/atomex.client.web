@@ -5,7 +5,7 @@
     @if (IsLoading) {
       <Loader />
     }
-    <div class="currency-card @(IsLoading ? "loading" : "")">
+    <div class="currency-card @(IsTezos ? "for-tezos" : "") @(IsLoading ? "loading" : "")">
       <div class="currency-card__selected-currency">
         <i class="icon currency-icon-big @(walletStorage.SelectedCurrency.Description.ToLower())" />
         <span>
@@ -46,6 +46,9 @@
 
   [Parameter]
   public bool IsLoading { get; set; }
+
+  [Parameter]
+  public bool IsTezos { get; set; }
 
 
   protected override void OnInitialized()

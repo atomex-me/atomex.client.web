@@ -34,6 +34,7 @@ namespace atomex_frontend
       builder.Services.AddSingleton<RegisterStorage, RegisterStorage>();
       builder.Services.AddSingleton<WalletStorage, WalletStorage>();
       builder.Services.AddSingleton<SwapStorage, SwapStorage>();
+      // builder.Services.AddSingleton<BakerStorage, BakerStorage>();
 
       await builder
         .Build()

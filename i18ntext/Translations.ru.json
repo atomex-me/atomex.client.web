@@ -70,7 +70,7 @@
   "State": "State",
   "Time": "Time",
   "Delegate": "Delegate",
-  "NoDelegationsFound": "NoDelegationsFound",
+  "NoDelegationsFound": "No delegations found",
   "Address": "Address",
   "EstimatedPrice": "Estimated price",
   "EstimatedPaymentFee": "Estimated payment fee",
@@ -90,5 +90,7 @@
   "MnemonicCouldNotBeEmpty": "Mnemonic phrase could not be empty",
   "IsNotInTheWorldList": "Слово {0} не пренадлежит словарю выбранного языка.",
   "InvalidMnemonicWordCount": "Word count should be 12,15,18,21 or 24.",
-  "InvalidMnemonic": "Invalid mnemonic phrase."
+  "InvalidMnemonic": "Invalid mnemonic phrase.",
+
+  "SvEmptyAddressError": ""
 }

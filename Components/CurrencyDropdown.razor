@@ -1,4 +1,3 @@
-@using Atomex;
 @inject WalletStorage walletStorage;
 @inject AccountStorage accountStorage;
 
@@ -9,7 +8,11 @@
     </span>
   }
   <RoundedContainer OnClick="@OnDropdownClick">
-    <CurrencyModalCard SelectedCurrency="@SelectedCurrency" Amount="@(walletStorage.GetCurrencyData(SelectedCurrency, "balance"))" />
+    <CurrencyModalCard
+      SelectedBaker="@SelectedBaker"
+      SelectedCurrency="@SelectedCurrency"
+      Amount="@(walletStorage.GetCurrencyData(SelectedCurrency, "balance"))" />
+
     @if (IsOpened) {
       <div class="exchange-dropdown">
         @foreach (Currency currency in walletStorage.AvailableCurrencies)
@@ -29,6 +32,9 @@
 @code {
   [Parameter]
   public Currency SelectedCurrency { get; set; }
+
+  [Parameter]
+  public Baker SelectedBaker { get; set; }
 
   [Parameter]
   public bool IsSecondCurrency { get; set; }

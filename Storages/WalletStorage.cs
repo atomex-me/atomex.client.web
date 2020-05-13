@@ -249,6 +249,7 @@ namespace atomex_frontend.Storages
 
     public List<WalletAddressView> FromAddressList = new List<WalletAddressView>();
 
+
     public async void Initialize(bool IsRestarting)
     {
       if (accountStorage.AtomexApp != null)
@@ -325,10 +326,36 @@ namespace atomex_frontend.Storages
 
     }
 
-    // public async Task<WalletAddress> GetFreeAddress()
-    // {
-    //   return await accountStorage.Account.GetFreeExternalAddressAsync(this.SelectedCurrency.Name);
-    // }
+    private async Task LoadBakerList()
+    {
+      List<Baker> bakers = null;
+
+      try
+      {
+        await Task.Run(async () =>
+        {
+          bakers = (await BbApi
+                      .GetBakers(accountStorage.Account.Network)
+                      .ConfigureAwait(false))
+                      .Select(x => new Baker
+                      {
+                        Address = x.Address,
+                        Logo = x.Logo,
+                        Name = x.Name,
+                        Fee = x.Fee,
+                        MinDelegation = x.MinDelegation,
+                        StakingAvailable = x.StakingAvailable
+                      })
+                      .ToList();
+        });
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine(e.Message, "Error while fetching bakers list");
+      }
+
+
+    }
 
     public async Task UpdatePortfolioAsync()
     {

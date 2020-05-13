@@ -1,5 +1,4 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
-@import url('animations/spinner.css');
 @import url('pie-chart/pie.css');
 @import url('checkbox/index.css');
 
@@ -880,6 +879,21 @@ table>thead>tr>th {
     border-radius: 20px;
 }
 
+.currency-card.for-tezos {
+    margin: 0;
+    margin-top: 30px;
+    min-width: 440px;
+}
+
+.tezos-card__container {
+    display: flex;
+    justify-content: center;
+}
+
+.tezos-card__container>*:last-child {
+    margin-left: 15px;
+}
+
 .currency-card__selected-currency {
     display: flex;
     align-items: center;
@@ -1424,4 +1438,33 @@ table>thead>tr>th {
 
 .badge {
     font-family: RobotoLight;
+}
+
+.delegation-card {
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.delegation__title {
+    align-self: center;
+    flex-basis: 100%;
+    transform: translateY(50%);
+    font-family: RobotoRegular;
+    font-size: 16px;
+    color: var(--medium-gray);
+}
+
+.delegation__button-container {
+    width: 38%;
+    align-self: center;
+    z-index: 1;
+}
+
+.delegation__button-container>button {
+    width: 100%;
+}
+
+.baker-logo {
+    display: inline-block;
+    height: 55px;
 }

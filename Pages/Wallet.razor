@@ -41,14 +41,27 @@
           @if (WalletStorage.CurrentWalletSection == WalletSection.Wallets) {
             <div>
                 <CurrenciesRow />
-                <CurrencyCard
-                    OnSendClick="@SendOpenCloseHandler"
-                    OnReceiveClick="@ReceiveOpenCloseHandler"
-                    OnUpdateClick="@OnUpdateHandler"
-                    OnConvertClick="@OnConvertHandler" 
-                    CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
-                    IsLoading="@WalletStorage.IsUpdating"/>
-                    
+                @if (WalletStorage.SelectedCurrency.Name == "XTZ") {
+                  <div class="tezos-card__container">
+                    <CurrencyCard
+                        OnSendClick="@SendOpenCloseHandler"
+                        OnReceiveClick="@ReceiveOpenCloseHandler"
+                        OnUpdateClick="@OnUpdateHandler"
+                        OnConvertClick="@OnConvertHandler" 
+                        CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
+                        IsLoading="@WalletStorage.IsUpdating" 
+                        IsTezos="@true" />
+                    <DelegationCard />
+                  </div>
+                } else {
+                  <CurrencyCard
+                      OnSendClick="@SendOpenCloseHandler"
+                      OnReceiveClick="@ReceiveOpenCloseHandler"
+                      OnUpdateClick="@OnUpdateHandler"
+                      OnConvertClick="@OnConvertHandler" 
+                      CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
+                      IsLoading="@WalletStorage.IsUpdating"/>
+                }                  
                 <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
                     <SendModal OnCancelClick="@SendOpenCloseHandler" />
                 </Modal>

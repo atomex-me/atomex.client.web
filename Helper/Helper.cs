@@ -33,19 +33,18 @@ namespace atomex_frontend.Common
 
     public static decimal StrToDecimal(string str)
     {
-      string res = str.Replace(".", ",");
       decimal number;
-      return decimal.TryParse(res, out number) ? number : 0;
+      return decimal.TryParse(str, NumberStyles.Any, CultureInfo.InvariantCulture, out number) ? number : 0;
     }
 
     public static string DecimalToStr(decimal value)
     {
-      return value.ToString().Replace(",", ".");
+      return value.ToString(CultureInfo.InvariantCulture);
     }
 
     public static string DecimalToStr(decimal value, string format)
     {
-      return value.ToString(format, CultureInfo.InvariantCulture).Replace(",", ".");
+      return value.ToString(format, CultureInfo.InvariantCulture);
     }
 
     public static void RunAsync(Task task)
@@ -55,6 +54,13 @@ namespace atomex_frontend.Common
         Console.WriteLine("Unexpected Error", t.Exception);
 
       }, TaskContinuationOptions.OnlyOnFaulted);
+    }
+
+    public static decimal TruncateByFormat(decimal d, string format)
+    {
+      var s = d.ToString(format, CultureInfo.InvariantCulture);
+
+      return decimal.Parse(s, CultureInfo.InvariantCulture);
     }
   }
 

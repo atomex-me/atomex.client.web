@@ -2,16 +2,28 @@
 @inject WalletStorage walletStorage;
 
 <div class="modal-currency-title__container" @onclick="@OnClick">
-  <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
+  @if (SelectedBaker != null) {
+    <img src="@(SelectedBaker.Logo)" class="baker-logo">
+  } else {
+    <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
+  }
   <div class="modal-currency-title__text-container">
-    <div>@SelectedCurrency.Description.ToUpper()</div>
-    <div>@Amount <span>@SelectedCurrency.Name</span></div>
+    @if (SelectedBaker != null) {
+      <div>@SelectedBaker.Name</div>
+      <div>@SelectedBaker.Fee</div>
+    } else {
+      <div>@SelectedCurrency.Description.ToUpper()</div>
+      <div>@Amount <span>@SelectedCurrency.Name</span></div>
+    }
   </div>
 </div>
 
 @code {
   [Parameter]
   public Currency SelectedCurrency { get; set; }
+
+  [Parameter]
+  public Baker SelectedBaker { get; set; }
 
   [Parameter]
   public decimal Amount { get; set; }

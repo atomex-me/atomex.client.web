@@ -226,6 +226,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Success"</summary>
         public string Success;
 
+        /// <summary>""</summary>
+        public string SvEmptyAddressError;
+
         /// <summary>"NOTE: Do not sign out or close the application until the swap is completed, otherwise it may result in a loss of funds."</summary>
         public string SwapNote;
 

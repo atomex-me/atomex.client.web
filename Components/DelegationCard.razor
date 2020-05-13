@@ -1,0 +1,54 @@
+<div class="currency-card for-tezos delegation-card">
+  <div class="delegation__title">@Translations.NoDelegationsFound</div>
+  <div class="delegation__button-container">
+    <NavigateButton Variant="small" OnClick="@OpenCloseHandler">Delegate</NavigateButton>
+  </div>
+
+  <Modal IsOpen="@ModalOpened" OnClose="@OpenCloseHandler">
+    <div class="modal__container">
+      <div class="dark-background modal-title">
+        @Translations.Delegate
+      </div>
+
+      <div class="exchange-container @(DelegateDropdownOpened ? "opened" : "") noselect">
+
+        @* <RoundedContainer OnClick="@OnDropdownClick">
+          <CurrencyModalCard />
+          @if (IsOpened) {
+            <div class="exchange-dropdown">
+              @foreach (Currency currency in walletStorage.AvailableCurrencies)
+              {
+                if (!IsSecondCurrency || (IsSecondCurrency && GetCurrencyIsConverted(currency))) {
+                  <CurrencyModalCard
+                    SelectedCurrency="@currency"
+                    Amount="@(walletStorage.GetCurrencyData(currency, "balance"))"
+                    OnClick="() => OnCurrencyClick(currency)" />
+                }
+              }
+            </div>
+          }
+        </RoundedContainer> *@
+      </div>
+
+    </div>
+  </Modal>
+</div>
+
+@code {
+
+  private bool ModalOpened { get; set; } = false;
+
+  private bool DelegateDropdownOpened { get; set; } = false;
+
+  private void OpenCloseHandler()
+  {
+    ModalOpened = !ModalOpened;
+  }
+
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+  }
+}
