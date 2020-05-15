@@ -15,7 +15,7 @@
     </div>
     <div class="exchange-amount__available-container" @onclick="@(() => swapStorage.Amount = swapStorage.EstimatedMaxAmount)">
       <RoundedContainer>
-        Available: @(TotalAmount.ToString()) <span class="currency-abbr small">@SelectedCurrency.Name</span>
+        Available: @(Helper.DecimalToStr(TotalAmount)) <span class="currency-abbr small">@SelectedCurrency.Name</span>
       </RoundedContainer>
     </div>
   </div>

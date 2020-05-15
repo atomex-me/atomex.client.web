@@ -326,37 +326,6 @@ namespace atomex_frontend.Storages
 
     }
 
-    private async Task LoadBakerList()
-    {
-      List<Baker> bakers = null;
-
-      try
-      {
-        await Task.Run(async () =>
-        {
-          bakers = (await BbApi
-                      .GetBakers(accountStorage.Account.Network)
-                      .ConfigureAwait(false))
-                      .Select(x => new Baker
-                      {
-                        Address = x.Address,
-                        Logo = x.Logo,
-                        Name = x.Name,
-                        Fee = x.Fee,
-                        MinDelegation = x.MinDelegation,
-                        StakingAvailable = x.StakingAvailable
-                      })
-                      .ToList();
-        });
-      }
-      catch (Exception e)
-      {
-        Console.WriteLine(e.Message, "Error while fetching bakers list");
-      }
-
-
-    }
-
     public async Task UpdatePortfolioAsync()
     {
       List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
@@ -615,7 +584,7 @@ namespace atomex_frontend.Storages
     {
       if (accountStorage.QuotesProvider != null)
       {
-        return Helper.SetPrecision(accountStorage.QuotesProvider.GetQuote(currency.Name, "USD").Bid * amount, 2);
+        return Helper.SetPrecision(accountStorage.QuotesProvider.GetQuote(currency.Name, "USD").Bid * amount, 4);
       }
       return 0;
     }

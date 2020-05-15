@@ -10,7 +10,7 @@
   <div class="modal-currency-title__text-container">
     @if (SelectedBaker != null) {
       <div>@SelectedBaker.Name</div>
-      <div>@SelectedBaker.Fee</div>
+      <div>@(SelectedBaker.Fee)%</div>
     } else {
       <div>@SelectedCurrency.Description.ToUpper()</div>
       <div>@Amount <span>@SelectedCurrency.Name</span></div>

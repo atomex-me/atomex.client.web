@@ -281,7 +281,7 @@ app {
     border-bottom-left-radius: 3.5em;
     padding-left: 50px;
     padding-right: 15px;
-    min-width: 160px;
+    min-width: 170px;
 }
 
 .input-description.dark {
@@ -411,7 +411,7 @@ button:hover {
     border-radius: 50px;
     border: none;
     padding: 0 22px;
-    font-family: RobotoRegular;
+    font-family: RobotoLight;
     font-size: 16px;
     background-color: var(--light-blue-sky);
     color: var(--dark-blue);
@@ -1155,6 +1155,12 @@ table>thead>tr>th {
     width: 400px;
     z-index: 10;
     left: 0;
+    max-height: 315px;
+    overflow-y: scroll;
+}
+
+.exchange-dropdown.baker {
+    width: 100%;
 }
 
 .exchange-dropdown>div {
@@ -1467,4 +1473,35 @@ table>thead>tr>th {
 .baker-logo {
     display: inline-block;
     height: 55px;
+}
+
+.delegate-container {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    align-items: center;
+}
+
+.delegate-container>.rounded-dark-container {
+    width: 100%;
+    position: relative;
+    cursor: pointer;
+}
+
+.delegate-container>.rounded-dark-container::after {
+    position: absolute;
+    right: 20px;
+    top: 29px;
+    content: "";
+    background-image: url(icons/triangle-white.svg);
+    background-position: center;
+    background-size: 15px;
+    width: 15px;
+    height: 15px;
+    transform: rotate(180deg);
+    transition: transform .3s;
+}
+
+.delegate-container.opened>.rounded-dark-container::after {
+    transform: none;
 }

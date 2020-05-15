@@ -1,4 +1,6 @@
 @page "/"
+@inject AccountStorage accountStorage;
+@inject BakerStorage bs;
 
 <div class="atomex__page light-background">
   <div class="first-page__container">
@@ -16,3 +18,11 @@
     </div>
   </div>
 </div>
+
+
+@code {
+  protected override async Task OnInitializedAsync()
+  {
+    // await accountStorage.ConnectToWallet("mainnet test", "StoneGiant25".ToSecureString()); //todo: remove in prod
+  }
+}

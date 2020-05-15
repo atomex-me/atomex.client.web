@@ -31,13 +31,13 @@ namespace atomex_frontend.Storages
       ILocalStorageService localStorage,
       IJSRuntime jSRuntime)
     {
-      Console.WriteLine("ACC CONSTR");
       this.httpClient = httpClient;
       this.localStorage = localStorage;
       this.jSRuntime = jSRuntime;
 
       this.InitializeAtomexConfigs();
     }
+
     public static Currency Bitcoin
     {
       get => Currencies.GetByName("BTC");

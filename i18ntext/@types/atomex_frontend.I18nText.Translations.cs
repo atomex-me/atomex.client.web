@@ -7,6 +7,9 @@ namespace atomex_frontend.I18nText
 
         public string this[string key] => global::Toolbelt.Blazor.I18nText.I18nTextExtensions.GetFieldValue(this, key);
 
+        /// <summary>"You have active swaps. Closing the application or sign out may result in loss of funds as a result of the failore of the refund operation. Are you sure you want to close the application"</summary>
+        public string ActiveSwapsWarning;
+
         /// <summary>"Address"</summary>
         public string Address;
 
@@ -43,8 +46,95 @@ namespace atomex_frontend.I18nText
         /// <summary>"Converting error"</summary>
         public string ConvertingError;
 
+        /// <summary>"Conversion error. Please contant technical support"</summary>
+        public string CvConversionError;
+
+        /// <summary>"Error"</summary>
+        public string CvError;
+
+        /// <summary>"Insufficient funds"</summary>
+        public string CvInsufficientFunds;
+
+        /// <summary>"The amount must be greater than or equal to the minimum allowed amount {0} {1"</summary>
+        public string CvMinimumAllowedQtyWarning;
+
+        /// <summary>"Not enough liquidity to convert a specified amount"</summary>
+        public string CvNoLiquidity;
+
+        /// <summary>"This symbol does not support direct conversion"</summary>
+        public string CvNotSupportedSymbol;
+
+        /// <summary>"Standard"</summary>
+        public string CvOrderTypeStandard;
+
+        /// <summary>"Standard With Fixed Fee"</summary>
+        public string CvOrderTypeStandardWithFixedFee;
+
+        /// <summary>"Atomex services unavailable. Please check your network connection or contact technical support"</summary>
+        public string CvServicesUnavailable;
+
+        /// <summary>"Wallet locked. Please unlock the wallet to continue"</summary>
+        public string CvWalletLocked;
+
+        /// <summary>"Warning"</summary>
+        public string CvWarning;
+
+        /// <summary>"Amount to convert must be greater than zero"</summary>
+        public string CvWrongAmount;
+
+        /// <summary>"Back"</summary>
+        public string CwvBack;
+
+        /// <summary>"Cancel"</summary>
+        public string CwvCancel;
+
+        /// <summary>"Generate and write down the mnemonic before continuing"</summary>
+        public string CwvCreateMnemonicWarning;
+
+        /// <summary>"Wallet name must be not empty"</summary>
+        public string CwvEmptyWalletName;
+
+        /// <summary>"Finish"</summary>
+        public string CwvFinish;
+
+        /// <summary>"Invalid wallet name"</summary>
+        public string CwvInvalidWalletName;
+
+        /// <summary>"Invalid mnemonic phrase"</summary>
+        public string CwvMnemonicInvalidError;
+
+        /// <summary>"Word count should be 12,15,18,21 or 24"</summary>
+        public string CwvMnemonicInvalidWordcountError;
+
+        /// <summary>"Word {0} is not in the wordlist for this language"</summary>
+        public string CwvMnemonicInvalidWordError;
+
+        /// <summary>"Mnemonic phrase can not be empty"</summary>
+        public string CwvMnemonicIsEmptyError;
+
+        /// <summary>"Next"</summary>
+        public string CwvNext;
+
+        /// <summary>"Password has insufficient complexity"</summary>
+        public string CwvPasswordInsufficientComplexity;
+
+        /// <summary>"Passwords do not match"</summary>
+        public string CwvPasswordsDoNotMatch;
+
+        /// <summary>"Scan"</summary>
+        public string CwvScan;
+
+        /// <summary>"Scan All"</summary>
+        public string CwvScanAll;
+
+        /// <summary>"Wallet with the same name already exists"</summary>
+        public string CwvWalletAlreadyExists;
+
         /// <summary>"Delegate"</summary>
         public string Delegate;
+
+        /// <summary>"DelegatingToABakery"</summary>
+        public string DelegatingToABakery;
 
         /// <summary>"Description"</summary>
         public string Description;
@@ -130,7 +220,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"No"</summary>
         public string No;
 
-        /// <summary>"NoDelegationsFound"</summary>
+        /// <summary>"No delegations found"</summary>
         public string NoDelegationsFound;
 
         /// <summary>"No liquidity"</summary>
@@ -150,6 +240,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Previous"</summary>
         public string Previous;
+
+        /// <summary>"No tokens"</summary>
+        public string PwNoTokens;
 
         /// <summary>"Receive"</summary>
         public string Receive;
@@ -226,8 +319,77 @@ namespace atomex_frontend.I18nText
         /// <summary>"Success"</summary>
         public string Success;
 
-        /// <summary>""</summary>
+        /// <summary>"Amount must be greater than zero"</summary>
+        public string SvAmountLessThanZeroError;
+
+        /// <summary>"The transfer amount {0} with estimated commission {1} exceeds the amount of available funds"</summary>
+        public string SvAvailableFundsDetailedError;
+
+        /// <summary>"The transfer amount (including commission) exceeds the amount of available funds"</summary>
+        public string SvAvailableFundsError;
+
+        /// <summary>"Back"</summary>
+        public string SvBack;
+
+        /// <summary>"Cancel"</summary>
+        public string SvCancel;
+
+        /// <summary>"Commission must be a positive value"</summary>
+        public string SvCommissionLessThanZeroError;
+
+        /// <summary>"Address must be not empty"</summary>
         public string SvEmptyAddressError;
+
+        /// <summary>"Error"</summary>
+        public string SvError;
+
+        /// <summary>"Failed"</summary>
+        public string SvFailed;
+
+        /// <summary>"Gas limit"</summary>
+        public string SvGasLimit;
+
+        /// <summary>"Insufficient funds for default fee"</summary>
+        public string SvInsufficientFundsForDefaultFeeError;
+
+        /// <summary>"Address is invalid"</summary>
+        public string SvInvalidAddressError;
+
+        /// <summary>"Mining fee"</summary>
+        public string SvMiningFee;
+
+        /// <summary>"No"</summary>
+        public string SvNo;
+
+        /// <summary>"Ok"</summary>
+        public string SvOk;
+
+        /// <summary>"NOTE: Do not sign out or close the application until the swap is completed, otherwise it may result in a loss of funds."</summary>
+        public string SvOrderMatched;
+
+        /// <summary>"Order rejected"</summary>
+        public string SvOrderRejected;
+
+        /// <summary>"Oops, the price has changed during the order sending. Please try again"</summary>
+        public string SvPriceHasChanged;
+
+        /// <summary>"Send"</summary>
+        public string SvSend;
+
+        /// <summary>"Send Confirmation"</summary>
+        public string SvSendConfirmation;
+
+        /// <summary>"Sending"</summary>
+        public string SvSending;
+
+        /// <summary>"Success"</summary>
+        public string SvSuccess;
+
+        /// <summary>"Atomex is not responding for a long time"</summary>
+        public string SvTimeoutReached;
+
+        /// <summary>"Yes"</summary>
+        public string SvYes;
 
         /// <summary>"NOTE: Do not sign out or close the application until the swap is completed, otherwise it may result in a loss of funds."</summary>
         public string SwapNote;
@@ -264,6 +426,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Wallets"</summary>
         public string Wallets;
+
+        /// <summary>"Warning"</summary>
+        public string Warning;
 
         /// <summary>"with payment fee"</summary>
         public string WithPaymentFee;

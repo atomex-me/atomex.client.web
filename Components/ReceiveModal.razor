@@ -34,7 +34,6 @@
 
   protected string[] DropOptions
   {
-    // get => new string[1] { $"{walletStorage.SelectedCurrencyData.FreeExternalAddress} {Helper.SetPrecision(walletStorage.SelectedCurrencyData.Balance, 4)}" };
     get
     {
       IEnumerable<WalletAddressView> SelectedCurrencyAddreses = walletStorage.FromAddressList.Where(wa => wa.WalletAddress.Currency == walletStorage.SelectedCurrency.Name);

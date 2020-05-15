@@ -197,8 +197,6 @@
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
   {
-    // await AccountStorage.ConnectToWallet("[test] test wallet", "StoneGiant25".ToSecureString()); //todo: remove in prod
-
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
 
     WalletStorage.RefreshRequested += StateHasChanged;
