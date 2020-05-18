@@ -133,8 +133,14 @@ namespace atomex_frontend.I18nText
         /// <summary>"Delegate"</summary>
         public string Delegate;
 
+        /// <summary>"Delegating"</summary>
+        public string Delegating;
+
         /// <summary>"DelegatingToABakery"</summary>
         public string DelegatingToABakery;
+
+        /// <summary>"Delegation confirmation"</summary>
+        public string DelegationConfirmation;
 
         /// <summary>"Description"</summary>
         public string Description;
@@ -144,6 +150,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Do you really want to convert"</summary>
         public string DoYouReallyWantToConvert;
+
+        /// <summary>"Do you really want to delegate"</summary>
+        public string DoYouReallyWantToDelegate;
 
         /// <summary>"Wallet name could not be emty"</summary>
         public string EmptyWalletName;
@@ -318,6 +327,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Success"</summary>
         public string Success;
+
+        /// <summary>"Successfull delegation"</summary>
+        public string SuccessfullDelegation;
 
         /// <summary>"Amount must be greater than zero"</summary>
         public string SvAmountLessThanZeroError;

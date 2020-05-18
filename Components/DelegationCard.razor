@@ -1,108 +1,165 @@
 @inject BakerStorage bakerStorage;
 @inject WalletStorage walletStorage;
+@using atomex_frontend.Common;
 
-<div class="currency-card for-tezos delegation-card">
-  <div class="delegation__title">@Translations.NoDelegationsFound</div>
+<div class="currency-card for-tezos delegation-card @(walletStorage.IsUpdating ? "disabled" : "")">
+  @if(bakerStorage.Delegations.Count == 0) {
+    <div class="delegation__title">@Translations.NoDelegationsFound</div>
+  } else {
+    <div class="delegations-list__container">
+      @foreach (var delegation in bakerStorage.Delegations)
+      {
+        <div class="delegation-row">
+          <div>
+            <img src="@(!String.IsNullOrEmpty(delegation.Baker.Logo) ? delegation.Baker.Logo : "/css/images/atomex_logo.png")">
+            <a target="_blank" href="@($"{bakerStorage._tezos.TxExplorerUri}{delegation.Address}")">@delegation.Address</a>
+          </div>
+          <span class="btc-brush">@(Helper.SetPrecision(delegation.Balance, 2))</span>
+        </div>
+      }
+    </div>
+  }
+
   <div class="delegation__button-container">
     <NavigateButton Variant="small" OnClick="@OpenCloseHandler">Delegate</NavigateButton>
   </div>
 
   <Modal IsOpen="@ModalOpened" OnClose="@OpenCloseHandler">
 
-    <div class="modal__container loading-container">
-      <div class="dark-background modal-title">
-        @Translations.Delegate
-      </div>
-      @if(!String.IsNullOrEmpty(bakerStorage.Warning)) {
-        <div class="modal-subtitle">
-          @bakerStorage.Warning
-        </div>
-      } else if (bakerStorage.FromBakersList == null) {
-          <Loader />
-          <div></div>
-      } else if(bakerStorage.FromBakersList.Count == 0) {
-          <div class="modal-subtitle">
-            No bakers found.
-          </div>
-      } else {
-      <div class="modal-subtitle">
-        @(Translations.DelegatingToABakery).
-      </div>
-        <div class="delegate-container @(DropdownOpened ? "opened" : "") noselect">
-          <RoundedContainer>
-            <CurrencyModalCard SelectedBaker="@(bakerStorage.Baker)" OnClick="@(() => DropdownOpened = !DropdownOpened)" />
-            @if (DropdownOpened) {
-              <div class="exchange-dropdown baker">
-                @foreach (Baker bk in bakerStorage.FromBakersList)
-                {
-                  <CurrencyModalCard
-                    SelectedBaker="@bk"
-                    Amount="@(123m)"
-                    OnClick="() => OnBakerClick(bk)" />
-                }
-              </div>
-            }
-          </RoundedContainer>
-        </div>
-
-      <Input
-        Description="@Translations.ToAddress"
-        InputType="text"
-        InputName="delegateToAddress"
-        Value="@(bakerStorage.Address)"
-        Disabled="@(true)"
-        Theme="light" />
-
-      <Dropdown
-        OnChange="@OnAddressChange"
-        Options="@DropAddresses"
-        Description=@($"{Translations.From} {Translations.Address}")
-        CurrentValue="@(bakerStorage.WalletAddress.Address)" />
-
-        <Input 
-          Description="@Translations.MinersFee" 
-          InputType="number" 
-          InputName="delegationFee" 
-          Value="@Helper.DecimalToStr(bakerStorage.Fee)" 
-          OnChange="@BakerFeeChange"
-          Theme="light"
-          AdditionalRightInfo="@String.Concat("$", walletStorage.GetDollarValue(AccountStorage.Tezos, bakerStorage.Fee), " USD")"
-          Disabled="@(bakerStorage.UseDefaultFee)" />
-
-        <Checkbox
-          Checked="@bakerStorage.UseDefaultFee"
-          Description="@Translations.UseDefaultFee"
-          OnChange="@((value) => bakerStorage.UseDefaultFee = value)" />
-
-        <div class="modal-buttons-container">
-          <div>
-            @if (State == States.FillData || State == States.Confirmation) {
-              <NavigateButton Variant="left" OnClick="handleCancel">
-                @if (State == States.FillData) {
-                  @Translations.Cancel
-                }
-                @if (State == States.Confirmation) {
-                  @Translations.No
-                }
-              </NavigateButton>
-              <NavigateButton Variant="right" OnClick="handleNextClick" Disabled="@(!GetFormValid)">
-                @if (State == States.FillData) {
-                  @Translations.Delegate
-                }
-                @if (State == States.Confirmation) {
-                  @Translations.Yes
-                }
-              </NavigateButton>
-            }
-            @if (State == States.Success) {
-              <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
-            }
-            @if (State == States.Error) {
-              <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
-            }
-          </div>
-        </div>
+    <div class="loading-container">
+      @if (DelegationChecking) {
+        <Loader />
       }
+      <div class="modal__container @(DelegationChecking ? "disabled" : "")">
+        <div class="dark-background modal-title">
+          @if(State == States.FillData) {
+            @Translations.Delegate
+          } else if(State == States.Confirmation) {
+            @Translations.DelegationConfirmation
+          } else if (State == States.SendingReguest) {
+            @(Translations.Delegating + "...")
+          } else if (State == States.Success) {
+            @Translations.Success
+          } else if (State == States.Error) {
+            @Translations.Error
+          }
+        </div>
+
+        @if(!String.IsNullOrEmpty(bakerStorage.Warning)) {
+          <div class="modal-subtitle">
+            @bakerStorage.Warning
+          </div>
+        } else if (GetIsLoading) {
+            <Loader />
+            <div></div>
+        } else if(bakerStorage.FromBakersList.Count == 0) {
+            <div class="modal-subtitle">
+              No bakers found.
+            </div>
+        } else {
+        <div class="modal-subtitle">
+          @if(State == States.FillData) {
+            @(Translations.DelegatingToABakery + ".")
+          }
+          else if(State == States.Confirmation) {
+            @(Translations.DoYouReallyWantToDelegate + ":")
+          } else if (State == States.Success) {
+            @(Translations.SuccessfullDelegation + "!")
+          }
+        </div>
+        if (State == States.FillData) {
+          <div class="delegate-container @(DropdownOpened ? "opened" : "") noselect">
+            <RoundedContainer>
+              <CurrencyModalCard SelectedBaker="@(bakerStorage.Baker)" OnClick="@(() => DropdownOpened = !DropdownOpened)" />
+              @if (DropdownOpened) {
+                <div class="exchange-dropdown baker">
+                  @foreach (Baker baker in bakerStorage.FromBakersList)
+                  {
+                    <CurrencyModalCard
+                      SelectedBaker="@baker"
+                      OnClick="() => OnBakerClick(baker)" />
+                  }
+                </div>
+              }
+            </RoundedContainer>
+          </div>
+
+          <Input
+            Description="@Translations.ToAddress"
+            InputType="text"
+            InputName="delegateToAddress"
+            Value="@(bakerStorage.Address)"
+            Disabled="@(true)"
+            Theme="light" />
+
+          <Dropdown
+            OnChange="@OnAddressChange"
+            Options="@DropAddresses"
+            Description=@($"{Translations.From} {Translations.Address}")
+            CurrentValue="@(bakerStorage.WalletAddress.Address)" />
+
+          <Input 
+            Description="@Translations.MinersFee" 
+            InputType="number" 
+            InputName="delegationFee" 
+            Value="@Helper.DecimalToStr(bakerStorage.Fee)" 
+            OnChange="@BakerFeeChange"
+            Theme="light"
+            AdditionalRightInfo="@String.Concat("$", walletStorage.GetDollarValue(bakerStorage._tezos, bakerStorage.Fee), " USD")"
+            Disabled="@(bakerStorage.UseDefaultFee)" />
+
+          <Checkbox
+            Checked="@bakerStorage.UseDefaultFee"
+            Description="@Translations.UseDefaultFee"
+            OnChange="@((value) => bakerStorage.UseDefaultFee = value)" />
+          } else if (State == States.Confirmation) {
+            <div class="send-confirmation__container">
+              <div>
+                <span class="send-confirmation__label">@Translations.To.ToLower() @Translations.Delegate.ToLower():</span>
+                <span class="send-confirmation__coin">@Helper.DecimalToStr(bakerStorage.WalletAddress.AvailableBalance()) <span class="currency-code">@bakerStorage._tezos.Name</span></span>
+                <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(bakerStorage._tezos, bakerStorage.WalletAddress.AvailableBalance()) <span class="currency-code">USD</span>)</span>
+              </div>
+              <div>
+                <span class="send-confirmation__label">to address:</span>
+                <span class="send-confirmation__address">@bakerStorage.Address</span>
+              </div>
+              <div>
+                <span class="send-confirmation__label">with comission:</span>
+                <span class="send-confirmation__coin">@Helper.DecimalToStr(bakerStorage.Fee) <span class="currency-code">@bakerStorage._tezos.Name</span></span>
+                <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(bakerStorage._tezos, bakerStorage.Fee) <span class="currency-code">USD</span>)</span>
+              </div>
+            </div>
+          }
+        }
+          <div class="modal-buttons-container">
+            <div>
+              @if ((State == States.FillData || State == States.Confirmation) && String.IsNullOrEmpty(bakerStorage.Warning) && !GetIsLoading) {
+                <NavigateButton Variant="left" OnClick="handleCancel">
+                  @if (State == States.FillData) {
+                    @Translations.Cancel
+                  }
+                  @if (State == States.Confirmation) {
+                    @Translations.No
+                  }
+                </NavigateButton>
+                <NavigateButton Variant="right" OnClick="handleNextClick" Disabled="@(!GetFormValid)">
+                  @if (State == States.FillData) {
+                    @Translations.Delegate
+                  }
+                  @if (State == States.Confirmation) {
+                    @Translations.Yes
+                  }
+                </NavigateButton>
+              }
+              @if (State == States.Success) {
+                <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
+              }
+              @if (State == States.Error || !String.IsNullOrEmpty(bakerStorage.Warning)) {
+                <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
+              }
+            </div>
+          </div>
+        </div>
     </div>
   </Modal>
 </div>
@@ -117,9 +174,15 @@
 
   private bool GetFormValid { get => true; }
 
+  private bool GetIsLoading { get => bakerStorage.FromBakersList == null || State == States.SendingReguest; }
+
+  private bool DelegationChecking { get; set; } = false;
+
   protected string[] DropAddresses
   {
-    get => bakerStorage.FromAddressList.Select(wa => $"{wa.Address} {Helper.SetPrecision(wa.Balance, 4)}").ToArray();
+    get => bakerStorage.FromAddressList
+    .Where(wa => wa.Balance > 0)
+    .Select(wa => $"{wa.Address} {Helper.SetPrecision(wa.Balance, 4)}").ToArray();
   }
 
   private async void OnAddressChange(string address)
@@ -134,6 +197,7 @@
     if (ModalOpened)
     {
       bakerStorage.Initialize();
+      State = States.FillData;
     }
   }
 
@@ -146,19 +210,51 @@
 
   private void handleCancel()
   {
-    ModalOpened = false;
+    if (State == States.Error || !String.IsNullOrEmpty(bakerStorage.Warning))
+    {
+      ModalOpened = false;
+    }
+    else if (State == States.FillData)
+    {
+      ModalOpened = false;
+    }
+    else if (State == States.Confirmation)
+    {
+      State = States.FillData;
+    }
+
+    else if (State == States.Success)
+    {
+      ModalOpened = false;
+    }
   }
 
-  private void handleNextClick()
+  private async void handleNextClick()
   {
     if (State == States.FillData)
     {
-      State = States.Confirmation;
+      DelegationChecking = true;
+      await bakerStorage.NextCommand();
+      if (String.IsNullOrEmpty(bakerStorage.Warning))
+      {
+        State = States.Confirmation;
+      }
+      DelegationChecking = false;
     }
-    if (State == States.Confirmation)
+    else if (State == States.Confirmation)
     {
       State = States.SendingReguest;
+      await bakerStorage.Send();
+      if (String.IsNullOrEmpty(bakerStorage.Warning))
+      {
+        State = States.Success;
+      }
+      else
+      {
+        State = States.Error;
+      }
     }
+    StateHasChanged();
   }
 
   private void BakerFeeChange(string fee)
@@ -182,5 +278,6 @@
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
 
     bakerStorage.RefreshUI += StateHasChanged;
+    walletStorage.RefreshRequested += StateHasChanged;
   }
 }

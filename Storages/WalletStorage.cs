@@ -30,9 +30,14 @@ namespace atomex_frontend.Storages
 
   public class WalletStorage
   {
-    public WalletStorage(AccountStorage accountStorage, IJSRuntime JSRuntime, NavigationManager uriHelper)
+    public WalletStorage(
+      AccountStorage accountStorage,
+      BakerStorage bakerStorage,
+      IJSRuntime JSRuntime,
+      NavigationManager uriHelper)
     {
       this.accountStorage = accountStorage;
+      this.bakerStorage = bakerStorage;
       this.jSRuntime = JSRuntime;
       this.URIHelper = uriHelper;
 
@@ -62,6 +67,7 @@ namespace atomex_frontend.Storages
     }
 
     private AccountStorage accountStorage;
+    private BakerStorage bakerStorage;
     public List<Currency> AvailableCurrencies
     {
       get
@@ -244,6 +250,11 @@ namespace atomex_frontend.Storages
           this.CallMarketRefresh(force: _forceMarketUpdate);
           _forceMarketUpdate = false;
         }
+
+        if (_currentWalletSection == WalletSection.Wallets)
+        {
+          bakerStorage.LoadDelegationInfoAsync().FireAndForget();
+        }
       }
     }
 
@@ -258,7 +269,14 @@ namespace atomex_frontend.Storages
         {
           accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatePortfolioAsync();
         }
-        accountStorage.AtomexApp.Account.BalanceUpdated += async (object sender, CurrencyEventArgs args) => await UpdatePortfolioAsync();
+        accountStorage.AtomexApp.Account.BalanceUpdated += async (object sender, CurrencyEventArgs args) =>
+        {
+          if (args.Currency == "XTZ")
+          {
+            bakerStorage.LoadDelegationInfoAsync().FireAndForget();
+          }
+          await UpdatePortfolioAsync();
+        };
         accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
 
         List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
@@ -677,6 +695,7 @@ namespace atomex_frontend.Storages
           SendingFee = _sendingFee;
 
       }
+
       this.CallUIRefresh();
     }
 

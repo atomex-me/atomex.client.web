@@ -1,5 +1,4 @@
 using System;
-using Atomex;
 using Atomex.Blockchain;
 using Atomex.Blockchain.Abstract;
 using Atomex.Core;
@@ -25,6 +24,11 @@ namespace atomex_frontend.atomex_data_structures
       decimal gasUsed = 0,
       bool isInternal = false)
     {
+
+      if (creationTime != null && creationTime.Value.Year == 1970)
+      {
+        creationTime = DateTime.Now;
+      }
       Currency = currency;
       Id = id;
       State = state;

@@ -2,20 +2,28 @@
 @inject WalletStorage walletStorage;
 
 <div class="modal-currency-title__container" @onclick="@OnClick">
-  @if (SelectedBaker != null) {
-    <img src="@(SelectedBaker.Logo)" class="baker-logo">
-  } else {
-    <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
-  }
-  <div class="modal-currency-title__text-container">
+  <div>
     @if (SelectedBaker != null) {
-      <div>@SelectedBaker.Name</div>
-      <div>@(SelectedBaker.Fee)%</div>
+      <img src="@(SelectedBaker.Logo)" class="baker-logo">
     } else {
-      <div>@SelectedCurrency.Description.ToUpper()</div>
-      <div>@Amount <span>@SelectedCurrency.Name</span></div>
+      <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
     }
+    <div class="modal-currency-title__text-container">
+      @if (SelectedBaker != null) {
+        <div>@SelectedBaker.Name</div>
+        <div>@(SelectedBaker.Fee)%</div>
+      } else {
+        <div>@SelectedCurrency.Description.ToUpper()</div>
+        <div>@Amount <span>@SelectedCurrency.Name</span></div>
+      }
+    </div>
   </div>
+  @if (SelectedBaker != null) {
+    <div>
+      <span>@Translations.Available</span>
+      <span>@Helper.DecimalToStr(SelectedBaker.StakingAvailable)</span>
+    </div>
+  }
 </div>
 
 @code {
@@ -32,8 +40,10 @@
   public EventCallback OnClick { get; set; }
 
 
-  protected override void OnInitialized()
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
   {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     walletStorage.RefreshRequested += StateHasChanged;
   }
 }
