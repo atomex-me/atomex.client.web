@@ -966,6 +966,7 @@ table>thead>tr>th {
     font-size: 18px;
     font-family: RobotoLight;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     text-align: center;
 }
@@ -1541,4 +1542,15 @@ table>thead>tr>th {
 .delegation-row>div>img {
     height: 25px;
     margin-right: 4px;
+}
+
+.overdelegated-note {
+    text-align: center;
+    margin-top: 15px;
+    font-family: RobotoLight;
+    color: var(--error-color);
+}
+
+.baker-name {
+    text-transform: initial !important;
 }

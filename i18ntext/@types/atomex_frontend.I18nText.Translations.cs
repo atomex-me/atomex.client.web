@@ -13,11 +13,23 @@ namespace atomex_frontend.I18nText
         /// <summary>"Address"</summary>
         public string Address;
 
+        /// <summary>"Already delegated"</summary>
+        public string AlreadyDelagated;
+
         /// <summary>"Amount"</summary>
         public string Amount;
 
+        /// <summary>"Autofill delegation error. Try again later"</summary>
+        public string AutofillDelegationError;
+
+        /// <summary>"Autofill transaction failed"</summary>
+        public string AutofillTxFailed;
+
         /// <summary>"Available"</summary>
         public string Available;
+
+        /// <summary>"Baker is deactivated. Pick another one"</summary>
+        public string BakerDeactivated;
 
         /// <summary>"Balance update in progress..."</summary>
         public string BalanceUpdateInProgress;
@@ -27,6 +39,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Can not convert"</summary>
         public string CantConvert;
+
+        /// <summary>"Can&apos;t get tezos currency"</summary>
+        public string CantGetTezos;
 
         /// <summary>"Confirm password:"</summary>
         public string ConfirmPasswordPlaceholder;
@@ -136,11 +151,14 @@ namespace atomex_frontend.I18nText
         /// <summary>"Delegating"</summary>
         public string Delegating;
 
-        /// <summary>"DelegatingToABakery"</summary>
+        /// <summary>"Delegating to a bakery"</summary>
         public string DelegatingToABakery;
 
         /// <summary>"Delegation confirmation"</summary>
         public string DelegationConfirmation;
+
+        /// <summary>"An error has occurred while delegation"</summary>
+        public string DelegationError;
 
         /// <summary>"Description"</summary>
         public string Description;
@@ -187,6 +205,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"From"</summary>
         public string From;
 
+        /// <summary>"Full"</summary>
+        public string Full;
+
         /// <summary>"Gas limit"</summary>
         public string GasLimit;
 
@@ -232,8 +253,14 @@ namespace atomex_frontend.I18nText
         /// <summary>"No delegations found"</summary>
         public string NoDelegationsFound;
 
+        /// <summary>"You don&apos;t have non-empty accounts"</summary>
+        public string NoEmptyAccounts;
+
         /// <summary>"No liquidity"</summary>
         public string NoLiquidity;
+
+        /// <summary>"Note: this baker is overdelegated, it will be better to choose another"</summary>
+        public string OverdelegatedNote;
 
         /// <summary>"Passwords could not be empty"</summary>
         public string PasswordEmpty;
@@ -424,6 +451,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Total fee"</summary>
         public string TotalFee;
 
+        /// <summary>"Transaction signing error"</summary>
+        public string TxSigningError;
+
         /// <summary>"Type"</summary>
         public string Type;
 
@@ -453,6 +483,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Word count"</summary>
         public string WordCount;
+
+        /// <summary>"Wrong delegation address"</summary>
+        public string WrongDelegationAddress;
 
         /// <summary>"Yes"</summary>
         public string Yes;

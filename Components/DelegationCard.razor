@@ -1,6 +1,7 @@
 @inject BakerStorage bakerStorage;
 @inject WalletStorage walletStorage;
 @using atomex_frontend.Common;
+@using System.Timers;
 
 <div class="currency-card for-tezos delegation-card @(walletStorage.IsUpdating ? "disabled" : "")">
   @if(bakerStorage.Delegations.Count == 0) {
@@ -11,7 +12,7 @@
       {
         <div class="delegation-row">
           <div>
-            <img src="@(!String.IsNullOrEmpty(delegation.Baker.Logo) ? delegation.Baker.Logo : "/css/images/atomex_logo.png")">
+            <img src="@(!String.IsNullOrEmpty(delegation.Baker.Logo) ? delegation.Baker.Logo : "/css/images/atomex_logo_small.png")">
             <a target="_blank" href="@($"{bakerStorage._tezos.TxExplorerUri}{delegation.Address}")">@delegation.Address</a>
           </div>
           <span class="btc-brush">@(Helper.SetPrecision(delegation.Balance, 2))</span>
@@ -27,10 +28,10 @@
   <Modal IsOpen="@ModalOpened" OnClose="@OpenCloseHandler">
 
     <div class="loading-container">
-      @if (DelegationChecking) {
+      @if (DelegationChecking || bakerStorage.FeeChecking) {
         <Loader />
       }
-      <div class="modal__container @(DelegationChecking ? "disabled" : "")">
+      <div class="modal__container @(DelegationChecking || bakerStorage.FeeChecking ? "disabled" : "")">
         <div class="dark-background modal-title">
           @if(State == States.FillData) {
             @Translations.Delegate
@@ -65,21 +66,17 @@
             @(Translations.DoYouReallyWantToDelegate + ":")
           } else if (State == States.Success) {
             @(Translations.SuccessfullDelegation + "!")
+            <div>
+              <a target="_blank" href="@(bakerStorage._tezos.TxExplorerUri + DelegationTxId)">@DelegationTxId</a>
+            </div>
           }
         </div>
         if (State == States.FillData) {
           <div class="delegate-container @(DropdownOpened ? "opened" : "") noselect">
             <RoundedContainer>
-              <CurrencyModalCard SelectedBaker="@(bakerStorage.Baker)" OnClick="@(() => DropdownOpened = !DropdownOpened)" />
+              <CurrencyModalCard SelectedBaker="@(bakerStorage.Baker)" OnClick="@(handleDropdown)" />
               @if (DropdownOpened) {
-                <div class="exchange-dropdown baker">
-                  @foreach (Baker baker in bakerStorage.FromBakersList)
-                  {
-                    <CurrencyModalCard
-                      SelectedBaker="@baker"
-                      OnClick="() => OnBakerClick(baker)" />
-                  }
-                </div>
+                <BakerDropdown OnBakerClick="@OnBakerClick" />
               }
             </RoundedContainer>
           </div>
@@ -89,7 +86,8 @@
             InputType="text"
             InputName="delegateToAddress"
             Value="@(bakerStorage.Address)"
-            Disabled="@(true)"
+            OnChange="@ToAddressChange"
+            Disabled="@(bakerStorage.Baker.Name != bakerStorage.CUSTOM_BAKER_NAME)"
             Theme="light" />
 
           <Dropdown
@@ -129,6 +127,11 @@
                 <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(bakerStorage._tezos, bakerStorage.Fee) <span class="currency-code">USD</span>)</span>
               </div>
             </div>
+            @if (bakerStorage.Baker.StakingAvailable < 0) {
+              <div class="overdelegated-note">
+                @(Translations.OverdelegatedNote).
+              </div>
+            }
           }
         }
           <div class="modal-buttons-container">
@@ -165,7 +168,8 @@
 </div>
 
 @code {
-
+  private System.Timers.Timer debounceToAddress;
+  private System.Timers.Timer debounceFee;
   private bool ModalOpened { get; set; } = false;
 
   private bool DropdownOpened { get; set; } = false;
@@ -178,6 +182,8 @@
 
   private bool DelegationChecking { get; set; } = false;
 
+  private string DelegationTxId { get; set; } = String.Empty;
+
   protected string[] DropAddresses
   {
     get => bakerStorage.FromAddressList
@@ -185,10 +191,25 @@
     .Select(wa => $"{wa.Address} {Helper.SetPrecision(wa.Balance, 4)}").ToArray();
   }
 
-  private async void OnAddressChange(string address)
+  private string ToAddress { get; set; }
+  private void ToAddressChange(string address)
+  {
+    debounceToAddress.Stop();
+    debounceToAddress.Start();
+    ToAddress = address;
+  }
+
+  private void OnUserFinishToAddress(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+     {
+       bakerStorage.Address = ToAddress;
+     });
+  }
+
+  private void OnAddressChange(string address)
   {
     bakerStorage.WalletAddress = bakerStorage.FromAddressList.Find(a => a.Address == address);
-    await bakerStorage.NextCommand();
   }
 
   private void OpenCloseHandler()
@@ -201,18 +222,18 @@
     }
   }
 
-  private async void OnBakerClick(Baker baker)
+  private void OnBakerClick(Baker baker)
   {
     bakerStorage.Baker = baker;
     DropdownOpened = false;
-    await bakerStorage.NextCommand();
   }
 
   private void handleCancel()
   {
     if (State == States.Error || !String.IsNullOrEmpty(bakerStorage.Warning))
     {
-      ModalOpened = false;
+      bakerStorage.Initialize();
+      State = States.FillData;
     }
     else if (State == States.FillData)
     {
@@ -244,9 +265,10 @@
     else if (State == States.Confirmation)
     {
       State = States.SendingReguest;
-      await bakerStorage.Send();
+      var res = await bakerStorage.Send();
       if (String.IsNullOrEmpty(bakerStorage.Warning))
       {
+        DelegationTxId = res.Value;
         State = States.Success;
       }
       else
@@ -257,9 +279,26 @@
     StateHasChanged();
   }
 
+  private void handleDropdown()
+  {
+    DropdownOpened = !DropdownOpened;
+  }
+
+  private string Fee { get; set; }
   private void BakerFeeChange(string fee)
   {
-    bakerStorage.Fee = Helper.StrToDecimal(fee);
+    // bakerStorage.Fee = Helper.StrToDecimal(fee);
+    debounceFee.Stop();
+    debounceFee.Start();
+    Fee = fee;
+  }
+
+  private void OnUserFinishFee(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+     {
+       bakerStorage.Fee = Helper.StrToDecimal(Fee);
+     });
   }
 
 
@@ -276,6 +315,14 @@
   protected override async Task OnInitializedAsync()
   {
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+
+    debounceToAddress = new System.Timers.Timer(1000);
+    debounceToAddress.Elapsed += OnUserFinishToAddress;
+    debounceToAddress.AutoReset = false;
+
+    debounceFee = new System.Timers.Timer(800);
+    debounceFee.Elapsed += OnUserFinishFee;
+    debounceFee.AutoReset = false;
 
     bakerStorage.RefreshUI += StateHasChanged;
     walletStorage.RefreshRequested += StateHasChanged;

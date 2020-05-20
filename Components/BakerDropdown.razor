@@ -1,0 +1,29 @@
+@inject BakerStorage bakerStorage;
+@inject IJSRuntime JSRuntime;
+
+<div class="exchange-dropdown baker">
+  @foreach (Baker baker in bakerStorage.FromBakersList)
+  {
+    <CurrencyModalCard
+      SelectedBaker="@baker"
+      OnClick="() => OnBakerClick.InvokeAsync(baker)" />
+  }
+</div>
+
+@code {
+  [Parameter]
+  public EventCallback<Baker> OnBakerClick { get; set; }
+
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      var bakerIndex = bakerStorage.FromBakersList.FindIndex(bk => bk.Address == bakerStorage.Address);
+      if (bakerIndex != -1)
+      {
+        await JSRuntime.InvokeVoidAsync("selectBaker", bakerIndex);
+      }
+    }
+  }
+}

@@ -4,24 +4,28 @@
 <div class="modal-currency-title__container" @onclick="@OnClick">
   <div>
     @if (SelectedBaker != null) {
-      <img src="@(SelectedBaker.Logo)" class="baker-logo">
+      <img src="@(!String.IsNullOrEmpty(SelectedBaker.Logo) ? SelectedBaker.Logo : "/css/images/atomex_logo_small.png")" class="baker-logo">
     } else {
       <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
     }
     <div class="modal-currency-title__text-container">
       @if (SelectedBaker != null) {
-        <div>@SelectedBaker.Name</div>
-        <div>@(SelectedBaker.Fee)%</div>
+        <div class="baker-name">@SelectedBaker.Name</div>
+        @if(SelectedBaker.Name.ToLower() != "custom baker") {
+          <div>@(Helper.SetPrecision((SelectedBaker.EstimatedRoi * 100), 3).ToString("G29"))%</div>
+        }
       } else {
         <div>@SelectedCurrency.Description.ToUpper()</div>
         <div>@Amount <span>@SelectedCurrency.Name</span></div>
       }
     </div>
   </div>
-  @if (SelectedBaker != null) {
+  @if (SelectedBaker != null && SelectedBaker.Name.ToLower() != "custom baker") {
     <div>
-      <span>@Translations.Available</span>
-      <span>@Helper.DecimalToStr(SelectedBaker.StakingAvailable)</span>
+      @if (SelectedBaker.StakingAvailable > 0) {
+        <span>@Translations.Available</span>
+      }
+      <span class="@(SelectedBaker.StakingAvailable <= 0 ? "error-description" : "")">@(SelectedBaker.StakingAvailable > 0 ? Decimal.ToInt32(SelectedBaker.StakingAvailable).ToString() : Translations.Full)</span>
     </div>
   }
 </div>

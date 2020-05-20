@@ -7,7 +7,7 @@
     <title>Atomex - Multicurrency HD wallet with built-in hybrid atomic swap exchange</title>
     <base href="/" />
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
-    <link href="css/site.css" rel="stylesheet" />
+    <link href="css/site.css?v=2" rel="stylesheet" />
     <style>
         body {
             padding: 0;
@@ -356,6 +356,16 @@
 
             var resizer = document.querySelector(".js-resize-height");
             resizer.addEventListener('mousedown', initDrag, false);
+        }
+
+        function selectBaker(bakerIndex) {
+            var bakerList = document.querySelector(".exchange-dropdown.baker");
+            if (bakerList) {
+                bakerList.scrollTo({
+                    top: bakerList.firstElementChild.offsetHeight * bakerIndex,
+                    behavior: "smooth"
+                })
+            }
         }
     </script>
 </body>

@@ -26,7 +26,6 @@ namespace atomex_frontend.Storages
       LoadTranslations(I18nText);
 
     }
-
     private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
@@ -39,12 +38,10 @@ namespace atomex_frontend.Storages
       BaseCurrencyCode = "USD";
       BaseCurrencyFormat = "$0.00";
       Warning = null;
+      _useDefaultFee = false;
+      _fee = 0m;
 
-      // if (FromAddressList == null || FromAddressList.Count == 0)
-      // {
       PrepareWallet().WaitForResult();
-      //}
-
       LoadBakerList(firstLoad: true).FireAndForget();
     }
 
@@ -55,11 +52,11 @@ namespace atomex_frontend.Storages
     }
 
     I18nText.Translations Translations = new I18nText.Translations();
-
     private AccountStorage accountStorage;
     private IAtomexApp App { get => accountStorage.AtomexApp; }
 
     public Tezos _tezos;
+    public string CUSTOM_BAKER_NAME = "Custom baker";
     private WalletAddress _walletAddress;
     private TezosTransaction _tx;
 
@@ -69,6 +66,10 @@ namespace atomex_frontend.Storages
       set
       {
         _walletAddress = value;
+        if (!UseDefaultFee)
+        {
+          _fee = 0m;
+        }
       }
     }
 
@@ -102,10 +103,19 @@ namespace atomex_frontend.Storages
       get => _baker;
       set
       {
+        var oldBakerName = _baker?.Name;
         _baker = value;
 
-        if (_baker != null)
+        if (_baker.Name != CUSTOM_BAKER_NAME)
+        {
           Address = _baker.Address;
+        }
+        else if (oldBakerName != CUSTOM_BAKER_NAME)
+        {
+          _address = "";
+        }
+
+        CallRefreshUI();
       }
     }
 
@@ -127,19 +137,35 @@ namespace atomex_frontend.Storages
       get => _fee;
       set
       {
-        _fee = value;
-
-        if (!UseDefaultFee)
+        if (value != _fee)
         {
-          var feeAmount = _fee;
+          _fee = value;
 
-          if (feeAmount > _walletAddress.Balance)
-            feeAmount = _walletAddress.Balance;
+          if (!UseDefaultFee)
+          {
+            var feeAmount = _fee;
 
-          _fee = feeAmount;
+            if (feeAmount > _walletAddress.Balance)
+              feeAmount = _walletAddress.Balance;
 
-          Warning = string.Empty;
+            _fee = feeAmount;
+
+            Warning = string.Empty;
+
+            CheckFee().FireAndForget();
+          }
         }
+      }
+    }
+
+    private bool _feeChecking = false;
+    public bool FeeChecking
+    {
+      get => _feeChecking;
+      set
+      {
+        _feeChecking = value;
+        CallRefreshUI();
       }
     }
 
@@ -171,14 +197,17 @@ namespace atomex_frontend.Storages
       set { _baseCurrencyCode = value; }
     }
 
-    private bool _useDefaultFee = true;
+    private bool _useDefaultFee = false;
     public bool UseDefaultFee
     {
       get => _useDefaultFee;
       set
       {
         _useDefaultFee = value;
-        NextCommand().FireAndForget();
+        if (_useDefaultFee)
+        {
+          CheckFee().FireAndForget();
+        }
       }
     }
 
@@ -193,8 +222,12 @@ namespace atomex_frontend.Storages
         var baker = FromBakersList.FirstOrDefault(b => b.Address == _address);
 
         if (baker == null)
-          Baker = null;
-        else if (baker != Baker)
+          Baker = new Baker
+          {
+            Name = CUSTOM_BAKER_NAME,
+            Address = "",
+          };
+        else if (baker.Name != Baker.Name)
           Baker = baker;
       }
     }
@@ -256,7 +289,7 @@ namespace atomex_frontend.Storages
           return;
         }
 
-        if (Fee < 0)
+        if (Fee <= 0)
         {
           Warning = Translations.SvCommissionLessThanZeroError;
           return;
@@ -294,6 +327,7 @@ namespace atomex_frontend.Storages
                         Logo = x.Logo,
                         Name = x.Name,
                         Fee = x.Fee,
+                        EstimatedRoi = x.EstimatedRoi,
                         MinDelegation = x.MinDelegation,
                         StakingAvailable = x.StakingAvailable
                       })
@@ -314,6 +348,7 @@ namespace atomex_frontend.Storages
           Logo = "https://services.tzkt.io/v1/avatars/tz1hoJ3GvL8Wo9NerKFnLQivf9SSngDyhhrg",
           Name = "Test baker #1",
           Fee = 0.03m,
+          EstimatedRoi = 0.04m,
           MinDelegation = 100,
           StakingAvailable = 4000
         });
@@ -324,14 +359,21 @@ namespace atomex_frontend.Storages
           Logo = "https://services.tzkt.io/v1/avatars/tz1hoJ3GvL8Wo9NerKFnLQivf9SSngDyhhrg",
           Name = "Test baker #2",
           Fee = 0.07m,
+          EstimatedRoi = 0.05m,
           MinDelegation = 500,
           StakingAvailable = 8000
         });
       }
 
+      bakers.Insert(0, new Baker
+      {
+        Name = CUSTOM_BAKER_NAME,
+        Address = "",
+      });
+
       FromBakersList = bakers;
 
-      await NextCommand(firstLoad);
+      //await NextCommand(firstLoad);
       CallRefreshUI();
     }
 
@@ -344,11 +386,111 @@ namespace atomex_frontend.Storages
 
       if (!FromAddressList?.Any() ?? false)
       {
-        Warning = "You don't have non-empty accounts";
+        Warning = Translations.NoEmptyAccounts;
         return;
       }
 
       WalletAddress = FromAddressList.FirstOrDefault();
+    }
+
+
+    private async Task<Result<string>> CheckFee()
+    {
+      FeeChecking = true;
+      try
+      {
+        if (string.IsNullOrEmpty(Address))
+        {
+          var err = new Error(Errors.WrongDelegationAddress, Translations.SvEmptyAddressError);
+          Warning = err.Description;
+          return err;
+        }
+
+        if (!_tezos.IsValidAddress(Address))
+        {
+          var err = new Error(Errors.WrongDelegationAddress, Translations.SvInvalidAddressError);
+          Warning = err.Description;
+          return err;
+        }
+
+        var wallet = (HdWallet)App.Account.Wallet;
+        var keyStorage = wallet.KeyStorage;
+
+        var rpc = new Rpc(_tezos.RpcNodeUri);
+
+        JObject delegateData;
+        try
+        {
+          delegateData = await rpc
+              .GetDelegate(_address)
+              .ConfigureAwait(false);
+        }
+        catch
+        {
+          var err = new Error(Errors.WrongDelegationAddress, Translations.WrongDelegationAddress);
+          Warning = err.Description;
+          return err;
+        }
+
+        if (delegateData["deactivated"].Value<bool>())
+        {
+          var err = new Error(Errors.WrongDelegationAddress, $"{Translations.BakerDeactivated}");
+          Warning = err.Description;
+          return err;
+        }
+
+        var delegators = delegateData["delegated_contracts"]?.Values<string>();
+
+        if (delegators.Contains(_walletAddress.Address))
+        {
+          var err = new Error(Errors.AlreadyDelegated, $"{Translations.AlreadyDelagated} {Translations.From.ToLower()} {_walletAddress.Address} {Translations.To.ToLower()} {_address}");
+          Warning = err.Description;
+          return err;
+        }
+
+        var tx = new TezosTransaction
+        {
+          StorageLimit = _tezos.StorageLimit,
+          GasLimit = _tezos.GasLimit,
+          From = _walletAddress.Address,
+          To = _address,
+          Fee = Fee.ToMicroTez(),
+          Currency = _tezos,
+          CreationTime = DateTime.UtcNow,
+        };
+
+        var calculatedFee = await tx.AutoFillAsync(keyStorage, _walletAddress, true);
+        if (!calculatedFee)
+        {
+          var err = new Error(Errors.TransactionCreationError, Translations.AutofillTxFailed);
+          Warning = err.Description;
+          return err;
+        }
+
+        if (UseDefaultFee)
+        {
+          Fee = tx.Fee;
+        }
+        else
+        {
+          if (Fee < tx.Fee)
+          {
+            Fee = tx.Fee;
+          }
+        }
+      }
+      catch (Exception)
+      {
+        Console.WriteLine(Translations.WrongDelegationAddress);
+        var err = new Error(Errors.TransactionCreationError, Translations.WrongDelegationAddress);
+        Warning = err.Description;
+        return err;
+      }
+      finally
+      {
+        FeeChecking = false;
+      }
+      return "Successful check";
     }
 
     private async Task<Result<string>> GetDelegate(
@@ -356,7 +498,7 @@ namespace atomex_frontend.Storages
         CancellationToken cancellationToken = default)
     {
       if (_walletAddress == null)
-        return new Error(Errors.InvalidWallets, "You don't have non-empty accounts");
+        return new Error(Errors.InvalidWallets, Translations.NoEmptyAccounts);
 
       var wallet = (HdWallet)App.Account.Wallet;
       var keyStorage = wallet.KeyStorage;
@@ -371,11 +513,11 @@ namespace atomex_frontend.Storages
       }
       catch
       {
-        return new Error(Errors.WrongDelegationAddress, "Wrong delegation address");
+        return new Error(Errors.WrongDelegationAddress, Translations.WrongDelegationAddress);
       }
 
       if (delegateData["deactivated"].Value<bool>())
-        return new Error(Errors.WrongDelegationAddress, $"Baker is deactivated. Pick another one {_address}");
+        return new Error(Errors.WrongDelegationAddress, $"{Translations.BakerDeactivated}");
 
       var delegators = delegateData["delegated_contracts"]?.Values<string>();
 
@@ -383,7 +525,7 @@ namespace atomex_frontend.Storages
       {
         if (!firstLoad)
         {
-          return new Error(Errors.AlreadyDelegated, $"Already delegated from {_walletAddress.Address} to {_address}");
+          return new Error(Errors.AlreadyDelegated, $"{Translations.AlreadyDelagated} {Translations.From.ToLower()} {_walletAddress.Address} {Translations.To.ToLower()} {_address}");
         }
         else
         {
@@ -406,22 +548,22 @@ namespace atomex_frontend.Storages
       {
         var calculatedFee = await tx.AutoFillAsync(keyStorage, _walletAddress, UseDefaultFee);
         if (!calculatedFee)
-          return new Error(Errors.TransactionCreationError, $"Autofill transaction failed");
+          return new Error(Errors.TransactionCreationError, Translations.AutofillTxFailed);
 
         Fee = tx.Fee;
         _tx = tx;
       }
       catch (Exception e)
       {
-        Console.WriteLine("Autofill delegation error");
-        return new Error(Errors.TransactionCreationError, $"Autofill delegation error. Try again later");
+        Console.WriteLine(Translations.AutofillDelegationError);
+        return new Error(Errors.TransactionCreationError, Translations.AutofillDelegationError);
       }
 
       return "Successful check";
     }
 
 
-    public async Task Send()
+    public async Task<Result<string>> Send()
     {
       var wallet = (HdWallet)App.Account.Wallet;
       var keyStorage = wallet.KeyStorage;
@@ -429,15 +571,14 @@ namespace atomex_frontend.Storages
 
       try
       {
-
         var signResult = await _tx
             .SignDelegationOperationAsync(keyStorage, WalletAddress, default);
 
         if (!signResult)
         {
-          Log.Error("Transaction signing error");
-          Warning = ("Transaction signing error");
-          return;
+          Log.Error(Translations.TxSigningError);
+          Warning = (Translations.TxSigningError);
+          return String.Empty;
         }
 
         var result = await tezos.BlockchainApi
@@ -445,15 +586,21 @@ namespace atomex_frontend.Storages
 
         if (result.Error != null)
         {
-          return;
+          Warning = result.Error?.Description;
+          return String.Empty;
+        }
+        else
+        {
+          return result;
         }
 
       }
       catch (Exception e)
       {
-        Warning = "An error has occurred while delegation.";
-        Log.Error(e, "delegation send error.");
+        Warning = Translations.DelegationError;
+        Log.Error(e, Translations.DelegationError);
       }
+      return string.Empty;
     }
 
     public async Task LoadDelegationInfoAsync()
@@ -468,7 +615,7 @@ namespace atomex_frontend.Storages
           }
           catch
           {
-            Log.Error("Can't get tezos currency");
+            Log.Error(Translations.CantGetTezos);
             return;
           }
         }
