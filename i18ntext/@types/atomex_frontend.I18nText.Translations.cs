@@ -310,7 +310,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"Step 4: Derived key password (optional)"</summary>
         public string RegisterStep4Title;
 
-        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start youe wallet application."</summary>
+        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start your wallet application."</summary>
         public string RegisterStep5Description;
 
         /// <summary>"Step 5: Storage password"</summary>
@@ -331,7 +331,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"If you used a password to additioonal protect the secret key, please enter it in the box below. If you enter the wrong password, you will not be able to access your secret key and wallet."</summary>
         public string RestoreStep4Description;
 
-        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start youe wallet application."</summary>
+        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start your wallet application."</summary>
         public string RestoreStep5Description;
 
         /// <summary>"Send"</summary>
@@ -463,7 +463,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"Unlock"</summary>
         public string Unlock;
 
-        /// <summary>"Upadte"</summary>
+        /// <summary>"Update"</summary>
         public string Update;
 
         /// <summary>"Use default fee"</summary>
