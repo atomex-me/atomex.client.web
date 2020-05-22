@@ -153,6 +153,14 @@ app {
     background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color));
 }
 
+.dark-background__no-grad {
+    background-color: rgba(14, 20, 34, 0.7);
+}
+
+.light-background__no-grad {
+    background-color: var(--dark-input-dark-blue);
+}
+
 .main .register {
     height: 100%;
     font-family: RobotoRegular;
@@ -572,10 +580,17 @@ button:hover {
     max-width: 200px;
     min-width: 165px;
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .wallet-page__left-nav>*:first-child {
     margin-top: 30px
+}
+
+.wallet-page__left-nav>*:last-child {
+    margin-bottom: 10px;
 }
 
 .wallet-page__footer {
@@ -655,11 +670,13 @@ td[attribute*="value"] table>thead>tr>th:last-child {
 }
 
 table>tbody>tr:nth-child(2n) {
-    background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color));
+    /* background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color)); */
+    background-color: var(--dark-gradient-color);
 }
 
 table>tbody>tr:nth-child(2n + 1) {
-    background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color));
+    /* background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color)); */
+    background-color: var(--dark-input-dark-blue);
 }
 
 table>tbody>tr>td {
@@ -803,6 +820,10 @@ table>thead>tr>th {
 
 .wallet-menu-icon.conversion {
     background-image: url('icons/conversion.svg');
+}
+
+.wallet-menu-icon.signout {
+    background-image: url('icons/logout.svg');
 }
 
 .wallet-menu__button {
@@ -977,7 +998,7 @@ table>thead>tr>th {
     border-radius: 20px;
 }
 
-.rounded-dark-container.inside-modal {
+.inside-modal {
     margin: 0 -15px;
     border-radius: 0;
 }
@@ -1063,6 +1084,7 @@ table>thead>tr>th {
     cursor: pointer;
     top: -17px;
     right: -17px;
+    z-index: 10;
 }
 
 .receive-qrcode {
@@ -1169,12 +1191,12 @@ table>thead>tr>th {
     width: 400px;
     z-index: 10;
     left: 0;
-    max-height: 315px;
     overflow-y: scroll;
 }
 
 .exchange-dropdown.baker {
     width: 100%;
+    max-height: 350px;
 }
 
 .exchange-dropdown>div {

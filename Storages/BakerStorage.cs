@@ -24,8 +24,9 @@ namespace atomex_frontend.Storages
     {
       this.accountStorage = AS;
       LoadTranslations(I18nText);
-
     }
+
+    I18nText.Translations Translations = new I18nText.Translations();
     private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
@@ -51,7 +52,6 @@ namespace atomex_frontend.Storages
       RefreshUI?.Invoke();
     }
 
-    I18nText.Translations Translations = new I18nText.Translations();
     private AccountStorage accountStorage;
     private IAtomexApp App { get => accountStorage.AtomexApp; }
 

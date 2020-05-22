@@ -3,7 +3,7 @@
 @inject WalletStorage walletStorage;
 
 <div class="modal__container loading-container">
-  <div class="dark-background modal-title">
+  <div class="dark-background__no-grad modal-title">
     @(State == States.Confirmation ? Translations.ConvertConfirmation :
     State == States.Success ? Translations.Success :
     State == States.Error ? Translations.ConvertingError :

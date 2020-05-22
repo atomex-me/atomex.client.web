@@ -32,7 +32,7 @@
         <Loader />
       }
       <div class="modal__container @(DelegationChecking || bakerStorage.FeeChecking ? "disabled" : "")">
-        <div class="dark-background modal-title">
+        <div class="dark-background__no-grad modal-title">
           @if(State == States.FillData) {
             @Translations.Delegate
           } else if(State == States.Confirmation) {

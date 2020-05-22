@@ -3,17 +3,7 @@
  <button class="wallet-menu__button @(IsActive ? "active" : "")" @onclick="@handleClick">
    <i class="wallet-menu-icon @(Variant.ToName().ToLower())" />
    <span>
-     @if(Variant == WalletSection.Portfolio) {
-       @Translations.Portfolio
-     }
-
-     @if(Variant == WalletSection.Wallets) {
-       @Translations.Wallets
-     }
-
-     @if(Variant == WalletSection.Conversion) {
-       @Translations.Conversion
-     }
+     @Translations[Variant.ToName()]
    </span>
  </button>
  

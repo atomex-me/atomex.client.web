@@ -29,13 +29,23 @@ namespace atomex_frontend.Storages
   {
     public AccountStorage(HttpClient httpClient,
       ILocalStorageService localStorage,
-      IJSRuntime jSRuntime)
+      IJSRuntime jSRuntime,
+      NavigationManager uriHelper,
+      Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
       this.httpClient = httpClient;
       this.localStorage = localStorage;
       this.jSRuntime = jSRuntime;
+      this.URIHelper = uriHelper;
 
-      this.InitializeAtomexConfigs();
+      LoadTranslations(I18nText);
+      InitializeAtomexConfigs();
+    }
+
+    I18nText.Translations Translations = new I18nText.Translations();
+    private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
+    {
+      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
 
     public static Currency Bitcoin
@@ -69,7 +79,7 @@ namespace atomex_frontend.Storages
     }
 
     public AccountDataRepository ADR;
-
+    private NavigationManager URIHelper;
     public Account Account { get; set; }
     public IAtomexApp AtomexApp { get; set; }
     public IAtomexClient Terminal { get; set; }
@@ -190,7 +200,6 @@ namespace atomex_frontend.Storages
     public async Task ConnectToWallet(string WalletName, SecureString Password)
     {
       WalletLoading = true;
-      CurrentWalletName = WalletName;
       _password = Password;
       bool walletFileExist = File.Exists($"/{WalletName}.wallet");
       if (!walletFileExist)
@@ -199,6 +208,7 @@ namespace atomex_frontend.Storages
         if (wallet != null && wallet.Length > 0)
         {
           Console.WriteLine($"Wallet {WalletName} Found in LS");
+          CurrentWalletName = WalletName;
           Byte[] walletBytesNew = Convert.FromBase64String(wallet);
           File.WriteAllBytes($"/{WalletName}.wallet", walletBytesNew);
         }
@@ -212,7 +222,7 @@ namespace atomex_frontend.Storages
       {
         Console.WriteLine($"Wallet {WalletName} founded on FS");
       }
-
+      InitializeAtomexConfigs();
       await jSRuntime.InvokeVoidAsync("getData", WalletName, DotNetObjectReference.Create(this));
     }
 
@@ -237,6 +247,7 @@ namespace atomex_frontend.Storages
 
       var symbolsProvider = new SymbolsProvider(symbolsConfiguration);
 
+      Console.WriteLine(Currencies == null);
       ADR = new AccountDataRepository(Currencies, initialData: data);
       ADR.SaveDataCallback += SaveDataCallback;
 
@@ -263,12 +274,14 @@ namespace atomex_frontend.Storages
 
       if (AtomexApp != null)
       {
-        AtomexApp.UseTerminal(Terminal, restart: true);
+        AtomexApp.UseTerminal(Terminal);
 
         AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
         AtomexApp.Account.BalanceUpdated += OnBalanceChangedEventHandler;
         AtomexApp.Terminal.ServiceConnected += OnTerminalServiceStateChangedEventHandler;
         AtomexApp.Terminal.ServiceDisconnected += OnTerminalServiceStateChangedEventHandler;
+
+        AtomexApp.Start();
 
         this.CallInitialize(IsRestarting: true);
         Console.WriteLine($"Restarting: switched to Account with {CurrentWalletName} wallet");
@@ -351,6 +364,47 @@ namespace atomex_frontend.Storages
       //   Console.WriteLine($"New transaction!! {e.Transaction.Id}");
       //   if (!e.Transaction.IsConfirmed && e.Transaction.State != BlockchainTransactionState.Failed)
       //     Console.WriteLine($"New transaction!! {e.Transaction.Id}");
+    }
+
+    public async void SignOut()
+    {
+      Console.WriteLine("Signing out");
+      try
+      {
+        if (await WhetherToCancelClosingAsync())
+          return;
+
+        AtomexApp.UseTerminal(null);
+        AtomexApp.Stop();
+
+        URIHelper.NavigateTo("/");
+      }
+      catch (Exception e)
+      {
+        Console.Write($"Sign Out error {e.ToString()}");
+      }
+    }
+
+    private async Task<bool> WhetherToCancelClosingAsync()
+    {
+      if (!AtomexApp.Account.UserSettings.ShowActiveSwapWarning)
+        return false;
+
+      var hasActiveSwaps = await HasActiveSwapsAsync();
+
+      if (!hasActiveSwaps)
+        return false;
+
+      await jSRuntime.InvokeVoidAsync("alert", Translations.ActiveSwapsWarning);
+      return true;
+    }
+
+    private async Task<bool> HasActiveSwapsAsync()
+    {
+      var swaps = await AtomexApp.Account
+          .GetSwapsAsync();
+
+      return swaps.Any(swap => swap.IsActive);
     }
 
     private void InitializeAtomexConfigs()

@@ -265,6 +265,7 @@ namespace atomex_frontend.Storages
     {
       if (accountStorage.AtomexApp != null)
       {
+        CurrentWalletSection = WalletSection.Portfolio;
         if (accountStorage.AtomexApp.HasQuotesProvider && !IsRestarting)
         {
           accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatePortfolioAsync();

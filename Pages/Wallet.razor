@@ -7,6 +7,7 @@
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager UriHelper;
 @using Atomex.Blockchain.Ethereum;
+@using System.Numerics;
 
 <div>
   <div class="wallet-page dark-background">
@@ -26,8 +27,12 @@
                 Variant="@WalletSection.Conversion"
                 OnClick="@WalletMenuButtonClick"
                 IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Conversion)" />
-
           </div>
+
+          <WalletMenuButton
+              Variant="@WalletSection.Signout"
+              OnClick="@AccountStorage.SignOut"
+              IsActive="@false" />
       </div>
       <div class="wallet-page__container">
           @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio) {
@@ -171,7 +176,8 @@
   {
     WalletStorage.CurrentWalletSection = WalletSection.Conversion;
 
-    Console.WriteLine(WalletStorage.SelectedCurrencyData.FreeExternalAddress);
+    //var a = BigInteger.Parse("100000000000000000000");
+    //Console.WriteLine(a);
   }
 
   private void ConvertOpenCloseHandler()
@@ -208,7 +214,7 @@
 
     await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
 
-    if (AccountStorage.Account == null)
+    if (AccountStorage.AtomexApp?.Terminal == null)
     {
       UriHelper.NavigateTo("/");
     }

@@ -7,7 +7,7 @@ namespace atomex_frontend.I18nText
 
         public string this[string key] => global::Toolbelt.Blazor.I18nText.I18nTextExtensions.GetFieldValue(this, key);
 
-        /// <summary>"You have active swaps. Closing the application or sign out may result in loss of funds as a result of the failore of the refund operation. Are you sure you want to close the application"</summary>
+        /// <summary>"You have active swaps.  We don&apos;t recommend to close application until swaps completion. Closing the application or sign out may result in loss of funds as a result of the failore of the refund operation."</summary>
         public string ActiveSwapsWarning;
 
         /// <summary>"Address"</summary>
@@ -348,6 +348,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Sent"</summary>
         public string Sent;
+
+        /// <summary>"SignOut"</summary>
+        public string Signout;
 
         /// <summary>"State"</summary>
         public string State;
