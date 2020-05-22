@@ -203,6 +203,11 @@
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
   {
+    if (AccountStorage.AtomexApp?.Terminal == null)
+    {
+      UriHelper.NavigateTo("/");
+    }
+
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
 
     WalletStorage.RefreshRequested += StateHasChanged;
@@ -213,11 +218,5 @@
     debounceInputAmount.AutoReset = false;
 
     await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
-
-    if (AccountStorage.AtomexApp?.Terminal == null)
-    {
-      UriHelper.NavigateTo("/");
-    }
-
   }
 }
