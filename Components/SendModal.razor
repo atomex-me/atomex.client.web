@@ -117,7 +117,7 @@
       <div>
         <span class="send-confirmation__label">with comission:</span>
         <span class="send-confirmation__coin">@walletStorage.TotalFee <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
-        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.TotalFee) <span class="currency-code">USD</span>)</span>
+        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency.Name, walletStorage.TotalFee) <span class="currency-code">USD</span>)</span>
       </div>
     </div>
   }
@@ -187,7 +187,7 @@
 
   private decimal GetFeeDollars
   {
-    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency, walletStorage.TotalFee);
+    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency.Name, walletStorage.TotalFee);
   }
 
   private System.Timers.Timer debounceInputAmount;

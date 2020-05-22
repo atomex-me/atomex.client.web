@@ -216,7 +216,7 @@ namespace atomex_frontend.Storages
 
     public decimal SendingAmountDollars
     {
-      get => Helper.SetPrecision(this.GetDollarValue(this.SelectedCurrency, this._sendingAmount), 2);
+      get => Helper.SetPrecision(this.GetDollarValue(this.SelectedCurrency.Name, this._sendingAmount), 2);
     }
 
     public bool GetEthreumBasedCurrency
@@ -357,12 +357,12 @@ namespace atomex_frontend.Storages
         var availableBalance = balance.Available;
         if (!PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData))
         {
-          PortfolioData.Add(currency.Name, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency, availableBalance), 0.0m));
+          PortfolioData.Add(currency.Name, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency.Name, availableBalance), 0.0m));
         }
         else
         {
           currencyData.Balance = availableBalance;
-          currencyData.DollarValue = this.GetDollarValue(currency, availableBalance);
+          currencyData.DollarValue = this.GetDollarValue(currency.Name, availableBalance);
         }
 
         await GetTransactions(currency);
@@ -601,11 +601,11 @@ namespace atomex_frontend.Storages
       }
     }
 
-    public decimal GetDollarValue(Currency currency, decimal amount)
+    public decimal GetDollarValue(string currency, decimal amount)
     {
       if (accountStorage.QuotesProvider != null)
       {
-        return Helper.SetPrecision(accountStorage.QuotesProvider.GetQuote(currency.Name, "USD").Bid * amount, 4);
+        return Helper.SetPrecision(accountStorage.QuotesProvider.GetQuote(currency, "USD").Bid * amount, 4);
       }
       return 0;
     }

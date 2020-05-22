@@ -103,7 +103,7 @@
             Value="@Helper.DecimalToStr(bakerStorage.Fee)" 
             OnChange="@BakerFeeChange"
             Theme="light"
-            AdditionalRightInfo="@String.Concat("$", walletStorage.GetDollarValue(bakerStorage._tezos, bakerStorage.Fee), " USD")"
+            AdditionalRightInfo="@String.Concat("$", walletStorage.GetDollarValue(bakerStorage._tezos.Name, bakerStorage.Fee), " USD")"
             Disabled="@(bakerStorage.UseDefaultFee)" />
 
           <Checkbox
@@ -115,7 +115,7 @@
               <div>
                 <span class="send-confirmation__label">@Translations.To.ToLower() @Translations.Delegate.ToLower():</span>
                 <span class="send-confirmation__coin">@Helper.DecimalToStr(bakerStorage.WalletAddress.AvailableBalance()) <span class="currency-code">@bakerStorage._tezos.Name</span></span>
-                <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(bakerStorage._tezos, bakerStorage.WalletAddress.AvailableBalance()) <span class="currency-code">USD</span>)</span>
+                <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(bakerStorage._tezos.Name, bakerStorage.WalletAddress.AvailableBalance()) <span class="currency-code">USD</span>)</span>
               </div>
               <div>
                 <span class="send-confirmation__label">to address:</span>
@@ -124,7 +124,7 @@
               <div>
                 <span class="send-confirmation__label">with comission:</span>
                 <span class="send-confirmation__coin">@Helper.DecimalToStr(bakerStorage.Fee) <span class="currency-code">@bakerStorage._tezos.Name</span></span>
-                <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(bakerStorage._tezos, bakerStorage.Fee) <span class="currency-code">USD</span>)</span>
+                <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(bakerStorage._tezos.Name, bakerStorage.Fee) <span class="currency-code">USD</span>)</span>
               </div>
             </div>
             @if (bakerStorage.Baker.StakingAvailable < 0) {

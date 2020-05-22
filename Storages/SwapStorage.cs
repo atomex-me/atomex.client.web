@@ -101,12 +101,12 @@ namespace atomex_frontend.Storages
 
     public decimal AmountDollars
     {
-      get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency, this._amount);
+      get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency.Name, this._amount);
     }
 
     public decimal TargetAmountDollars
     {
-      get => walletStorage.GetDollarValue(walletStorage.SelectedSecondCurrency, this._targetAmount);
+      get => walletStorage.GetDollarValue(walletStorage.SelectedSecondCurrency.Name, this._targetAmount);
     }
 
     private decimal _estimatedMaxAmount;
