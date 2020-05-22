@@ -83,12 +83,12 @@ namespace atomex_frontend.Storages
       }
     }
 
-    public Dictionary<Currency, CurrencyData> PortfolioData { get; set; } = new Dictionary<Currency, CurrencyData>();
+    public Dictionary<string, CurrencyData> PortfolioData { get; set; } = new Dictionary<string, CurrencyData>();
     public List<Transaction> Transactions { get; set; } = new List<Transaction>();
     public List<Transaction> SelectedCurrencyTransactions
     {
       get => this.Transactions
-        .FindAll(tx => tx.Currency == SelectedCurrency)
+        .FindAll(tx => tx.Currency.Name == SelectedCurrency.Name)
         .OrderByDescending(a => a.CreationTime)
         .ToList();
     }
@@ -100,7 +100,7 @@ namespace atomex_frontend.Storages
 
     public CurrencyData SelectedCurrencyData
     {
-      get => PortfolioData.TryGetValue(SelectedCurrency, out CurrencyData data) ? data : new CurrencyData(AccountStorage.Bitcoin, 0.0m, 0.0m, 0.0m);
+      get => PortfolioData.TryGetValue(SelectedCurrency.Name, out CurrencyData data) ? data : new CurrencyData(AccountStorage.Bitcoin, 0.0m, 0.0m, 0.0m);
     }
 
     private System.Timers.Timer debounceFirstCurrencySelection;
@@ -265,7 +265,7 @@ namespace atomex_frontend.Storages
     {
       if (accountStorage.AtomexApp != null)
       {
-        CurrentWalletSection = WalletSection.Portfolio;
+        SelectedCurrency = AccountStorage.Bitcoin;
         if (accountStorage.AtomexApp.HasQuotesProvider && !IsRestarting)
         {
           accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatePortfolioAsync();
@@ -282,13 +282,13 @@ namespace atomex_frontend.Storages
 
         List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
         Transactions = new List<Transaction>();
-        PortfolioData = new Dictionary<Currency, CurrencyData>();
+        PortfolioData = new Dictionary<string, CurrencyData>();
 
 
         foreach (Currency currency in currenciesList)
         {
           CurrencyData initialCurrencyData = new CurrencyData(currency, 0, 0, 0.0m);
-          PortfolioData.Add(currency, initialCurrencyData);
+          PortfolioData.Add(currency.Name, initialCurrencyData);
           Console.WriteLine("Getting free address on initialize");
           initialCurrencyData.FreeExternalAddress = (await this.accountStorage.Account.GetFreeExternalAddressAsync(initialCurrencyData.Currency.Name)).Address;
           GetFreeAddresses(initialCurrencyData.Currency);
@@ -297,6 +297,8 @@ namespace atomex_frontend.Storages
         await UpdatePortfolioAsync();
         URIHelper.NavigateTo("/wallet");
         accountStorage.WalletLoading = false;
+        CurrentWalletSection = WalletSection.Portfolio;
+        SelectedCurrency = AccountStorage.Bitcoin;
       }
     }
 
@@ -312,15 +314,15 @@ namespace atomex_frontend.Storages
     {
       if (dataType == "balance")
       {
-        return PortfolioData.TryGetValue(currency, out CurrencyData currencyData) ? currencyData.Balance : 0.0m;
+        return PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData) ? currencyData.Balance : 0.0m;
       }
       if (dataType == "dollars")
       {
-        return PortfolioData.TryGetValue(currency, out CurrencyData currencyData) ? currencyData.DollarValue : 0.0m;
+        return PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData) ? currencyData.DollarValue : 0.0m;
       }
       if (dataType == "percent")
       {
-        return PortfolioData.TryGetValue(currency, out CurrencyData currencyData) ? currencyData.Percent : 0.0m;
+        return PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData) ? currencyData.Percent : 0.0m;
       }
       return 0.0m;
     }
@@ -353,9 +355,9 @@ namespace atomex_frontend.Storages
       {
         Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name));
         var availableBalance = balance.Available;
-        if (!PortfolioData.TryGetValue(currency, out CurrencyData currencyData))
+        if (!PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData))
         {
-          PortfolioData.Add(currency, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency, availableBalance), 0.0m));
+          PortfolioData.Add(currency.Name, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency, availableBalance), 0.0m));
         }
         else
         {
@@ -414,7 +416,7 @@ namespace atomex_frontend.Storages
 
       foreach (Currency currency in accountStorage.Account.Currencies)
       {
-        if (PortfolioData.TryGetValue(currency, out CurrencyData currencyData))
+        if (PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData))
         {
           currenciesDollar.Add(currencyData.DollarValue);
           currenciesLabels.Add(currencyData.Currency.Description);

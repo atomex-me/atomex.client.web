@@ -201,6 +201,8 @@ namespace atomex_frontend.Storages
     {
       WalletLoading = true;
       _password = Password;
+      CurrentWalletName = WalletName;
+
       bool walletFileExist = File.Exists($"/{WalletName}.wallet");
       if (!walletFileExist)
       {
@@ -208,7 +210,6 @@ namespace atomex_frontend.Storages
         if (wallet != null && wallet.Length > 0)
         {
           Console.WriteLine($"Wallet {WalletName} Found in LS");
-          CurrentWalletName = WalletName;
           Byte[] walletBytesNew = Convert.FromBase64String(wallet);
           File.WriteAllBytes($"/{WalletName}.wallet", walletBytesNew);
         }
@@ -377,7 +378,7 @@ namespace atomex_frontend.Storages
         AtomexApp.UseTerminal(null);
         AtomexApp.Stop();
 
-        URIHelper.NavigateTo("/");
+        await jSRuntime.InvokeVoidAsync("signOut", Translations.ActiveSwapsWarning);
       }
       catch (Exception e)
       {
@@ -387,8 +388,8 @@ namespace atomex_frontend.Storages
 
     private async Task<bool> WhetherToCancelClosingAsync()
     {
-      if (!AtomexApp.Account.UserSettings.ShowActiveSwapWarning)
-        return false;
+      // if (!AtomexApp.Account.UserSettings.ShowActiveSwapWarning)
+      //   return false;
 
       var hasActiveSwaps = await HasActiveSwapsAsync();
 
