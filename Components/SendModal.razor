@@ -206,7 +206,7 @@
 
   private decimal GetFeeDollars
   {
-    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency.Name, walletStorage.TotalFee);
+    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency.FeeCode, walletStorage.TotalFee);
   }
 
   private System.Timers.Timer debounceInputAmount;
