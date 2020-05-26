@@ -18,12 +18,12 @@ namespace atomex_frontend
       var builder = WebAssemblyHostBuilder.CreateDefault(args);
       builder.RootComponents.Add<App>("app");
 
-      SelfLog.Enable(m => Console.Error.WriteLine(m));
+      // SelfLog.Enable(m => Console.Error.WriteLine(m));
 
-      Log.Logger = new LoggerConfiguration()
-          .MinimumLevel.Debug()
-          .WriteTo.BrowserConsole()
-          .CreateLogger();
+      // Log.Logger = new LoggerConfiguration()
+      //     .MinimumLevel.Debug()
+      //     .WriteTo.BrowserConsole()
+      //     .CreateLogger();
 
 
       builder.Services.AddBaseAddressHttpClient();

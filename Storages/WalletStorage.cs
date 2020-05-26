@@ -616,9 +616,11 @@ namespace atomex_frontend.Storages
 
       if ((SelectedCurrency is FA12 || SelectedCurrency is Tezos) && !SelectedCurrency.IsValidAddress(SendingToAddress))
       {
-        this.ResetSendData();
+        //this.ResetSendData();
+        CallUIRefresh();
         return;
       }
+
       var previousAmount = _sendingAmount;
 
       _sendingAmount = amount;

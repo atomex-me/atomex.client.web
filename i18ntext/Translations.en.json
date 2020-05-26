@@ -108,6 +108,7 @@
   "DelegationError": "An error has occurred while delegation",
   "CantGetTezos": "Can't get tezos currency",
   "Signout": "SignOut",
+  "BakerHasMinDelegateLimit": "Warning: the selected baker has a minimum delegation limit, which exceeds the balance of your selected wallet",
 
   "CwvBack": "Back",
   "CwvCreateMnemonicWarning": "Generate and write down the mnemonic before continuing",

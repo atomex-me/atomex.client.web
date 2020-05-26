@@ -31,6 +31,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Baker is deactivated. Pick another one"</summary>
         public string BakerDeactivated;
 
+        /// <summary>"Warning: the selected baker has a minimum delegation limit, which exceeds the balance of your selected wallet"</summary>
+        public string BakerHasMinDelegateLimit;
+
         /// <summary>"Balance update in progress..."</summary>
         public string BalanceUpdateInProgress;
 

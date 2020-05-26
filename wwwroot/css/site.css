@@ -1034,8 +1034,7 @@ table>thead>tr>th {
 }
 
 .modal-currency-title__text-container>*:last-child>span {
-    text-transform: uppercase;
-    font-size: 12px;
+    font-size: 14px;
 }
 
 .additional-input-info {
@@ -1575,4 +1574,8 @@ table>thead>tr>th {
 
 .baker-name {
     text-transform: initial !important;
+}
+
+.min-delegation {
+    color: var(--gray);
 }

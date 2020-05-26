@@ -53,7 +53,9 @@
       InputName="sendToAddress"
       Value="@walletStorage.SendingToAddress"
       OnChange="@SendAddressChange"
-      Theme="dark" />
+      Theme="dark"
+      Error="@(GetAddressError)" 
+      ErrorDescription="@(GetAddressError ? Translations.SvInvalidAddressError : "")" />
 
     <Input
       Description="@Translations.Amount" 
@@ -166,6 +168,12 @@
     get => walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress) && walletStorage.SendingAmount > 0 && walletStorage.SendingFee > 0;
   }
 
+  private bool GetAddressError
+  {
+    get => (walletStorage.SendingToAddress.Length > 0 && !walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) ||
+      ((!walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) && (walletStorage.SendingAmount > 0 || walletStorage.SendingFee > 0));
+  }
+
   private States State { get; set; } = States.SendingData;
 
   private async void handleCancel()
@@ -192,12 +200,19 @@
 
   private System.Timers.Timer debounceInputAmount;
   private System.Timers.Timer debounceInputFee;
+  private System.Timers.Timer debounceInputAddress;
   private string SendingAmountString = "0";
   private string SendingFeeString = "0";
 
+
+  private string SendingAddress = "";
+
   private void SendAddressChange(string address)
   {
-    walletStorage.SendingToAddress = address;
+    debounceInputAddress.Stop();
+    debounceInputAddress.Start();
+    SendingAddress = address;
+    Console.WriteLine($"SendAddressChange");
   }
 
   private void SendAmountChange(string amount)
@@ -212,6 +227,16 @@
     InvokeAsync(() =>
      {
        walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString);
+     });
+  }
+
+  private void OnUserFinishAddress(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+     {
+       walletStorage.SendingToAddress = SendingAddress;
+       walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString);
+       Console.WriteLine($"Setting address with {SendingAddress}");
      });
   }
 
@@ -285,13 +310,17 @@
     await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
     walletStorage.RefreshRequested += StateHasChanged;
 
-    debounceInputAmount = new System.Timers.Timer(1000);
+    debounceInputAmount = new System.Timers.Timer(850);
     debounceInputAmount.Elapsed += OnUserFinishAmount;
     debounceInputAmount.AutoReset = false;
 
-    debounceInputFee = new System.Timers.Timer(1000);
+    debounceInputFee = new System.Timers.Timer(850);
     debounceInputFee.Elapsed += OnUserFinishFee;
     debounceInputFee.AutoReset = false;
+
+    debounceInputAddress = new System.Timers.Timer(850);
+    debounceInputAddress.Elapsed += OnUserFinishAddress;
+    debounceInputAddress.AutoReset = false;
   }
 
   private enum States

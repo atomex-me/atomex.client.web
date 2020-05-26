@@ -648,14 +648,22 @@ namespace atomex_frontend.Storages
               .GetBaker(@delegate, App.Account.Network)
               .ConfigureAwait(false);
 
-          if (Delegations.FindIndex(d => d.Address == wa.Address) == -1)
+          var delegationIndex = Delegations.FindIndex(d => d.Address == wa.Address);
+
+          var delegation = new Delegation
           {
-            Delegations.Add(new Delegation
-            {
-              Baker = baker,
-              Address = wa.Address,
-              Balance = wa.Balance
-            });
+            Baker = baker,
+            Address = wa.Address,
+            Balance = wa.Balance
+          };
+
+          if (delegationIndex == -1)
+          {
+            Delegations.Add(delegation);
+          }
+          else
+          {
+            Delegations[delegationIndex] = delegation;
           }
         }
       }

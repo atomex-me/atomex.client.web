@@ -12,7 +12,12 @@
       @if (SelectedBaker != null) {
         <div class="baker-name">@SelectedBaker.Name</div>
         @if(SelectedBaker.Name.ToLower() != "custom baker") {
-          <div>@(Helper.SetPrecision((SelectedBaker.EstimatedRoi * 100), 3).ToString("G29"))%</div>
+          <div>
+            @(Helper.SetPrecision((SelectedBaker.EstimatedRoi * 100), 3).ToString("G29"))%
+            @if(SelectedBaker.IsMinDelegation) {
+              <span class="min-delegation">(min @SelectedBaker.MinDelegation XTZ)</span>
+            }
+          </div>
         }
       } else {
         <div>@SelectedCurrency.Description.ToUpper()</div>

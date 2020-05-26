@@ -132,6 +132,11 @@
                 @(Translations.OverdelegatedNote).
               </div>
             }
+            @if (bakerStorage.Baker.IsMinDelegation && bakerStorage.Baker.MinDelegation > bakerStorage.WalletAddress.AvailableBalance()) {
+              <div class="overdelegated-note">
+                @(Translations.BakerHasMinDelegateLimit).
+              </div>
+            }
           }
         }
           <div class="modal-buttons-container">
