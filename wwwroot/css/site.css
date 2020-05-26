@@ -1570,6 +1570,9 @@ table>thead>tr>th {
     margin-top: 15px;
     font-family: RobotoLight;
     color: var(--error-color);
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .baker-name {

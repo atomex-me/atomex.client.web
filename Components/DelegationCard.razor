@@ -12,7 +12,7 @@
       {
         <div class="delegation-row">
           <div>
-            <img src="@(!String.IsNullOrEmpty(delegation.Baker.Logo) ? delegation.Baker.Logo : "/css/images/atomex_logo_small.png")">
+            <img title="@delegation.Baker.Name" src="@(!String.IsNullOrEmpty(delegation.Baker.Logo) ? delegation.Baker.Logo : "/css/images/atomex_logo_small.png")">
             <a target="_blank" href="@($"{bakerStorage._tezos.TxExplorerUri}{delegation.Address}")">@delegation.Address</a>
           </div>
           <span class="btc-brush">@(Helper.SetPrecision(delegation.Balance, 2))</span>
