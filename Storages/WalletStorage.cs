@@ -134,6 +134,15 @@ namespace atomex_frontend.Storages
       }
     }
 
+    private BitcoinBasedCurrency BtcBased => SelectedCurrency as BitcoinBasedCurrency;
+
+    protected decimal _feeRate;
+    public decimal FeeRate
+    {
+      get => _feeRate;
+      set { _feeRate = value; }
+    }
+
     private System.Timers.Timer debounceSecondCurrencySelection;
     private void OnAfterChangeSecondCurrency(Object source, ElapsedEventArgs e)
     {
@@ -671,6 +680,11 @@ namespace atomex_frontend.Storages
 
         _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount.Value, SelectedCurrency.GetDefaultFeePrice());
         _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+
+        if (SelectedCurrency is BitcoinBasedCurrency)
+        {
+          FeeRate = BtcBased.FeeRate;
+        }
       }
       else
       {
@@ -704,7 +718,7 @@ namespace atomex_frontend.Storages
       this.CallUIRefresh();
     }
 
-    protected async void UpdateSendingFee(decimal fee)
+    protected async Task UpdateSendingFee(decimal fee)
     {
       this._sendingFee = fee;
       this.CallUIRefresh();
@@ -716,6 +730,45 @@ namespace atomex_frontend.Storages
       }
 
       _sendingFee = Math.Min(fee, SelectedCurrency.GetMaximumFee());
+
+
+      if (SelectedCurrency is BitcoinBasedCurrency)
+      {
+        try
+        {
+          _sendingFee = Math.Min(fee, SelectedCurrency.GetMaximumFee());
+
+          var estimatedTxSize = await EstimateTxSizeAsync();
+
+          if (!UseDefaultFee)
+          {
+            var minimumFeeSatoshi = BtcBased.GetMinimumFee(estimatedTxSize);
+            var minimumFee = BtcBased.SatoshiToCoin(minimumFeeSatoshi);
+
+            if (_sendingFee < minimumFee)
+              _sendingFee = minimumFee;
+
+            var availableAmount = SelectedCurrencyData.Balance;
+
+            if (_sendingAmount + _sendingFee > availableAmount)
+              _sendingAmount = Math.Max(availableAmount - _sendingFee, 0);
+
+            if (_sendingAmount == 0)
+              _sendingFee = 0;
+          }
+
+          FeeRate = BtcBased.CoinToSatoshi(_sendingFee) / estimatedTxSize;
+          this.CallUIRefresh();
+          return;
+        }
+        catch
+        {
+          Console.WriteLine($"Error updating Bitcoinbased Fee");
+          this.CallUIRefresh();
+          return;
+        }
+      }
+
 
       if (!UseDefaultFee)
       {
@@ -753,6 +806,18 @@ namespace atomex_frontend.Storages
       this.CallUIRefresh();
     }
 
+
+    private async Task<int> EstimateTxSizeAsync()
+    {
+      var estimatedFee = await accountStorage.AtomexApp.Account
+          .EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output);
+
+      if (estimatedFee == null)
+        return 0;
+
+      return (int)(BtcBased.CoinToSatoshi(estimatedFee.Value) / BtcBased.FeeRate);
+    }
+
     private void CheckForSimilarCurrencies()
     {
       if (SelectedCurrency.Name == SelectedSecondCurrency.Name || accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(SelectedCurrency, SelectedSecondCurrency) == null)
@@ -773,6 +838,7 @@ namespace atomex_frontend.Storages
       this.SendingToAddress = "";
       this._sendingAmount = 0;
       this._sendingFee = 0;
+      this._feeRate = 0;
       this._sendingFeePrice = _selectedCurrency.GetDefaultFeePrice();
       this._useDefaultFee = true;
       this.CallUIRefresh();

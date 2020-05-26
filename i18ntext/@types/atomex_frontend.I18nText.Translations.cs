@@ -202,6 +202,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Fee"</summary>
         public string Fee;
 
+        /// <summary>"Fee Rate"</summary>
+        public string FeeRate;
+
         /// <summary>"Finish"</summary>
         public string Finish;
 

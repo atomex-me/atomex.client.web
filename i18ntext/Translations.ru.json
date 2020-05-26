@@ -44,6 +44,7 @@
   "GasLimit": "Gas limit",
   "TotalFee": "Total fee",
   "Fee": "Fee",
+  "FeeRate": "Fee Rate",
   "Send": "Send",
   "SendConfirmation": "Send confirmation",
   "DelegationConfirmation": "Delegation confirmation",

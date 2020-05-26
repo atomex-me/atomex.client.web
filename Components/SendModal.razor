@@ -98,6 +98,17 @@
       AdditionalRightInfo="@String.Concat("$", GetFeeDollars, " USD")"
       Disabled="@(FeeInputDisabled)" />
 
+    @if (walletStorage.SelectedCurrency is BitcoinBasedCurrency) {
+      <Input 
+        Description="@Translations.FeeRate" 
+        InputType="number" 
+        InputName="feeRate" 
+        Value="@Helper.DecimalToStr(walletStorage.FeeRate)" 
+        Theme="dark"
+        AdditionalRightInfo="sat/byte"
+        Disabled="@(true)" />
+    }
+
       <Checkbox
         Checked="@walletStorage.UseDefaultFee"
         Description="@Translations.UseDefaultFee"
