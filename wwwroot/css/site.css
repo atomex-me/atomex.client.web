@@ -853,6 +853,10 @@ table>thead>tr>th {
     color: white;
 }
 
+.footer-text.version {
+    cursor: pointer;
+}
+
 .footer-link {
     border-right: 1px solid white;
     padding-right: 6px;

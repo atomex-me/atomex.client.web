@@ -1,8 +1,10 @@
 @inject AccountStorage accountStorage;
+@inject IJSRuntime JSRuntime;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage;
 
 <footer class="wallet-page__footer">
   <div>
-    <span class="footer-text">
+    <span class="footer-text version" @onclick="@copyUId">
       Version 1.0.20
     </span>
   </div>
@@ -15,6 +17,13 @@
 </footer>
 
 @code {
+  private async void copyUId()
+  {
+    var userId = await localStorage.GetItemAsync<string>($"uid");
+    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", userId);
+    //await JSRuntime.InvokeAsync<string>("alert", "Unique app id successfully copied to clipboard.");
+  }
+
   protected override void OnInitialized()
   {
     accountStorage.RefreshUI += StateHasChanged;

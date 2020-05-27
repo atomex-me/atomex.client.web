@@ -1,6 +1,10 @@
 @page "/"
 @inject AccountStorage accountStorage;
 @inject BakerStorage bs;
+@using Serilog;
+@using Sentry;
+@using Serilog.Events;
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
 
 <div class="atomex__page light-background">
   <div class="first-page__container">
@@ -23,6 +27,27 @@
 @code {
   protected override async Task OnInitializedAsync()
   {
-    // await accountStorage.ConnectToWallet("mainnet test", "StoneGiant25".ToSecureString()); //todo: remove in prod
+    var userId = await localStorage.GetItemAsync<string>($"uid");
+    if (userId == null)
+    {
+      userId = Guid.NewGuid().ToString();
+      await localStorage.SetItemAsync("uid", userId);
+    }
+
+    //SelfLog.Enable(m => Log.Error(m));
+    Log.Logger = new LoggerConfiguration()
+        .Enrich.FromLogContext()
+        .MinimumLevel.Debug()
+        .WriteTo.Sentry(o =>
+        {
+          o.Dsn = new Dsn("https://5bee28501d154edd9a60a6ea9dc11b57@o398809.ingest.sentry.io/5255033");
+          o.MinimumEventLevel = LogEventLevel.Error;
+          o.MinimumBreadcrumbLevel = LogEventLevel.Error;
+          o.AttachStacktrace = true;
+          o.SendDefaultPii = true;
+          o.ServerName = userId;
+        })
+        //.WriteTo.BrowserConsole()
+        .CreateLogger();
   }
 }
