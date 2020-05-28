@@ -4,6 +4,7 @@
 @using atomex_frontend.Common;
 @using Atomex;
 @using Atomex.EthereumTokens;
+@using Serilog;
 
 <div class="modal__container loading-container">
   <div class="dark-background__no-grad modal-title">
@@ -89,7 +90,7 @@
     }
 
     <Input 
-      Description="@Translations.MinersFee" 
+      Description="@($"{Translations.MinersFee}, {walletStorage.SelectedCurrency.FeeCode}")" 
       InputType="number" 
       InputName="minersFee" 
       Value="@Helper.DecimalToStr(walletStorage.TotalFee)" 
@@ -223,7 +224,6 @@
     debounceInputAddress.Stop();
     debounceInputAddress.Start();
     SendingAddress = address;
-    Console.WriteLine($"SendAddressChange");
   }
 
   private void SendAmountChange(string amount)
@@ -247,7 +247,6 @@
      {
        walletStorage.SendingToAddress = SendingAddress;
        walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString);
-       Console.WriteLine($"Setting address with {SendingAddress}");
      });
   }
 
@@ -305,8 +304,8 @@
       }
       else
       {
-        Console.WriteLine($"SENDING ERROR {error.Description}");
-        Console.WriteLine($"SENDING ERROR {error.Code}");
+
+        Log.Error($"Blazor Sending error, Code {error.Code}, Description: {error.Description}");
         State = States.Error;
       }
 

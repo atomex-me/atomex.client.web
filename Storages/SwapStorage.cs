@@ -237,7 +237,6 @@ namespace atomex_frontend.Storages
 
     private async void OnSwapEventHandler(object sender, SwapEventArgs args)
     {
-      Console.WriteLine("SWAP EVENT!!!!!!!!");
       try
       {
         Swaps = (await App.Account
@@ -245,7 +244,7 @@ namespace atomex_frontend.Storages
             .ToList()
             .OrderByDescending(sw => sw.TimeStamp.ToUniversalTime());
 
-        Console.WriteLine(Swaps.Count());
+        Console.WriteLine($"Finded {Swaps.Count()} swaps");
         this.CallUIRefresh();
       }
       catch (Exception e)

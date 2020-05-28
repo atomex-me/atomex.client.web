@@ -248,7 +248,6 @@ namespace atomex_frontend.Storages
 
       var symbolsProvider = new SymbolsProvider(symbolsConfiguration);
 
-      Console.WriteLine(Currencies == null);
       ADR = new AccountDataRepository(Currencies, initialData: data);
       ADR.SaveDataCallback += SaveDataCallback;
 
@@ -265,7 +264,7 @@ namespace atomex_frontend.Storages
       catch (Exception e)
       {
         PasswordIncorrect = true;
-        Console.WriteLine(e.ToString());
+        Console.WriteLine("Incorrect password");
         _password = null;
         return;
       }
@@ -361,7 +360,7 @@ namespace atomex_frontend.Storages
 
     private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
     {
-      Console.WriteLine($"New trans!!!!!!!!!!!!! {e.Transaction.State}");
+      Console.WriteLine($"New transaction, state: {e.Transaction.State}");
       //   Console.WriteLine($"New transaction!! {e.Transaction.Id}");
       //   if (!e.Transaction.IsConfirmed && e.Transaction.State != BlockchainTransactionState.Failed)
       //     Console.WriteLine($"New transaction!! {e.Transaction.Id}");
