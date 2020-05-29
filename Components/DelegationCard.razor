@@ -237,6 +237,10 @@
   {
     if (State == States.Error || !String.IsNullOrEmpty(bakerStorage.Warning))
     {
+      if (bakerStorage.Warning == Translations.NoEmptyAccounts)
+      {
+        ModalOpened = false;
+      }
       bakerStorage.Initialize();
       State = States.FillData;
     }

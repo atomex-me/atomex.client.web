@@ -100,7 +100,7 @@ namespace atomex_frontend.Storages
 
     public CurrencyData SelectedCurrencyData
     {
-      get => PortfolioData.TryGetValue(SelectedCurrency.Name, out CurrencyData data) ? data : new CurrencyData(AccountStorage.Bitcoin, 0.0m, 0.0m, 0.0m);
+      get => PortfolioData.TryGetValue(SelectedCurrency.Name, out CurrencyData data) ? data : new CurrencyData(accountStorage.Account.Currencies.Get<Currency>("BTC"), 0.0m, 0.0m, 0.0m);
     }
 
     private System.Timers.Timer debounceFirstCurrencySelection;
@@ -113,7 +113,7 @@ namespace atomex_frontend.Storages
       });
     }
 
-    private Currency _selectedCurrency = AccountStorage.Bitcoin;
+    private Currency _selectedCurrency;
     public Currency SelectedCurrency
     {
       get => this._selectedCurrency;
@@ -153,7 +153,7 @@ namespace atomex_frontend.Storages
       });
     }
 
-    private Currency _selectedSecondCurrency = AccountStorage.Tezos;
+    private Currency _selectedSecondCurrency;
     public Currency SelectedSecondCurrency
     {
       get => _selectedSecondCurrency;
@@ -274,7 +274,6 @@ namespace atomex_frontend.Storages
     {
       if (accountStorage.AtomexApp != null)
       {
-        SelectedCurrency = AccountStorage.Bitcoin;
         if (accountStorage.AtomexApp.HasQuotesProvider && !IsRestarting)
         {
           accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatePortfolioAsync();
@@ -304,10 +303,13 @@ namespace atomex_frontend.Storages
         }
 
         await UpdatePortfolioAsync();
+
+        _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>("BTC");
+        _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<Currency>("XTZ");
+
         URIHelper.NavigateTo("/wallet");
         accountStorage.WalletLoading = false;
         CurrentWalletSection = WalletSection.Portfolio;
-        SelectedCurrency = AccountStorage.Bitcoin;
       }
     }
 

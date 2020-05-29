@@ -48,36 +48,6 @@ namespace atomex_frontend.Storages
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
 
-    public static Currency Bitcoin
-    {
-      get => Currencies.GetByName("BTC");
-    }
-
-    public static Currency Ethereum
-    {
-      get => Currencies.GetByName("ETH");
-    }
-
-    public static Currency Litecoin
-    {
-      get => Currencies.GetByName("LTC");
-    }
-
-    public static Currency Tezos
-    {
-      get => Currencies.GetByName("XTZ");
-    }
-
-    public static Currency Tether
-    {
-      get => Currencies.GetByName("USDT");
-    }
-
-    public static Currency FA12
-    {
-      get => Currencies.GetByName("FA12");
-    }
-
     public AccountDataRepository ADR;
     private NavigationManager URIHelper;
     public Account Account { get; set; }
