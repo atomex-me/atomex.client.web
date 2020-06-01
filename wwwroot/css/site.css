@@ -496,6 +496,7 @@ button:hover {
     justify-content: center;
     font-family: RobotoLight;
     font-size: 16px;
+    position: relative;
 }
 
 .wallets-list__container {
@@ -1586,4 +1587,9 @@ table>thead>tr>th {
 
 .min-delegation {
     color: var(--gray);
+}
+
+.terms-link {
+    bottom: 30px;
+    position: absolute;
 }
