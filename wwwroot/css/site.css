@@ -755,6 +755,10 @@ table>thead>tr>th {
     background-image: url('images/sent.png');
 }
 
+.tokencall {
+    background-image: url('images/sent.png');
+}
+
 .swapredeem {
     background-image: url('images/refunded.png');
 }

@@ -21,7 +21,7 @@
         }
       } else {
         <div>@SelectedCurrency.Description.ToUpper()</div>
-        <div>@Amount <span>@SelectedCurrency.Name</span></div>
+        <div>@(Helper.DecimalToStr(Amount, SelectedCurrency.Format)) <span>@SelectedCurrency.Name</span></div>
       }
     </div>
   </div>
