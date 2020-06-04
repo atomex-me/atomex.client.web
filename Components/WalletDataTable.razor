@@ -30,9 +30,9 @@
                 <span class="currency-name">@currency.Currency.Name</span>
               </div>
             </td>
-            <td>@(Helper.SetPrecision(currency.Balance, 6)) @(currency.Currency.Name.ToUpper())</td>
-            <td>$@(Helper.SetPrecision(currency.DollarValue, 2))</td>
-            <td>@(Helper.SetPrecision(currency.Percent, 1)) %</td>
+            <td>@(Helper.DecimalToStr(currency.Balance, currency.Currency.Format)) @(currency.Currency.Name.ToUpper())</td>
+            <td>$@(Helper.DecimalToStr(currency.DollarValue, "F2"))</td>
+            <td>@(Helper.DecimalToStr(currency.Percent, "F1")) %</td>
           </tr>
         }
       </tbody>

@@ -5,7 +5,7 @@
     <div class="currencies-exchange-row">
         <div class="currencies-exchange__currency-usd">
             <span>@Helper.DecimalToStr(swapStorage.Amount) <span class="currency-abbr">@(swapStorage.FromCurrency.Name.ToUpper())</span></span>
-            <span class="exchange-amount-container__usd-amount">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.FromCurrency.Name, swapStorage.Amount))) <span class="currency-abbr small">USD</span></span>
+            <span class="exchange-amount-container__usd-amount">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.FromCurrency.Name, swapStorage.Amount), "F4")) <span class="currency-abbr small">USD</span></span>
         </div>
         <i class="icon currency-icon-big @(swapStorage.FromCurrency.Description.ToLower())"></i>
         <i class="convert-arrow-icon"></i>
@@ -13,12 +13,12 @@
         <div class="currencies-exchange__currency-usd">
             @if(swapStorage.IsNoLiquidity) {
                 <span class="no-liquidity">@Translations.NoLiquidity</span>
-                <span class="exchange-amount-container__usd-amount">@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.Name, swapStorage.TargetAmount))) <span class="currency-abbr small">USD</span></span>
+                <span class="exchange-amount-container__usd-amount">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.Name, swapStorage.TargetAmount), "F4")) <span class="currency-abbr small">USD</span></span>
             }
             else
             {
                 <span>@Helper.DecimalToStr(swapStorage.TargetAmount) <span class="currency-abbr">@(swapStorage.ToCurrency.Name.ToUpper())</span></span>
-                <span class="exchange-amount-container__usd-amount">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.Name, swapStorage.TargetAmount))) <span class="currency-abbr small">USD</span></span>
+                <span class="exchange-amount-container__usd-amount">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.Name, swapStorage.TargetAmount), "F4")) <span class="currency-abbr small">USD</span></span>
             }
         </div>
     </div>
@@ -28,11 +28,11 @@
                 <div class="gray-text">@Translations.EstimatedPrice: <span class="white-text">@Helper.DecimalToStr(swapStorage.EstimatedPrice)</span></div>
                 <div class="gray-text">@Translations.EstimatedPaymentFee: <span class="white-text">@Helper.DecimalToStr(swapStorage.EstimatedPaymentFee)</span>
                     <span class="currency-abbr small white-text">@(swapStorage.FromCurrency.FeeCode.ToUpper())</span>
-                    <span class="currency-abbr small">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.FromCurrency.FeeCode, swapStorage.EstimatedPaymentFee)))</span>
+                    <span class="currency-abbr small">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.FromCurrency.FeeCode, swapStorage.EstimatedPaymentFee), "F4"))</span>
                 </div>
                 <div class="gray-text">@Translations.EstimatedRedeemFee: <span class="white-text">@Helper.DecimalToStr(swapStorage.EstimatedRedeemFee)</span>
                     <span class="currency-abbr small white-text">@(swapStorage.ToCurrency.FeeCode.ToUpper())</span>
-                    <span class="currency-abbr small">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.FeeCode, swapStorage.EstimatedRedeemFee)))</span>
+                    <span class="currency-abbr small">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.FeeCode, swapStorage.EstimatedRedeemFee), "F4"))</span>
                 </div>
             </RoundedContainer>
         </div>

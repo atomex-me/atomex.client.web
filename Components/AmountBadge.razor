@@ -11,7 +11,7 @@
     <input type="number" value="@(Helper.DecimalToStr(Amount))" @oninput="@HandleChange" onkeydown="return event.keyCode !== 69" />
     <div class="exchexchange-amount__input-add-info">
       <span class="currency-abbr">@SelectedCurrency.Name</span>
-      <div class="exchange-amount-container__usd-amount">($@DollarAmount <span class="currency-abbr small">USD</span>)</div>
+      <div class="exchange-amount-container__usd-amount">($@Helper.DecimalToStr(DollarAmount, "F2") <span class="currency-abbr small">USD</span>)</div>
     </div>
     <div class="exchange-amount__available-container" @onclick="@(() => swapStorage.Amount = swapStorage.EstimatedMaxAmount)">
       <RoundedContainer>

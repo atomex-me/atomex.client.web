@@ -65,6 +65,8 @@
     if (walletStorage.SelectedCurrency is Tezos || walletStorage.SelectedCurrency is Ethereum)
     {
       var activeAddressViewModel = FromAddressList
+          .OrderByDescending(vm => vm.WalletAddress.AvailableBalance())
+          .ToList()
           .FirstOrDefault(vm => vm.WalletAddress.HasActivity && vm.WalletAddress.AvailableBalance() > 0);
 
       if (activeAddressViewModel != null)

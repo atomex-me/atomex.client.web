@@ -276,7 +276,7 @@ namespace atomex_frontend.Storages
       {
         if (accountStorage.AtomexApp.HasQuotesProvider && !IsRestarting)
         {
-          accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatePortfolioAsync();
+          accountStorage.AtomexApp.QuotesProvider.QuotesUpdated += async (object sender, EventArgs args) => await UpdatedQuotes();
         }
         accountStorage.AtomexApp.Account.BalanceUpdated += async (object sender, CurrencyEventArgs args) =>
         {
@@ -284,8 +284,9 @@ namespace atomex_frontend.Storages
           {
             bakerStorage.LoadDelegationInfoAsync().FireAndForget();
           }
-          await UpdatePortfolioAsync();
+          await BalanceUpdatedHandler(args.Currency);
         };
+
         accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
 
         List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
@@ -298,11 +299,10 @@ namespace atomex_frontend.Storages
           CurrencyData initialCurrencyData = new CurrencyData(currency, 0, 0, 0.0m);
           PortfolioData.Add(currency.Name, initialCurrencyData);
           Console.WriteLine("Getting free address on initialize");
-          initialCurrencyData.FreeExternalAddress = (await this.accountStorage.Account.GetFreeExternalAddressAsync(initialCurrencyData.Currency.Name)).Address;
           GetFreeAddresses(initialCurrencyData.Currency);
         }
 
-        await UpdatePortfolioAsync();
+        await UpdatePortfolioAtStart();
 
         _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>("BTC");
         _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<Currency>("XTZ");
@@ -318,6 +318,7 @@ namespace atomex_frontend.Storages
       Console.WriteLine($"New Transaction on {e.Transaction.Currency.Name}, HANDLING with id  {e.Transaction.Id}");
 
       handleTransaction(e.Transaction);
+      CallUIRefresh();
       await jSRuntime.InvokeVoidAsync("showNotification", "You have new transaction", $"ID: {e.Transaction.Id}");
     }
 
@@ -358,34 +359,97 @@ namespace atomex_frontend.Storages
 
     }
 
-    public async Task UpdatePortfolioAsync()
+    public async Task UpdatedQuotes()
+    {
+      foreach (var currency in accountStorage.Account.Currencies)
+      {
+        await CountCurrencyPortfolio(currency);
+      }
+
+      foreach (var currency in accountStorage.Account.Currencies)
+      {
+        RefreshCurrencyPercent(currency.Name);
+      }
+
+      this.CallUIRefresh();
+
+      if (CurrentWalletSection == WalletSection.Portfolio)
+      {
+        await DrawDonutChart(updateData: true);
+      }
+    }
+
+    public async Task BalanceUpdatedHandler(string currencyName)
+    {
+      var currency = accountStorage.Account.Currencies.GetByName(currencyName);
+      if (currency == null)
+      {
+        return;
+      }
+
+      await CountCurrencyPortfolio(currency);
+      await RefreshTransactions(currency.Name);
+      RefreshCurrencyAddresses(currency.Name);
+      RefreshCurrencyPercent(currency.Name);
+
+      this.CallUIRefresh();
+
+      if (CurrentWalletSection == WalletSection.Portfolio)
+      {
+        await DrawDonutChart(updateData: true);
+      }
+    }
+
+    private async Task CountCurrencyPortfolio(Currency currency)
+    {
+      Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name));
+      var availableBalance = balance.Available;
+
+      if (!PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData))
+      {
+        PortfolioData.Add(currency.Name, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency.Name, availableBalance), 0.0m));
+      }
+      else
+      {
+        currencyData.Balance = availableBalance;
+        currencyData.DollarValue = this.GetDollarValue(currency.Name, availableBalance);
+      }
+    }
+
+    private void RefreshCurrencyAddresses(string currencyName)
+    {
+      CurrencyData currData;
+      if (PortfolioData.TryGetValue(currencyName, out currData))
+      {
+        GetFreeAddresses(currData.Currency);
+      }
+    }
+
+    private void RefreshCurrencyPercent(string currencyName)
+    {
+      CurrencyData currData;
+
+      if (PortfolioData.TryGetValue(currencyName, out currData))
+      {
+        currData.Percent = this.GetTotalDollars != 0 ? Helper.SetPrecision(currData.DollarValue / this.GetTotalDollars * 100.0m, 2) : 0;
+      }
+    }
+
+    public async Task UpdatePortfolioAtStart()
     {
       List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
 
       foreach (Currency currency in currenciesList)
       {
-        Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name));
-        var availableBalance = balance.Available;
-        if (!PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData))
-        {
-          PortfolioData.Add(currency.Name, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency.Name, availableBalance), 0.0m));
-        }
-        else
-        {
-          currencyData.Balance = availableBalance;
-          currencyData.DollarValue = this.GetDollarValue(currency.Name, availableBalance);
-        }
-
-        await GetTransactions(currency);
+        await CountCurrencyPortfolio(currency);
+        await LoadTransactions(currency);
       }
 
-      FromAddressList = new List<WalletAddressView>();
+      // FromAddressList = new List<WalletAddressView>();
       foreach (CurrencyData currencyData in PortfolioData.Values)
       {
-        currencyData.Percent = this.GetTotalDollars != 0 ? Helper.SetPrecision(currencyData.DollarValue / this.GetTotalDollars * 100.0m, 2) : 0;
-        currencyData.FreeExternalAddress = (await this.accountStorage.Account.GetFreeExternalAddressAsync(currencyData.Currency.Name)).Address;
-
-        GetFreeAddresses(currencyData.Currency);
+        RefreshCurrencyPercent(currencyData.Currency.Name);
+        RefreshCurrencyAddresses(currencyData.Currency.Name);
       }
 
       this.CallUIRefresh();
@@ -398,6 +462,8 @@ namespace atomex_frontend.Storages
 
     private void GetFreeAddresses(Currency Currency)
     {
+      FromAddressList = FromAddressList.Where(wa => wa.WalletAddress.Currency != Currency.Name).ToList(); // removing old addresses for this currency;
+
       var activeAddresses = accountStorage.Account
           .GetUnspentAddressesAsync(Currency.Name)
           .WaitForResult();
@@ -442,7 +508,24 @@ namespace atomex_frontend.Storages
       await jSRuntime.InvokeVoidAsync(updateData ? "updateChart" : "drawChart", currenciesDollar.ToArray(), currenciesLabels.ToArray(), GetTotalDollars);
     }
 
-    public async Task GetTransactions(Currency currency)
+    public async Task RefreshTransactions(string currency)
+    {
+      var transactions = await accountStorage.Account.GetTransactionsAsync(currency);
+      foreach (var tx in transactions)
+      {
+        var txAge = tx.CreationTime - DateTime.Now;
+        if (tx.State == BlockchainTransactionState.Confirmed && txAge.Value.TotalDays > 1)
+        {
+          continue;
+        }
+        else
+        {
+          handleTransaction(tx);
+        }
+      }
+    }
+
+    public async Task LoadTransactions(Currency currency)
     {
       var transactions = await accountStorage.Account.GetTransactionsAsync(currency.Name);
       foreach (var tx in transactions)
@@ -451,9 +534,10 @@ namespace atomex_frontend.Storages
       }
     }
 
+
     private void AddTransaction(Transaction tx, Currency currency)
     {
-      var oldTransIndex = Transactions.FindIndex(oldTx => oldTx.Id == tx.Id);
+      var oldTransIndex = Transactions.FindIndex(oldTx => oldTx.Id == tx.Id && oldTx.Currency.Name == tx.Currency.Name);
       if (oldTransIndex == -1)
       {
         Transactions.Add(tx);
