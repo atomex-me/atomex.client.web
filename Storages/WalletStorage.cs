@@ -84,11 +84,14 @@ namespace atomex_frontend.Storages
     }
 
     public Dictionary<string, CurrencyData> PortfolioData { get; set; } = new Dictionary<string, CurrencyData>();
-    public List<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+    public Dictionary<string, Transaction> Transactions { get; set; } = new Dictionary<string, Transaction>();
     public List<Transaction> SelectedCurrencyTransactions
     {
-      get => this.Transactions
-        .FindAll(tx => tx.Currency.Name == SelectedCurrency.Name)
+      get => Transactions
+        .Where(kvp => kvp.Key.Contains(SelectedCurrency.Name))
+        .Select(kvp => kvp.Value)
+        .ToList()
         .OrderByDescending(a => a.CreationTime)
         .ToList();
     }
@@ -290,7 +293,7 @@ namespace atomex_frontend.Storages
         accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
 
         List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
-        Transactions = new List<Transaction>();
+        Transactions = new Dictionary<string, Transaction>();
         PortfolioData = new Dictionary<string, CurrencyData>();
 
 
@@ -513,8 +516,8 @@ namespace atomex_frontend.Storages
       var transactions = await accountStorage.Account.GetTransactionsAsync(currency);
       foreach (var tx in transactions)
       {
-        var txAge = tx.CreationTime - DateTime.Now;
-        if (tx.State == BlockchainTransactionState.Confirmed && txAge.Value.TotalDays > 1)
+        var txAge = DateTime.Now - tx.CreationTime;
+        if (Transactions.ContainsKey($"{tx.Id}/{tx.Currency.Name}") && tx.State == BlockchainTransactionState.Confirmed && txAge.Value.TotalDays > 1)
         {
           continue;
         }
@@ -537,14 +540,15 @@ namespace atomex_frontend.Storages
 
     private void AddTransaction(Transaction tx, Currency currency)
     {
-      var oldTransIndex = Transactions.FindIndex(oldTx => oldTx.Id == tx.Id && oldTx.Currency.Name == tx.Currency.Name);
-      if (oldTransIndex == -1)
+      Transaction oldTx;
+      string TxKeyInDict = $"{tx.Id}/{tx.Currency.Name}";
+      if (Transactions.TryGetValue(TxKeyInDict, out oldTx))
       {
-        Transactions.Add(tx);
+        Transactions[TxKeyInDict] = tx;
       }
       else
       {
-        Transactions[oldTransIndex] = tx;
+        Transactions.Add(TxKeyInDict, tx);
       }
     }
 
