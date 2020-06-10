@@ -1,6 +1,11 @@
-﻿<div class="lds-ellipsis">
+﻿<div class="lds-ellipsis @(!String.IsNullOrEmpty(ClassName) ? ClassName : "")">
     <div></div>
     <div></div>
     <div></div>
     <div></div>
 </div>
+
+@code {
+    [Parameter]
+    public string ClassName { get; set; }
+}

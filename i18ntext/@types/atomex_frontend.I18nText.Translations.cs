@@ -445,6 +445,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Swap redeem"</summary>
         public string SwapRedeem;
 
+        /// <summary>"Swap request successfully created. Please wait a moment until the swap begins. Do not sign out or close the application until the swap begins."</summary>
+        public string SwapRequestCreated;
+
         /// <summary>"Swap successfully created."</summary>
         public string SwapSuccessfullyCreated;
 

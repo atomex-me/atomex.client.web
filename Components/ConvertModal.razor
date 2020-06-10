@@ -1,11 +1,13 @@
 
 @inject SwapStorage swapStorage;
+@inject AccountStorage accountStorage;
 @inject WalletStorage walletStorage;
+@using Atomex.Swaps;
 
 <div class="modal__container loading-container">
   <div class="dark-background__no-grad modal-title">
     @(State == States.Confirmation ? Translations.ConvertConfirmation :
-    State == States.Success ? Translations.Success :
+    State == States.Success || State == States.SuccessCreated ? Translations.Success :
     State == States.Error ? Translations.ConvertingError :
     State == States.CantConvert ? Translations.CantConvert : Translations.Converting)
   </div>
@@ -63,14 +65,24 @@
     </div>
   }
 
-  @if (State == States.Success) {
+  @if (State == States.SuccessCreated) {
     <div class="modal-subtitle">
       @(Translations.SwapSuccessfullyCreated)
     </div>
     <div class="modal-subtitle">@(Translations.SwapNote)</div>
   }
 
-  @if (State == States.Success || State == States.Error || State == States.CantConvert) {
+    @if (State == States.Success) {
+    <div class="modal-subtitle">
+      @(Translations.SwapRequestCreated)
+    </div>
+
+    <div class="swap-await-loader-helper"></div>
+    <Loader ClassName="swap-await-loader" />
+    <div class="swap-await-loader-helper"></div>
+  }
+
+  @if (State == States.SuccessCreated || State == States.Error || State == States.CantConvert) {
     <div class="modal-buttons-container">
       <div>
         <NavigateButton Variant="center" OnClick="@handleCancel">
@@ -116,12 +128,13 @@
     }
     else
     {
-      State = States.Success;
+      State = States.SuccessCreated;
     }
     StateHasChanged();
   }
 
   private States State { get; set; } = States.Confirmation;
+
 
   private enum States
   {
@@ -129,7 +142,7 @@
     Converting,
     Error,
     CantConvert,
-    Success
+    Success,
+    SuccessCreated
   }
-
 }

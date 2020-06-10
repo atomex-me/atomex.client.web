@@ -211,7 +211,7 @@
     WalletStorage.RefreshRequested += StateHasChanged;
     SwapStorage.RefreshRequested += StateHasChanged;
 
-    debounceInputAmount = new System.Timers.Timer(1000);
+    debounceInputAmount = new System.Timers.Timer(850);
     debounceInputAmount.Elapsed += OnUserFinishAmount;
     debounceInputAmount.AutoReset = false;
 

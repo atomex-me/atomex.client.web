@@ -110,6 +110,7 @@
   "CantGetTezos": "Can't get tezos currency",
   "Signout": "SignOut",
   "BakerHasMinDelegateLimit": "Warning: the selected baker has a minimum delegation limit, which exceeds the balance of your selected wallet",
+  "SwapRequestCreated": "Swap request successfully created. Please wait a moment until the swap begins. Do not sign out or close the application until the swap begins.",
 
   "CwvBack": "Back",
   "CwvCreateMnemonicWarning": "Generate and write down the mnemonic before continuing",

@@ -161,9 +161,26 @@ namespace atomex_frontend.Storages
         App.TerminalChanged += OnTerminalChangedEventHandler;
         App.Terminal.QuotesUpdated += OnQuotesUpdatedEventHandler;
         App.Terminal.SwapUpdated += OnSwapEventHandler;
+        App.Terminal.ServiceDisconnected += OnTerminalServiceStateChangedEventHandler;
+        App.Terminal.ServiceConnected += OnTerminalServiceStateChangedEventHandler;
         Console.WriteLine("Subscribed to swap events in start");
       }
       OnSwapEventHandler(this, null);
+    }
+
+    private void OnTerminalServiceStateChangedEventHandler(object sender, TerminalServiceEventArgs args)
+    {
+      if (!(sender is IAtomexClient terminal))
+        return;
+
+      if (args.Service == TerminalService.MarketData)
+      {
+        if (Amount != 0)
+        {
+          Console.WriteLine($"UPDATING AMOUNT TO 0");
+          UpdateAmount(0, true);
+        }
+      }
     }
 
     private void OnTerminalChangedEventHandler(object sender, TerminalChangedEventArgs args)

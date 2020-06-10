@@ -1597,3 +1597,15 @@ table>thead>tr>th {
     bottom: 30px;
     position: absolute;
 }
+
+.lds-ellipsis.swap-await-loader {
+    margin-top: 122px;
+}
+
+.lds-ellipsis.sending {
+    margin-top: 65px;
+}
+
+.swap-await-loader-helper {
+    height: 1px;
+}
