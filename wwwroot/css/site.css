@@ -1609,3 +1609,15 @@ table>thead>tr>th {
 .swap-await-loader-helper {
     height: 1px;
 }
+
+.convert-warning {
+    color: var(--error-color);
+    text-align: center;
+    padding-bottom: 18px;
+}
+
+.send-warning {
+    color: var(--error-color);
+    text-align: center;
+    margin-top: 25px;
+}

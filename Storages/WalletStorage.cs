@@ -24,6 +24,8 @@ using Atomex.TezosTokens;
 using atomex_frontend.Common;
 using Microsoft.AspNetCore.Components;
 using System.Timers;
+using System.Globalization;
+using Serilog;
 
 namespace atomex_frontend.Storages
 {
@@ -34,7 +36,8 @@ namespace atomex_frontend.Storages
       AccountStorage accountStorage,
       BakerStorage bakerStorage,
       IJSRuntime JSRuntime,
-      NavigationManager uriHelper)
+      NavigationManager uriHelper,
+      Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
       this.accountStorage = accountStorage;
       this.bakerStorage = bakerStorage;
@@ -50,6 +53,13 @@ namespace atomex_frontend.Storages
       debounceSecondCurrencySelection = new System.Timers.Timer(1);
       debounceSecondCurrencySelection.Elapsed += OnAfterChangeSecondCurrency;
       debounceSecondCurrencySelection.AutoReset = false;
+      LoadTranslations(I18nText);
+    }
+
+    I18nText.Translations Translations = new I18nText.Translations();
+    private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
+    {
+      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
 
     private IJSRuntime jSRuntime;
@@ -245,6 +255,13 @@ namespace atomex_frontend.Storages
         this._isUpdating = value;
         this.CallUIRefresh();
       }
+    }
+
+    protected string _warning;
+    public string Warning
+    {
+      get => _warning;
+      set { _warning = value; }
     }
 
     private bool _forceMarketUpdate = true;
@@ -720,6 +737,7 @@ namespace atomex_frontend.Storages
         return;
       }
 
+      Warning = string.Empty;
       var previousAmount = _sendingAmount;
 
       _sendingAmount = amount;
@@ -730,18 +748,25 @@ namespace atomex_frontend.Storages
         var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
             .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, true);
 
-        var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+        var availableAmount = SelectedCurrency is BitcoinBasedCurrency || TetherOrFa12
           ? SelectedCurrencyData.Balance
-          : !TetherOrFa12 ? maxAmount + maxFeeAmount : maxAmount;
+          : maxAmount + maxFeeAmount;
+
+        var comparableAmount = TetherOrFa12 ? maxAmount : availableAmount;
 
         var estimatedFeeAmount = _sendingAmount != 0
-            ? (_sendingAmount < availableAmount
+            ? (_sendingAmount < comparableAmount
                 ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : null)
             : 0;
 
         if (estimatedFeeAmount == null)
         {
+          if (TetherOrFa12)
+          {
+            if (maxAmount < availableAmount)
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+          }
           if (maxAmount > 0)
           {
             _sendingAmount = maxAmount;
@@ -750,6 +775,7 @@ namespace atomex_frontend.Storages
           else
           {
             _sendingAmount = previousAmount;
+            this.CallUIRefresh();
             return;
           }
         }
@@ -781,9 +807,9 @@ namespace atomex_frontend.Storages
         var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
             .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, false);
 
-        var availableAmount = SelectedCurrency is BitcoinBasedCurrency
-            ? SelectedCurrencyData.Balance
-            : !TetherOrFa12 ? maxAmount + maxFeeAmount : maxAmount;
+        var availableAmount = SelectedCurrency is BitcoinBasedCurrency || TetherOrFa12
+          ? SelectedCurrencyData.Balance
+          : maxAmount + maxFeeAmount;
 
         var feeAmount = Math.Max(SelectedCurrency.GetFeeAmount(_sendingFee, this._sendingFeePrice), maxFeeAmount);
 
@@ -796,8 +822,12 @@ namespace atomex_frontend.Storages
         }
         else
         {
-          if (_sendingAmount > availableAmount)
-            _sendingAmount = Math.Max(availableAmount, 0);
+          if (_sendingAmount > maxAmount)
+          {
+            if (maxAmount < availableAmount)
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+            _sendingAmount = Math.Max(maxAmount, 0);
+          }
         }
 
         if (_sendingFee != 0)
@@ -853,7 +883,7 @@ namespace atomex_frontend.Storages
         }
         catch
         {
-          Console.WriteLine($"Error updating Bitcoinbased Fee");
+          Log.Error($"Error updating Bitcoinbased Fee");
           this.CallUIRefresh();
           return;
         }
@@ -926,6 +956,7 @@ namespace atomex_frontend.Storages
     public void ResetSendData()
     {
       this.SendingToAddress = "";
+      this.Warning = string.Empty;
       this._sendingAmount = 0;
       this._sendingFee = 0;
       this._feeRate = 0;

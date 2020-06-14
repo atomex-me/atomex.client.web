@@ -70,6 +70,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Error"</summary>
         public string CvError;
 
+        /// <summary>"Insufficient {0} to cover token transfer fee"</summary>
+        public string CvInsufficientChainFunds;
+
         /// <summary>"Insufficient funds"</summary>
         public string CvInsufficientFunds;
 

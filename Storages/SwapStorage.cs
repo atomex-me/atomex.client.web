@@ -19,13 +19,23 @@ namespace atomex_frontend.Storages
 {
   public class SwapStorage
   {
-    public SwapStorage(AccountStorage accountStorage, WalletStorage walletStorage)
+    public SwapStorage(
+      AccountStorage accountStorage,
+      WalletStorage walletStorage,
+      Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
       this.accountStorage = accountStorage;
       this.walletStorage = walletStorage;
 
       this.accountStorage.InitializeCallback += SubscribeToServices;
       this.walletStorage.RefreshMarket += (bool force) => UpdateAmount(0, force);
+      LoadTranslations(I18nText);
+    }
+
+    I18nText.Translations Translations = new I18nText.Translations();
+    private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
+    {
+      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
 
     public event Action RefreshRequested;
@@ -147,6 +157,13 @@ namespace atomex_frontend.Storages
       get => _isNoLiquidity;
       set
       { _isNoLiquidity = value; }
+    }
+
+    protected string _warning;
+    public string Warning
+    {
+      get => _warning;
+      set { _warning = value; }
     }
 
     private static TimeSpan SwapTimeout = TimeSpan.FromSeconds(60);
@@ -272,6 +289,7 @@ namespace atomex_frontend.Storages
 
     private async void UpdateAmount(decimal value, bool force = false)
     {
+      Warning = string.Empty;
       try
       {
         if (value == _amount && !force)
@@ -324,6 +342,10 @@ namespace atomex_frontend.Storages
           {
             _amount = 0; // previousAmount;
             IsAmountUpdating = false;
+
+            if (FromCurrency.Name != FromCurrency.FeeCurrencyName && walletStorage.SelectedCurrencyData.Balance > 0)
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, FromCurrency.FeeCurrencyName);
+
             this.CallUIRefresh();
             return;
             // todo: insufficient funds warning

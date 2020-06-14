@@ -112,6 +112,7 @@
   "BakerHasMinDelegateLimit": "Warning: the selected baker has a minimum delegation limit, which exceeds the balance of your selected wallet",
   "SwapRequestCreated": "Swap request successfully created. Please wait a moment until the swap begins. Do not sign out or close the application until the swap begins.",
 
+  "CvInsufficientChainFunds": "Insufficient {0} to cover token transfer fee",
   "CwvBack": "Back",
   "CwvCreateMnemonicWarning": "Generate and write down the mnemonic before continuing",
   "CwvFinish": "Finish",

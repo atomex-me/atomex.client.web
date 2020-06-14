@@ -115,6 +115,10 @@
         Description="@Translations.UseDefaultFee"
         OnChange="@OnUseDefaultFeeChange"
         Disabled="@GetDefaultFeeDisabled" />
+
+      @if(!String.IsNullOrEmpty(walletStorage.Warning)) {
+        <div class="send-warning">@walletStorage.Warning</div>
+      }
   }
 
   @if(State == States.Confirmation) {

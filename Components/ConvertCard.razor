@@ -36,6 +36,9 @@
                 </div>
             </RoundedContainer>
         </div>
+        @if (!String.IsNullOrEmpty(swapStorage.Warning)) {
+            <div class="convert-warning">@swapStorage.Warning</div>
+        }
     }
 </div>
 
