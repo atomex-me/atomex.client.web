@@ -2,6 +2,7 @@
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
 @inject AccountStorage AccountStorage
 @inject WalletStorage WalletStorage;
+@inject IJSRuntime JSRuntime;
 
 <div class="atomex__page light-background">
     @if (AvailableWallets != null)
@@ -37,7 +38,7 @@
                 <div class="wallets-list__unlock-container @(AccountStorage.WalletLoading ? "loading" : "")">
                     <p>Please enter password to unlock "@AvailableWallets[SelectedWalletIndex]"</p>
                     <Input InputType="password"
-                            InputName="walletPassword"
+                            InputName="storagePassword"
                             Value="@WalletPassword"
                             OnChange="@OnWalletPasswordChange"
                             OnKeyPress="@OnKeyPress"
@@ -66,59 +67,60 @@
 </div>
 
 @code {
-    private string[] AvailableWallets { get; set; }
-    private int SelectedWalletIndex { get; set; }
-    private string WalletPassword { get; set; }
-    private string WalletPasswordError
-    {
-      get => AccountStorage.PasswordIncorrect ? Translations.InvalidPassword : "";
-      set { }
-    }
+  private string[] AvailableWallets { get; set; }
+  private int SelectedWalletIndex { get; set; }
+  private string WalletPassword { get; set; }
+  private string WalletPasswordError
+  {
+    get => AccountStorage.PasswordIncorrect ? Translations.InvalidPassword : "";
+    set { }
+  }
 
-    private async void OnKeyPress(KeyboardEventArgs e)
-    {
-      if (e.Key == "Enter")
-      {
-    await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
-      }
-    }
-
-    private void OnWalletClick(int index)
-    {
-      Console.WriteLine($"{AvailableWallets[index]} {index}");
-      SelectedWalletIndex = index;
-    }
-
-    private void OnWalletPasswordChange(string pass)
-    {
-      WalletPassword = pass;
-      if (AccountStorage.PasswordIncorrect)
-      {
-    AccountStorage.PasswordIncorrect = false;
-      }
-    }
-
-    private void OnCancelClick()
-    {
-      SelectedWalletIndex = -1;
-      WalletPassword = "";
-    }
-
-    private async Task OnUlockClick()
+  private async void OnKeyPress(KeyboardEventArgs e)
+  {
+    if (e.Key == "Enter")
     {
       await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
     }
+  }
 
-    I18nText.Translations Translations = new I18nText.Translations();
-    protected override async Task OnInitializedAsync()
+  private async void OnWalletClick(int index)
+  {
+    Console.WriteLine($"{AvailableWallets[index]} {index}");
+    SelectedWalletIndex = index;
+    await JSRuntime.InvokeVoidAsync("focusPass");
+  }
+
+  private void OnWalletPasswordChange(string pass)
+  {
+    WalletPassword = pass;
+    if (AccountStorage.PasswordIncorrect)
     {
-      AccountStorage.RefreshUI += StateHasChanged;
-      Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-      await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
-
-      IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
-      AvailableWallets = availableWalletsList.ToArray<string>();
-      SelectedWalletIndex = -1;
+      AccountStorage.PasswordIncorrect = false;
     }
+  }
+
+  private void OnCancelClick()
+  {
+    SelectedWalletIndex = -1;
+    WalletPassword = "";
+  }
+
+  private async Task OnUlockClick()
+  {
+    await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
+  }
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    AccountStorage.RefreshUI += StateHasChanged;
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+
+    IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
+    AvailableWallets = availableWalletsList.ToArray<string>();
+    SelectedWalletIndex = -1;
+  }
 }
 

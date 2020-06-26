@@ -12,7 +12,7 @@
 
 <div>
   <div class="wallet-page dark-background">
-      <div class="wallet-page__left-nav dark-background @(WalletStorage.IsUpdating ? "disabled" : "")">
+      <div class="wallet-page__left-nav dark-background @(WalletStorage.IsUpdating || WalletStorage.AllPortfolioUpdating ? "disabled" : "")">
           <div>
             <WalletMenuButton
                 Variant="@WalletSection.Portfolio"
@@ -38,7 +38,9 @@
       <div class="wallet-page__container">
           @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio) {
             <DonutChart />
-
+            <Modal IsOpen="@(WalletStorage.AllPortfolioUpdating)">
+              <AllCurrenciesUpdatingModal />
+            </Modal>
             <WalletDataTable
                 Variant="@WalletDataTable.AvailableVariants.Currencies"
                 CurrenciesData="@WalletStorage.PortfolioData" />

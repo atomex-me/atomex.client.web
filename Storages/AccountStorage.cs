@@ -48,6 +48,7 @@ namespace atomex_frontend.Storages
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
 
+    public bool LoadFromRestore = false;
     public AccountDataRepository ADR;
     private NavigationManager URIHelper;
     public Account Account { get; set; }

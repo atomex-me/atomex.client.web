@@ -1,6 +1,6 @@
  @inject UserStorage UserStorage
  
- <button class="wallet-menu__button @(IsActive ? "active" : "")" @onclick="@handleClick">
+ <button class="wallet-menu__button @(IsActive ? "active" : "")" @onclick="@handleClick" type="button">
    <i class="wallet-menu-icon @(Variant.ToName().ToLower())" />
    <span>
      @Translations[Variant.ToName()]

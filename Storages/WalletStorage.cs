@@ -99,7 +99,11 @@ namespace atomex_frontend.Storages
     public List<Transaction> SelectedCurrencyTransactions
     {
       get => Transactions
-        .Where(kvp => kvp.Key.Contains(SelectedCurrency.Name))
+        .Where(kvp =>
+        {
+          var currName = kvp.Key.Split(Convert.ToChar("/"))[1];
+          return currName == SelectedCurrency.Name;
+        })
         .Select(kvp => kvp.Value)
         .ToList()
         .OrderByDescending(a => a.CreationTime)
@@ -257,6 +261,17 @@ namespace atomex_frontend.Storages
       }
     }
 
+    public bool _allPortfolioUpdating = false;
+    public bool AllPortfolioUpdating
+    {
+      get => this._allPortfolioUpdating;
+      set
+      {
+        this._allPortfolioUpdating = value;
+        this.CallUIRefresh();
+      }
+    }
+
     protected string _warning;
     public string Warning
     {
@@ -330,6 +345,10 @@ namespace atomex_frontend.Storages
         URIHelper.NavigateTo("/wallet");
         accountStorage.WalletLoading = false;
         CurrentWalletSection = WalletSection.Portfolio;
+        if (accountStorage.LoadFromRestore)
+        {
+          await ScanAllCurrencies();
+        }
       }
     }
 
@@ -359,9 +378,12 @@ namespace atomex_frontend.Storages
       return 0.0m;
     }
 
-    public async Task ScanCurrencyAsync(Currency currency)
+    public async Task ScanCurrencyAsync(Currency currency, bool scanningAll = false)
     {
-      IsUpdating = true;
+      if (!scanningAll)
+      {
+        IsUpdating = true;
+      }
       try
       {
         await new HdWalletScanner(accountStorage.Account)
@@ -374,9 +396,19 @@ namespace atomex_frontend.Storages
       }
       finally
       {
-        IsUpdating = false;
+        if (!scanningAll)
+        {
+          IsUpdating = false;
+        }
       }
+    }
 
+    public async Task ScanAllCurrencies()
+    {
+      AllPortfolioUpdating = true;
+      var currencies = accountStorage.Account.Currencies.ToList();
+      await Task.WhenAll(currencies.Select(currency => ScanCurrencyAsync(currency, scanningAll: true)));
+      AllPortfolioUpdating = false;
     }
 
     public async Task UpdatedQuotes()

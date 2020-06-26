@@ -1,0 +1,18 @@
+<div class="modal__container">
+  <div class="dark-background__no-grad modal-title">
+    @Translations.UpdatingPortfolioTitle
+  </div>
+
+  <div class="modal-subtitle">
+    <Loader ClassName="restoring-data" />
+  </div>
+
+</div>
+
+@code {
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+  }
+}

@@ -7,7 +7,7 @@
 
   "RegisterStep1Description": "Please select your wallet type.",
   "RegisterStep2Description": "Please enter a name for your wallet.",
-  "RegisterStep3Description": "Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in in safe place.",
+  "RegisterStep3Description": "Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in safe place.",
   "RegisterStep4Description": "This password can be used for secret key additional protection. To restore a secret key, you will need to enter a mnemonic phrase and this password.",
   "RegisterStep5Description": "This password is used to protect the stored secret keys and will be needed every time you start your wallet application.",
 
@@ -167,5 +167,7 @@
   "SvPriceHasChanged": "Oops, the price has changed during the order sending. Please try again",
   "SvTimeoutReached": "Atomex is not responding for a long time",
   "ActiveSwapsWarning": "You have active swaps.  We don't recommend to close application until swaps completion. Closing the application or sign out may result in loss of funds as a result of the failore of the refund operation.",
-  "Warning": "Warning"
+  "Warning": "Warning",
+  "UpdatingPortfolioTitle": "Restoring wallet data, please wait...",
+  "Loading": "Loading"
 }

@@ -42,24 +42,26 @@
                   <div class="register-row-container">
                     <Input
                       InputType="password"
-                      InputName="derivedKeyPassword1"
+                      InputName="derivedPassword"
                       Value="@RegisterStorage.DerivedKeyPassword1"
                       OnChange="@RegisterStorage.SetDerivedKeyPassword1"
                       InputPlaceholder="@Translations.EnterPasswordPlaceholder" />
+
                   </div>
                 }
                 else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)
                 {
                   <div class="register-row-container">
-                      <Input InputType="password" InputName="storagePassword1" Value="@RegisterStorage.StoragePassword1"
+                      <Input InputType="password" InputName="storagePassword" Value="@RegisterStorage.StoragePassword1"
                           OnChange="@RegisterStorage.SetStoragePassword1"
                           InputPlaceholder="@Translations.EnterPasswordPlaceholder"
                           Error="@(GetStoragePasswordError.Length > 0)" />
 
-                      <Input InputType="password" InputName="storagePassword2" Value="@RegisterStorage.StoragePassword2"
+                      <Input InputType="password" InputName="storagePassword" Value="@RegisterStorage.StoragePassword2"
                           OnChange="@RegisterStorage.SetStoragePassword2"
                           InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
                           Error="@(GetStoragePasswordError.Length > 0)" ErrorDescription="@GetStoragePasswordError" />
+
                       <PasswordStrongness type="@RegisterStorage.StoragePasswordStrongness" />
                   </div>
                 }

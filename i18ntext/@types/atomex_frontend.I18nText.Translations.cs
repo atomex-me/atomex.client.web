@@ -241,6 +241,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Language"</summary>
         public string Language;
 
+        /// <summary>"Loading"</summary>
+        public string Loading;
+
         /// <summary>"Fee"</summary>
         public string MinersFee;
 
@@ -307,7 +310,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"Step 2: Wallet name"</summary>
         public string RegisterStep2Title;
 
-        /// <summary>"Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in in safe place."</summary>
+        /// <summary>"Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in safe place."</summary>
         public string RegisterStep3Description;
 
         /// <summary>"Step 3: Mnemonic phrase"</summary>
@@ -477,6 +480,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Update"</summary>
         public string Update;
+
+        /// <summary>"Restoring wallet data, please wait..."</summary>
+        public string UpdatingPortfolioTitle;
 
         /// <summary>"Use default fee"</summary>
         public string UseDefaultFee;

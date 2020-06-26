@@ -422,6 +422,14 @@
         function signOut(text) {
             window.location.href = "/";
         }
+
+        function focusPass() {
+            setTimeout(() => {
+                try {
+                    document.querySelector('input[name="storagePassword"]').focus();
+                } catch {}
+            }, 100)
+        }
     </script>
 </body>
 

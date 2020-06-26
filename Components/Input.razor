@@ -17,7 +17,8 @@
                @oninput="HandleChange"
                onkeydown="@GetNumberValidator"
                onkeypress="@OnKeyPress"
-               disabled="@Disabled" />
+               disabled="@Disabled"
+               autocomplete="@(InputType == "password" ? "new-password" : "off")" />
         @if(AdditionalRightInfo.Length > 0) {
             <span class="additional-input-info">@AdditionalRightInfo</span>
         }
