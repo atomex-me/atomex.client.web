@@ -54,6 +54,9 @@ app {
     user-select: none;
 }
 
+.flex {
+    display: flex;
+}
 
 .main {
     flex: 1;
@@ -808,7 +811,7 @@ table>thead>tr>th {
 }
 
 .tzbtc {
-    background-image: url('images/tzbtc_90x90_dark.png');
+    background-image: url('images/tzbtc_90x90.png');
 }
 
 .currency-name {
@@ -1061,6 +1064,12 @@ table>thead>tr>th {
     top: 50%;
     transform: translateY(-50%);
     color: var(--medium-gray);
+}
+
+.input-right-button {
+    border-top-right-radius: initial !important;
+    border-bottom-right-radius: initial !important;
+    margin-right: 5px !important;
 }
 
 .modal__container {

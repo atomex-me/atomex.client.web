@@ -7,7 +7,7 @@ namespace atomex_frontend.I18nText
 
         public string this[string key] => global::Toolbelt.Blazor.I18nText.I18nTextExtensions.GetFieldValue(this, key);
 
-        /// <summary>"You have active swaps.  We don&apos;t recommend to close application until swaps completion. Closing the application or sign out may result in loss of funds as a result of the failore of the refund operation."</summary>
+        /// <summary>"You have active swaps. Closing the application or sign out may result in loss of funds as a result of the failure of the refund or redeem operations."</summary>
         public string ActiveSwapsWarning;
 
         /// <summary>"Address"</summary>
@@ -75,6 +75,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Insufficient funds"</summary>
         public string CvInsufficientFunds;
+
+        /// <summary>"Warning: too low fees"</summary>
+        public string CvLowFees;
 
         /// <summary>"The amount must be greater than or equal to the minimum allowed amount {0} {1"</summary>
         public string CvMinimumAllowedQtyWarning;

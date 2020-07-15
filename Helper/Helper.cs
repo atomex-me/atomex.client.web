@@ -8,9 +8,11 @@ using Atomex.Blockchain.Tezos;
 using Atomex.Blockchain.Ethereum;
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.EthereumTokens;
+using Atomex.Core;
 
 using Atomex.TezosTokens;
-using atomex_frontend.Storages;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace atomex_frontend.Common
 {
@@ -73,14 +75,16 @@ namespace atomex_frontend.Common
         var Erc20 = tx.Currency as ERC20;
         var usdtResult = 0m;
 
-        if (tx.Type.HasFlag(BlockchainTransactionType.Input) ||
-            tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ||
+        if (tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ||
             tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
-
           usdtResult += Erc20.TokenDigitsToTokens(tx.Amount);
-
-        else if (tx.Type.HasFlag(BlockchainTransactionType.Output))
-          usdtResult += -Erc20.TokenDigitsToTokens(tx.Amount);
+        else
+        {
+          if (tx.Type.HasFlag(BlockchainTransactionType.Input))
+            usdtResult += Erc20.TokenDigitsToTokens(tx.Amount);
+          if (tx.Type.HasFlag(BlockchainTransactionType.Output))
+            usdtResult += -Erc20.TokenDigitsToTokens(tx.Amount);
+        }
 
         tx.InternalTxs?.ForEach(t => usdtResult += GetTransAmount(t));
         return usdtResult;
@@ -115,20 +119,22 @@ namespace atomex_frontend.Common
     {
       if (tx.Currency is FA12)
       {
-        var Erc20 = tx.Currency as ERC20;
+        var fa12Result = 0m;
 
-        var resultErc20 = 0m;
-
-        if (tx.Type.HasFlag(BlockchainTransactionType.Input) ||
-            tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ||
+        if (tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ||
             tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
-          resultErc20 += tx.Amount.FromTokenDigits(tx.Currency.DigitsMultiplier);
-        else if (tx.Type.HasFlag(BlockchainTransactionType.Output))
-          resultErc20 += -tx.Amount.FromTokenDigits(tx.Currency.DigitsMultiplier);
+          fa12Result += tx.Amount.FromTokenDigits(tx.Currency.DigitsMultiplier);
+        else
+        {
+          if (tx.Type.HasFlag(BlockchainTransactionType.Input))
+            fa12Result += tx.Amount.FromTokenDigits(tx.Currency.DigitsMultiplier);
+          if (tx.Type.HasFlag(BlockchainTransactionType.Output))
+            fa12Result += -tx.Amount.FromTokenDigits(tx.Currency.DigitsMultiplier);
+        }
 
-        tx.InternalTxs?.ForEach(t => resultErc20 += GetTransAmount(t));
+        tx.InternalTxs?.ForEach(t => fa12Result += GetTransAmount(t));
 
-        return resultErc20;
+        return fa12Result;
       }
 
       var result = 0m;
@@ -205,7 +211,7 @@ namespace atomex_frontend.Common
       {
         Description = $"Token swap call";
       }
-      else if (amount < 0) //tx.Type.HasFlag(BlockchainTransactionType.Output))
+      else if (amount <= 0) //tx.Type.HasFlag(BlockchainTransactionType.Output))
       {
         Description = $"Sent {Math.Abs(netAmount).ToString("0." + new String('#', tx.Currency.Digits))} {tx.Currency.Name}";
         return Description;

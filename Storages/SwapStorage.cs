@@ -14,6 +14,7 @@ using Atomex.Subsystems;
 using Atomex.Subsystems.Abstract;
 using Atomex.Swaps;
 using Serilog;
+using Microsoft.JSInterop;
 
 namespace atomex_frontend.Storages
 {
@@ -22,8 +23,10 @@ namespace atomex_frontend.Storages
     public SwapStorage(
       AccountStorage accountStorage,
       WalletStorage walletStorage,
-      Toolbelt.Blazor.I18nText.I18nText I18nText)
+      Toolbelt.Blazor.I18nText.I18nText I18nText,
+      IJSRuntime JSRuntime)
     {
+      this.jSRuntime = JSRuntime;
       this.accountStorage = accountStorage;
       this.walletStorage = walletStorage;
 
@@ -32,6 +35,7 @@ namespace atomex_frontend.Storages
       LoadTranslations(I18nText);
     }
 
+    private IJSRuntime jSRuntime;
     I18nText.Translations Translations = new I18nText.Translations();
     private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
@@ -166,6 +170,8 @@ namespace atomex_frontend.Storages
       set { _warning = value; }
     }
 
+    private long lastIncompletedSwapId;
+
     private static TimeSpan SwapTimeout = TimeSpan.FromSeconds(60);
     private static TimeSpan SwapCheckInterval = TimeSpan.FromSeconds(3);
 
@@ -279,12 +285,34 @@ namespace atomex_frontend.Storages
             .OrderByDescending(sw => sw.TimeStamp.ToUniversalTime());
 
         Console.WriteLine($"Finded {Swaps.Count()} swaps");
+
+        if (args != null)
+        {
+          if (!args.Swap.IsComplete)
+          {
+            lastIncompletedSwapId = args.Swap.Id;
+          }
+          else
+          {
+            if (args.Swap.Id == lastIncompletedSwapId)
+            {
+              var description = $"Converting {AmountHelper.QtyToAmount(args.Swap.Side, args.Swap.Qty, args.Swap.Price, getCurrency(args.Swap.SoldCurrency).DigitsMultiplier)} {args.Swap.SoldCurrency} to {AmountHelper.QtyToAmount(args.Swap.Side.Opposite(), args.Swap.Qty, args.Swap.Price, getCurrency(args.Swap.PurchasedCurrency).DigitsMultiplier)} {args.Swap.PurchasedCurrency} successfully completed";
+              Console.WriteLine(description);
+              jSRuntime.InvokeVoidAsync("showNotification", $"Swap completed", description, null);
+            }
+          }
+        }
         this.CallUIRefresh();
       }
       catch (Exception e)
       {
-        Log.Error(e, "Swaps update error");
+        Log.Error($"Swaps update error {e.ToString()}");
       }
+    }
+
+    private Currency getCurrency(string Currency)
+    {
+      return AccountStorage.Currencies.GetByName(Currency);
     }
 
     private async void UpdateAmount(decimal value, bool force = false)
@@ -303,7 +331,7 @@ namespace atomex_frontend.Storages
         this.CallUIRefresh();
 
         var (maxAmount, maxFee, reserve) = await App.Account
-            .EstimateMaxAmountToSendAsync(FromCurrency.Name, null, BlockchainTransactionType.SwapPayment);
+            .EstimateMaxAmountToSendAsync(FromCurrency.Name, null, BlockchainTransactionType.SwapPayment, 0, 0, true);
 
         var swaps = await App.Account
             .GetSwapsAsync();

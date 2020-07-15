@@ -58,14 +58,18 @@
       Error="@(GetAddressError)" 
       ErrorDescription="@(GetAddressError ? Translations.SvInvalidAddressError : "")" />
 
-    <Input
-      Description="@Translations.Amount" 
-      InputType="number" 
-      InputName="sendAmount" 
-      Value="@Helper.DecimalToStr(walletStorage.SendingAmount)" 
-      OnChange="@SendAmountChange"
-      Theme="dark"
-      AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")" />
+    <div class="flex">
+      <Input
+        Description="@Translations.Amount" 
+        InputType="number" 
+        InputName="sendAmount" 
+        Value="@Helper.DecimalToStr(walletStorage.SendingAmount)" 
+        OnChange="@SendAmountChange"
+        Theme="dark"
+        AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")"
+        WithButton="right" />
+        <NavigateButton Variant="right" OnClick="@walletStorage.OnMaxClick">MAX</NavigateButton>
+    </div>
 
     @if(walletStorage.GetEthreumBasedCurrency) {
       <Input
@@ -134,8 +138,8 @@
       </div>
       <div>
         <span class="send-confirmation__label">with comission:</span>
-        <span class="send-confirmation__coin">@walletStorage.TotalFee <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
-        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency.Name, walletStorage.TotalFee) <span class="currency-code">USD</span>)</span>
+        <span class="send-confirmation__coin">@walletStorage.TotalFee <span class="currency-code">@walletStorage.SelectedCurrency.FeeCurrencyName</span></span>
+        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency.FeeCode, walletStorage.TotalFee) <span class="currency-code">USD</span>)</span>
       </div>
     </div>
   }
@@ -181,13 +185,15 @@
 
   private bool GetFormValid
   {
-    get => walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress) && walletStorage.SendingAmount > 0 && walletStorage.SendingFee > 0;
+    @* get => walletStorage.SendingAmount > 0 && walletStorage.SendingFee > 0; *@
+    get => true;
   }
 
   private bool GetAddressError
   {
-    get => (walletStorage.SendingToAddress.Length > 0 && !walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) ||
-      ((!walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) && (walletStorage.SendingAmount > 0 || walletStorage.SendingFee > 0));
+    @* get => (walletStorage.SendingToAddress.Length > 0 && !walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) ||
+      ((!walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) && (walletStorage.SendingAmount > 0 || walletStorage.SendingFee > 0)); *@
+      get => false;
   }
 
   private States State { get; set; } = States.SendingData;
@@ -288,7 +294,11 @@
   {
     if (State == States.SendingData)
     {
-      State = States.Confirmation;
+      walletStorage.OnNextCommand();
+      if (String.IsNullOrEmpty(walletStorage.Warning))
+      {
+        State = States.Confirmation;
+      }
       return;
     }
     if (State == States.Confirmation)

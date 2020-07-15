@@ -22,6 +22,7 @@ using Atomex.Blockchain;
 using Atomex.Abstract;
 using Atomex.Subsystems.Abstract;
 using Atomex.MarketData;
+using Atomex.Common;
 
 namespace atomex_frontend.Storages
 {
@@ -49,6 +50,8 @@ namespace atomex_frontend.Storages
     }
 
     public bool LoadFromRestore = false;
+
+    private int CURRENT_DB_VERSION = 1;
     public AccountDataRepository ADR;
     private NavigationManager URIHelper;
     public Account Account { get; set; }
@@ -199,9 +202,15 @@ namespace atomex_frontend.Storages
     }
 
     [JSInvokableAttribute("LoadWallet")]
-    public async void LoadWallet(string data)
+    public async void LoadWallet(string data, int dbVersion)
     {
       Console.WriteLine("Loading wallet....");
+
+      if (dbVersion == 0 && CURRENT_DB_VERSION == 1 && CurrentNetwork == Network.TestNet)
+      {
+        await migradeDB_0_TO_1();
+        return;
+      }
 
       var confJson = await httpClient.GetJsonAsync<dynamic>("conf/configuration.json");
       Stream confStream = Common.Helper.GenerateStreamFromString(confJson.ToString());
@@ -232,7 +241,7 @@ namespace atomex_frontend.Storages
           symbolsProvider
         );
       }
-      catch (Exception e)
+      catch (Exception)
       {
         PasswordIncorrect = true;
         Console.WriteLine("Incorrect password");
@@ -396,5 +405,18 @@ namespace atomex_frontend.Storages
 
       Currencies = currenciesProvider.GetCurrencies(CurrentNetwork);
     }
+
+    private async Task migradeDB_0_TO_1()
+    {
+      Console.WriteLine($"Applying migration database to verson {CURRENT_DB_VERSION}.");
+
+      await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
+      await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
+      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
+
+      Console.WriteLine("Migration applied, DB version saved, restarting.");
+      ConnectToWallet(CurrentWalletName, _password).FireAndForget();
+    }
+
   }
 }

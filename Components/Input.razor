@@ -18,6 +18,7 @@
                onkeydown="@GetNumberValidator"
                onkeypress="@OnKeyPress"
                disabled="@Disabled"
+               class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "")"
                autocomplete="@(InputType == "password" ? "new-password" : "off")" />
         @if(AdditionalRightInfo.Length > 0) {
             <span class="additional-input-info">@AdditionalRightInfo</span>
@@ -66,6 +67,9 @@
 
     [Parameter]
     public bool Disabled { get; set; } = false;
+
+    [Parameter]
+    public string WithButton { get; set; }
 
     private string GetNumberValidator
     {

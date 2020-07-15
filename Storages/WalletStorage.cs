@@ -35,13 +35,13 @@ namespace atomex_frontend.Storages
     public WalletStorage(
       AccountStorage accountStorage,
       BakerStorage bakerStorage,
-      IJSRuntime JSRuntime,
       NavigationManager uriHelper,
-      Toolbelt.Blazor.I18nText.I18nText I18nText)
+      Toolbelt.Blazor.I18nText.I18nText I18nText,
+      IJSRuntime JSRuntime)
     {
+      this.jSRuntime = JSRuntime;
       this.accountStorage = accountStorage;
       this.bakerStorage = bakerStorage;
-      this.jSRuntime = JSRuntime;
       this.URIHelper = uriHelper;
 
       this.accountStorage.InitializeCallback += Initialize;
@@ -220,9 +220,12 @@ namespace atomex_frontend.Storages
       get => this._sendingFeePrice;
     }
 
+
+    private decimal _ethTotalFee = 0;
+
     public decimal TotalFee
     {
-      get => this.SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice);
+      get => GetEthreumBasedCurrency ? _ethTotalFee : this.SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice);
     }
 
     private bool _useDefaultFee = true;
@@ -277,6 +280,20 @@ namespace atomex_frontend.Storages
     {
       get => _warning;
       set { _warning = value; }
+    }
+
+    private bool _isFeeUpdating = false;
+    private bool IsFeeUpdating
+    {
+      get => this._isFeeUpdating;
+      set { this._isFeeUpdating = value; this.CallUIRefresh(); }
+    }
+
+    private bool _isAmountUpdating = false;
+    private bool IsAmountUpdating
+    {
+      get => this._isAmountUpdating;
+      set { this._isAmountUpdating = value; this.CallUIRefresh(); }
     }
 
     private bool _forceMarketUpdate = true;
@@ -345,6 +362,11 @@ namespace atomex_frontend.Storages
         URIHelper.NavigateTo("/wallet");
         accountStorage.WalletLoading = false;
         CurrentWalletSection = WalletSection.Portfolio;
+        try
+        {
+          await jSRuntime.InvokeVoidAsync("walletLoaded");
+        }
+        catch { }
         if (accountStorage.LoadFromRestore)
         {
           await ScanAllCurrencies();
@@ -352,13 +374,13 @@ namespace atomex_frontend.Storages
       }
     }
 
-    private async void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
+    private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
     {
       Console.WriteLine($"New Transaction on {e.Transaction.Currency.Name}, HANDLING with id  {e.Transaction.Id}");
 
       handleTransaction(e.Transaction);
       CallUIRefresh();
-      await jSRuntime.InvokeVoidAsync("showNotification", "You have new transaction", $"ID: {e.Transaction.Id}");
+      //await jSRuntime.InvokeVoidAsync("showNotification", "You have new transaction", $"ID: {e.Transaction.Id}");
     }
 
     public decimal GetCurrencyData(Currency currency, string dataType)
@@ -514,24 +536,65 @@ namespace atomex_frontend.Storages
 
     private void GetFreeAddresses(Currency Currency)
     {
-      FromAddressList = FromAddressList.Where(wa => wa.WalletAddress.Currency != Currency.Name).ToList(); // removing old addresses for this currency;
+      FromAddressList = FromAddressList
+                          .Where(wa => wa.WalletAddress.Currency != Currency.Name)
+                          .ToList(); // removing old addresses for this currency;
 
-      var activeAddresses = accountStorage.Account
-          .GetUnspentAddressesAsync(Currency.Name)
-          .WaitForResult();
+      if (Currency is BitcoinBasedCurrency || Currency is FA12 || Currency is ERC20)
+      {
+        var activeAddresses = accountStorage.Account
+            .GetUnspentAddressesAsync(Currency.Name)
+            .WaitForResult();
 
-      var freeAddress = accountStorage.Account
-          .GetFreeExternalAddressAsync(Currency.Name)
-          .WaitForResult();
+        var freeAddress = accountStorage.Account
+            .GetFreeExternalAddressAsync(Currency.Name)
+            .WaitForResult();
 
-      var receiveAddresses = activeAddresses
-          .Select(wa => new WalletAddressView(wa, Currency.Format))
-          .ToList();
+        var receiveAddresses = activeAddresses
+            .Select(wa => new WalletAddressView(wa, Currency.Format))
+            .ToList();
 
-      if (activeAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
-        receiveAddresses.AddEx(new WalletAddressView(freeAddress, Currency.Format, isFreeAddress: true));
+        if (activeAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
+          receiveAddresses.AddEx(new WalletAddressView(freeAddress, Currency.Format, isFreeAddress: true));
 
-      FromAddressList.AddRange(receiveAddresses);
+        FromAddressList.AddRange(receiveAddresses);
+      }
+
+      else if (Currency is Ethereum || Currency is Tezos)
+      {
+        var activeTokenAddresses = accountStorage.Account
+            .GetUnspentTokenAddressesAsync(Currency.Name)
+            .WaitForResult()
+            .ToList();
+
+        var activeAddresses = accountStorage.Account
+            .GetUnspentAddressesAsync(Currency.Name)
+            .WaitForResult()
+            .ToList();
+
+        activeTokenAddresses.ForEach(a => a.Balance = activeAddresses.Find(b => b.Address == a.Address)?.Balance ?? 0m);
+
+        activeAddresses = activeAddresses.Where(a => activeTokenAddresses.FirstOrDefault(b => b.Address == a.Address) == null).ToList();
+
+        var freeAddress = accountStorage.Account
+            .GetFreeExternalAddressAsync(Currency.Name)
+            .WaitForResult();
+
+        var receiveAddresses = activeTokenAddresses.Select(w => new WalletAddressView(w, Currency.Format))
+            .Concat(activeAddresses.Select(w => new WalletAddressView(w, Currency.Format)))
+            .ToList();
+
+        if (receiveAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
+          receiveAddresses.AddEx(new WalletAddressView(freeAddress, Currency.Format, isFreeAddress: true));
+
+        receiveAddresses = receiveAddresses.Select(wa =>
+        {
+          wa.WalletAddress.Currency = Currency.Name;
+          return wa;
+        }).ToList();
+
+        FromAddressList.AddRange(receiveAddresses);
+      }
     }
 
     public async Task DrawDonutChart(bool updateData = false)
@@ -591,13 +654,22 @@ namespace atomex_frontend.Storages
     {
       Transaction oldTx;
       string TxKeyInDict = $"{tx.Id}/{tx.Currency.Name}";
+      var type = tx.Type.HasFlag(BlockchainTransactionType.Input) || tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ? "income" : tx.Type.HasFlag(BlockchainTransactionType.Output) ? "outcome" : "";
       if (Transactions.TryGetValue(TxKeyInDict, out oldTx))
       {
         Transactions[TxKeyInDict] = tx;
+        if (oldTx.State != BlockchainTransactionState.Confirmed && tx.State == BlockchainTransactionState.Confirmed && tx.Amount != 0 && !AllPortfolioUpdating && !IsUpdating)
+        {
+          jSRuntime.InvokeVoidAsync("showNotification", $"{tx.Currency.Description} {type}", tx.Description, $"/css/images/{tx.Currency.Description.ToLower()}_90x90.png");
+        }
       }
       else
       {
         Transactions.Add(TxKeyInDict, tx);
+        if (tx.State == BlockchainTransactionState.Confirmed && tx.Amount != 0 && !AllPortfolioUpdating && !IsUpdating)
+        {
+          jSRuntime.InvokeVoidAsync("showNotification", $"{tx.Currency.Description} {type}", tx.Description, $"/css/images/{tx.Currency.Description.ToLower()}_90x90.png");
+        }
       }
     }
 
@@ -760,120 +832,292 @@ namespace atomex_frontend.Storages
 
     protected async void UpdateSendingAmount(decimal amount)
     {
-      bool TetherOrFa12 = SelectedCurrency is FA12 || SelectedCurrency is Tether;
+      if (IsAmountUpdating)
+        return;
+
 
       if ((SelectedCurrency is FA12 || SelectedCurrency is Tezos) && !SelectedCurrency.IsValidAddress(SendingToAddress))
       {
-        //this.ResetSendData();
         CallUIRefresh();
         return;
       }
 
       Warning = string.Empty;
       var previousAmount = _sendingAmount;
-
       _sendingAmount = amount;
-      this.CallUIRefresh();
 
-      if (UseDefaultFee)
+      // this.CallUIRefresh();
+      IsAmountUpdating = true;
+
+      if (SelectedCurrency is BitcoinBasedCurrency)
       {
-        var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-            .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, true);
-
-        var availableAmount = SelectedCurrency is BitcoinBasedCurrency || TetherOrFa12
-          ? SelectedCurrencyData.Balance
-          : maxAmount + maxFeeAmount;
-
-        var comparableAmount = TetherOrFa12 ? maxAmount : availableAmount;
-
-        var estimatedFeeAmount = _sendingAmount != 0
-            ? (_sendingAmount < comparableAmount
-                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
-                : null)
-            : 0;
-
-        if (estimatedFeeAmount == null)
+        try
         {
-          if (TetherOrFa12)
+          if (UseDefaultFee)
           {
-            if (maxAmount < availableAmount)
-              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
-          }
-          if (maxAmount > 0)
-          {
-            _sendingAmount = maxAmount;
-            estimatedFeeAmount = maxFeeAmount;
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output);
+
+            if (_sendingAmount > maxAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+
+            var availableAmount = SelectedCurrencyData.Balance;
+
+            var estimatedFeeAmount = _sendingAmount != 0
+                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                : 0;
+
+            _sendingFee = estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee();
+            FeeRate = BtcBased.FeeRate;
           }
           else
           {
-            _sendingAmount = previousAmount;
-            this.CallUIRefresh();
-            return;
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output);
+
+            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+                ? SelectedCurrencyData.Balance
+                : maxAmount + maxFeeAmount;
+
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+
+            if (_sendingAmount + feeAmount > availableAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+
+            SendingFee = _sendingFee;
           }
         }
-
-        if (!TetherOrFa12)
+        finally
         {
-          if (_sendingAmount + estimatedFeeAmount.Value > availableAmount)
-            _sendingAmount = Math.Max(availableAmount - estimatedFeeAmount.Value, 0);
-        }
-        else
-        {
-          if (_sendingAmount > availableAmount)
-            _sendingAmount = Math.Max(availableAmount, 0);
-        }
-
-        if (_sendingAmount == 0)
-          estimatedFeeAmount = 0;
-
-        _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount.Value, SelectedCurrency.GetDefaultFeePrice());
-        _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
-
-        if (SelectedCurrency is BitcoinBasedCurrency)
-        {
-          FeeRate = BtcBased.FeeRate;
+          IsAmountUpdating = false;
         }
       }
       else
+
+      if (SelectedCurrency is Ethereum)
       {
-        var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-            .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, false);
-
-        var availableAmount = SelectedCurrency is BitcoinBasedCurrency || TetherOrFa12
-          ? SelectedCurrencyData.Balance
-          : maxAmount + maxFeeAmount;
-
-        var feeAmount = Math.Max(SelectedCurrency.GetFeeAmount(_sendingFee, this._sendingFeePrice), maxFeeAmount);
-
-        if (!TetherOrFa12)
+        try
         {
-          if (_sendingAmount + feeAmount > availableAmount)
+          if (UseDefaultFee)
           {
-            _sendingAmount = Math.Max(availableAmount - feeAmount, 0);
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            _sendingFee = SelectedCurrency.GetDefaultFee();
+
+            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+
+            if (_sendingAmount > maxAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+
+            UpdateTotalFeeString();
+          }
+          else
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+
+            if (_sendingFee < SelectedCurrency.GetDefaultFee() || _sendingFeePrice == 0)
+              Warning = Translations.CvLowFees;
           }
         }
-        else
+        finally
         {
-          if (_sendingAmount > maxAmount)
+          IsAmountUpdating = false;
+        }
+      }
+      else
+
+      if (SelectedCurrency is ERC20)
+      {
+        try
+        {
+          var availableAmount = SelectedCurrencyData.Balance;
+
+          if (UseDefaultFee)
           {
-            if (maxAmount < availableAmount)
-              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
-            _sendingAmount = Math.Max(maxAmount, 0);
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            _sendingFee = SelectedCurrency.GetDefaultFee();
+
+            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+
+            if (_sendingAmount > maxAmount)
+            {
+              if (_sendingAmount <= availableAmount)
+                Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+              else
+                Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+
+            UpdateTotalFeeString();
+          }
+          else
+          {
+            var (maxAmount, _, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              if (_sendingAmount <= availableAmount)
+                Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+              else
+                Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+
+            if (_sendingFee < SelectedCurrency.GetDefaultFee() || _sendingFeePrice == 0)
+              Warning = Translations.CvLowFees;
           }
         }
-
-        if (_sendingFee != 0)
-          SendingFee = _sendingFee;
-
+        finally
+        {
+          IsAmountUpdating = false;
+        }
       }
 
-      this.CallUIRefresh();
+      else if (SelectedCurrency is FA12)
+      {
+        try
+        {
+          var availableAmount = SelectedCurrencyData.Balance;
+          if (UseDefaultFee)
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              if (_sendingAmount <= availableAmount)
+                Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+              else
+                Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+
+            var estimatedFeeAmount = _sendingAmount != 0
+                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                : 0;
+
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee(), SelectedCurrency.GetDefaultFeePrice());
+          }
+          else
+          {
+            var (maxAmount, _, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              if (_sendingAmount <= availableAmount)
+                Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+              else
+                Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+
+            SendingFee = _sendingFee;
+          }
+        }
+        finally
+        {
+          IsAmountUpdating = false;
+        }
+      }
+
+      else
+      {
+        try
+        {
+          if (UseDefaultFee)
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
+
+            if (_sendingAmount > maxAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+
+            var estimatedFeeAmount = _sendingAmount != 0
+                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                : 0;
+
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee(), SelectedCurrency.GetDefaultFeePrice());
+          }
+          else
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+                ? SelectedCurrencyData.Balance
+                : maxAmount + maxFeeAmount;
+
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+
+            if (_sendingAmount > maxAmount || _sendingAmount + feeAmount > availableAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+
+            SendingFee = _sendingFee;
+          }
+        }
+        finally
+        {
+          IsAmountUpdating = false;
+        }
+      }
     }
 
-    protected async Task UpdateSendingFee(decimal fee)
+    protected async void UpdateTotalFeeString(decimal totalFeeAmount = 0)
     {
+      try
+      {
+        var feeAmount = totalFeeAmount > 0
+            ? totalFeeAmount
+            : SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice) > 0
+                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice)
+                : 0;
+
+        if (feeAmount != null)
+          _ethTotalFee = feeAmount.Value;
+      }
+      catch { }
+    }
+
+
+    protected async void UpdateSendingFee(decimal fee)
+    {
+      if (IsFeeUpdating)
+        return;
+
       this._sendingFee = fee;
-      this.CallUIRefresh();
+      // this.CallUIRefresh();
+
       if (_sendingAmount == 0)
       {
         _sendingFee = 0;
@@ -881,14 +1125,24 @@ namespace atomex_frontend.Storages
         return;
       }
 
-      _sendingFee = Math.Min(fee, SelectedCurrency.GetMaximumFee());
+      IsFeeUpdating = true;
 
+      _sendingFee = Math.Min(fee, SelectedCurrency.GetMaximumFee());
+      Warning = string.Empty;
 
       if (SelectedCurrency is BitcoinBasedCurrency)
       {
         try
         {
-          _sendingFee = Math.Min(fee, SelectedCurrency.GetMaximumFee());
+          var availableAmount = SelectedCurrencyData.Balance;
+
+          if (_sendingAmount == 0)
+          {
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice()) > availableAmount)
+              Warning = Translations.CvInsufficientFunds;
+
+            return;
+          }
 
           var estimatedTxSize = await EstimateTxSizeAsync();
 
@@ -897,65 +1151,536 @@ namespace atomex_frontend.Storages
             var minimumFeeSatoshi = BtcBased.GetMinimumFee(estimatedTxSize);
             var minimumFee = BtcBased.SatoshiToCoin(minimumFeeSatoshi);
 
-            if (_sendingFee < minimumFee)
-              _sendingFee = minimumFee;
-
-            var availableAmount = SelectedCurrencyData.Balance;
-
             if (_sendingAmount + _sendingFee > availableAmount)
-              _sendingAmount = Math.Max(availableAmount - _sendingFee, 0);
+            {
+              Warning = Translations.CvInsufficientFunds;
 
-            if (_sendingAmount == 0)
-              _sendingFee = 0;
+              return;
+            }
+            if (_sendingFee < minimumFee)
+              Warning = Translations.CvLowFees;
           }
 
           FeeRate = BtcBased.CoinToSatoshi(_sendingFee) / estimatedTxSize;
-          this.CallUIRefresh();
-          return;
         }
-        catch
+        finally
         {
-          Log.Error($"Error updating Bitcoinbased Fee");
-          this.CallUIRefresh();
-          return;
+          IsFeeUpdating = false;
         }
       }
 
-
-      if (!UseDefaultFee)
+      else if (SelectedCurrency is ERC20)
       {
-        var estimatedFeeAmount = _sendingAmount != 0
-            ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
-            : 0;
-
-        var feeAmount = this.GetEthreumBasedCurrency
-            ? SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice)
-            : _sendingFee;
-
-        if ((feeAmount > estimatedFeeAmount.Value) && !(SelectedCurrency is Tether) && !(SelectedCurrency is FA12))
+        try
         {
-          var (maxAmount, maxFee, _) = await accountStorage.Account
-              .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, true);
-
-          var availableAmount = SelectedCurrency is BitcoinBasedCurrency
-              ? SelectedCurrencyData.Balance
-              : maxAmount + maxFee;
-
-          if (_sendingAmount + feeAmount > availableAmount)
+          if (_sendingAmount == 0)
           {
-            _sendingAmount = Math.Max(availableAmount - feeAmount, 0);
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice) > SelectedCurrencyData.Balance)
+              Warning = Translations.CvInsufficientFunds;
+
+            return;
+          }
+
+          if (_sendingFee < SelectedCurrency.GetDefaultFee())
+          {
+            Warning = Translations.CvLowFees;
+            if (fee == 0)
+            {
+              UpdateTotalFeeString();
+              return;
+            }
+          }
+
+          if (!UseDefaultFee)
+          {
+            var (maxAmount, maxFee, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              var availableAmount = SelectedCurrencyData.Balance;
+
+              if (_sendingAmount <= availableAmount)
+                Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+              else
+                Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+            UpdateTotalFeeString();
           }
         }
-        else if (feeAmount < estimatedFeeAmount.Value)
-
-          _sendingFee = this.GetEthreumBasedCurrency
-            ? SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount.Value, SelectedCurrency.GetDefaultFeePrice())
-            : estimatedFeeAmount.Value;
-
-        if (_sendingAmount == 0)
-          _sendingFee = 0;
+        finally
+        {
+          IsFeeUpdating = false;
+        }
       }
-      this.CallUIRefresh();
+
+      else if (SelectedCurrency is Ethereum)
+      {
+        try
+        {
+          if (_sendingAmount == 0)
+          {
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice) > SelectedCurrencyData.Balance)
+              Warning = Translations.CvInsufficientFunds;
+
+            return;
+          }
+
+          if (_sendingFee < SelectedCurrency.GetDefaultFee())
+          {
+            Warning = Translations.CvLowFees;
+            if (fee == 0)
+            {
+              UpdateTotalFeeString();
+
+              return;
+            }
+          }
+
+          if (!UseDefaultFee)
+          {
+            var (maxAmount, maxFee, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+
+            UpdateTotalFeeString();
+          }
+        }
+        finally
+        {
+          IsFeeUpdating = false;
+        }
+      }
+
+      else if (SelectedCurrency is FA12)
+      {
+        try
+        {
+          if (_sendingAmount == 0)
+          {
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice()) > SelectedCurrencyData.Balance)
+              Warning = Translations.CvInsufficientFunds;
+
+            return;
+          }
+
+          if (!UseDefaultFee)
+          {
+            var availableAmount = SelectedCurrencyData.Balance;
+
+            var (maxAmount, maxAvailableFee, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, decimal.MaxValue, 0, false);
+
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+
+            var estimatedFeeAmount = _sendingAmount != 0
+                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                : 0;
+
+            if (_sendingAmount > maxAmount)
+            {
+              if (_sendingAmount <= availableAmount)
+                Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+              else
+                Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+            else if (estimatedFeeAmount == null || feeAmount < estimatedFeeAmount.Value)
+            {
+              Warning = Translations.CvLowFees;
+            }
+
+            if (feeAmount > maxAvailableFee)
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+          }
+        }
+        finally
+        {
+          IsFeeUpdating = false;
+        }
+      }
+
+      else
+      {
+        try
+        {
+          if (_sendingAmount == 0)
+          {
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice()) > SelectedCurrencyData.Balance)
+              Warning = Translations.CvInsufficientFunds;
+
+            return;
+          }
+
+          if (!UseDefaultFee)
+          {
+            var estimatedFeeAmount = _sendingAmount != 0
+                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                : 0;
+
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+                ? SelectedCurrencyData.Balance
+                : maxAmount + maxFeeAmount;
+
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+
+            if (_sendingAmount + feeAmount > availableAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+
+              return;
+            }
+            else if (estimatedFeeAmount == null || feeAmount < estimatedFeeAmount.Value)
+            {
+              Warning = Translations.CvLowFees;
+            }
+          }
+        }
+        finally
+        {
+          IsFeeUpdating = false;
+        }
+      }
+    }
+
+    public void OnNextCommand()
+    {
+      if (string.IsNullOrEmpty(SendingToAddress))
+      {
+        Warning = Translations.SvEmptyAddressError;
+        return;
+      }
+
+      if (!SelectedCurrency.IsValidAddress(SendingToAddress))
+      {
+        Warning = Translations.SvInvalidAddressError;
+        return;
+      }
+
+      if (SendingAmount <= 0)
+      {
+        Warning = Translations.SvAmountLessThanZeroError;
+        return;
+      }
+
+      if (SendingFee <= 0)
+      {
+        Warning = Translations.SvCommissionLessThanZeroError;
+        return;
+      }
+
+      var isToken = SelectedCurrency.FeeCurrencyName != SelectedCurrency.Name;
+
+      var feeAmount = !isToken ? SelectedCurrency is Ethereum ? SelectedCurrency.GetFeeAmount(SendingFee, SendingFeePrice) : SendingFee : 0;
+
+      if (SendingAmount + feeAmount > SelectedCurrencyData.Balance)
+      {
+        Warning = Translations.SvAvailableFundsError;
+        return;
+      }
+
+      return;
+    }
+
+    public async void OnMaxClick()
+    {
+      if (IsAmountUpdating)
+        return;
+
+      IsAmountUpdating = true;
+
+      Warning = string.Empty;
+
+      if (SelectedCurrency is BitcoinBasedCurrency)
+      {
+        try
+        {
+          if (SelectedCurrencyData.Balance == 0)
+            return;
+
+          if (UseDefaultFee)
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output);
+
+            if (maxAmount > 0)
+              _sendingAmount = maxAmount;
+
+
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, SelectedCurrency.GetDefaultFeePrice());
+
+            FeeRate = BtcBased.FeeRate;
+          }
+          else
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output);
+
+            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+                ? SelectedCurrencyData.Balance
+                : maxAmount + maxFeeAmount;
+
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+
+            if (availableAmount - feeAmount > 0)
+            {
+              _sendingAmount = availableAmount - feeAmount;
+
+              var estimatedFeeAmount = _sendingAmount != 0
+                  ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                  : 0;
+
+              if (estimatedFeeAmount == null || feeAmount < estimatedFeeAmount.Value)
+              {
+                Warning = Translations.CvLowFees;
+                if (_sendingFee == 0)
+                {
+                  _sendingAmount = 0;
+                  return;
+                }
+              }
+            }
+            else
+            {
+              _sendingAmount = 0;
+
+              Warning = Translations.CvInsufficientFunds;
+            }
+          }
+
+          var estimatedTxSize = await EstimateTxSizeAsync();
+          FeeRate = BtcBased.CoinToSatoshi(_sendingFee) / estimatedTxSize;
+        }
+        finally
+        {
+          IsAmountUpdating = false;
+        }
+      }
+
+      else if (SelectedCurrency is ERC20)
+      {
+        try
+        {
+          var availableAmount = SelectedCurrencyData.Balance;
+
+          if (availableAmount == 0)
+            return;
+
+          if (UseDefaultFee)
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            if (maxAmount > 0)
+              _sendingAmount = maxAmount;
+            else if (SelectedCurrencyData.Balance > 0)
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+
+            _sendingFee = SelectedCurrency.GetDefaultFee();
+            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+          }
+          else
+          {
+            if (_sendingFee < SelectedCurrency.GetDefaultFee() || _sendingFeePrice == 0)
+            {
+              Warning = Translations.CvLowFees;
+              if (_sendingFee == 0 || _sendingFeePrice == 0)
+              {
+                _sendingAmount = 0;
+                return;
+              }
+            }
+
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            _sendingAmount = maxAmount;
+
+            if (maxAmount < availableAmount)
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+
+            UpdateTotalFeeString(maxFeeAmount);
+          }
+        }
+        finally
+        {
+          IsAmountUpdating = false;
+        }
+      }
+
+      else if (SelectedCurrency is Ethereum)
+      {
+        try
+        {
+          var availableAmount = SelectedCurrencyData.Balance;
+
+          if (availableAmount == 0)
+            return;
+
+          if (UseDefaultFee)
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            if (maxAmount > 0)
+              _sendingAmount = maxAmount;
+
+            _sendingFee = SelectedCurrency.GetDefaultFee();
+            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+            UpdateTotalFeeString(maxFeeAmount);
+          }
+          else
+          {
+            if (_sendingFee < SelectedCurrency.GetDefaultFee() || _sendingFeePrice == 0)
+            {
+              Warning = Translations.CvLowFees;
+              if (_sendingFee == 0 || _sendingFeePrice == 0)
+              {
+                _sendingAmount = 0;
+                return;
+              }
+            }
+
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            _sendingAmount = maxAmount;
+
+            if (maxAmount == 0 && availableAmount > 0)
+              Warning = Translations.CvInsufficientFunds;
+
+            UpdateTotalFeeString(maxFeeAmount);
+          }
+        }
+        finally
+        {
+          IsAmountUpdating = false;
+        }
+      }
+
+      else if (SelectedCurrency is FA12)
+      {
+        try
+        {
+          var availableAmount = SelectedCurrencyData.Balance;
+
+          if (availableAmount == 0)
+            return;
+
+          if (UseDefaultFee)
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
+
+            if (maxAmount > 0)
+              _sendingAmount = maxAmount;
+            else
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, SelectedCurrency.GetDefaultFeePrice());
+          }
+          else
+          {
+            var (maxAmount, maxFee, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+
+            if (_sendingFee < maxFee)
+            {
+              Warning = Translations.CvLowFees;
+              if (_sendingFee == 0)
+              {
+                _sendingAmount = 0;
+                return;
+              }
+            }
+
+            _sendingAmount = maxAmount;
+
+            var (_, maxAvailableFee, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, decimal.MaxValue, 0, false);
+
+            if (maxAmount < availableAmount || feeAmount > maxAvailableFee)
+              Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+          }
+        }
+        finally
+        {
+          IsAmountUpdating = false;
+        }
+      }
+
+      else
+      {
+        try
+        {
+          if (SelectedCurrencyData.Balance == 0)
+            return;
+
+          if (UseDefaultFee)
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
+
+            if (maxAmount > 0)
+              _sendingAmount = maxAmount;
+
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, SelectedCurrency.GetDefaultFeePrice());
+          }
+          else
+          {
+            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+
+            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+                ? SelectedCurrencyData.Balance
+                : maxAmount + maxFeeAmount;
+
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+
+            if (availableAmount - feeAmount > 0)
+            {
+              _sendingAmount = availableAmount - feeAmount;
+
+              var estimatedFeeAmount = _sendingAmount != 0
+                  ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                  : 0;
+
+              if (estimatedFeeAmount == null || feeAmount < estimatedFeeAmount.Value)
+              {
+                Warning = Translations.CvLowFees;
+                if (_sendingFee == 0)
+                {
+                  _sendingAmount = 0;
+                  return;
+                }
+              }
+            }
+            else
+            {
+              _sendingAmount = 0;
+              Warning = Translations.CvInsufficientFunds;
+            }
+          }
+        }
+        finally
+        {
+          IsAmountUpdating = false;
+        }
+      }
     }
 
 
@@ -991,6 +1716,7 @@ namespace atomex_frontend.Storages
       this.Warning = string.Empty;
       this._sendingAmount = 0;
       this._sendingFee = 0;
+      this._ethTotalFee = 0;
       this._feeRate = 0;
       this._sendingFeePrice = _selectedCurrency.GetDefaultFeePrice();
       this._useDefaultFee = true;
