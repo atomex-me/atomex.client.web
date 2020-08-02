@@ -138,18 +138,15 @@ namespace atomex_frontend.Storages
       get => this._selectedCurrency;
       set
       {
-        if (this._selectedCurrency.Name != value.Name)
+        this._selectedCurrency = value;
+
+        if (CurrentWalletSection == WalletSection.Conversion)
         {
-          this._selectedCurrency = value;
-
-          if (CurrentWalletSection == WalletSection.Conversion)
-          {
-            debounceFirstCurrencySelection.Stop();
-            debounceFirstCurrencySelection.Start();
-          }
-
-          this.ResetSendData();
+          debounceFirstCurrencySelection.Stop();
+          debounceFirstCurrencySelection.Start();
         }
+
+        this.ResetSendData();
       }
     }
 
@@ -339,6 +336,12 @@ namespace atomex_frontend.Storages
             bakerStorage.LoadDelegationInfoAsync().FireAndForget();
           }
           await BalanceUpdatedHandler(args.Currency);
+        };
+
+        accountStorage.AtomexApp.CurrenciesProvider.Updated += (object sender, EventArgs args) =>
+        {
+          SelectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>(SelectedCurrency.Name);
+          _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<Currency>(SelectedSecondCurrency.Name);
         };
 
         accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
@@ -1708,9 +1711,13 @@ namespace atomex_frontend.Storages
       this._sendingAmount = 0;
       this._sendingFee = 0;
       this._ethTotalFee = 0;
-      this._feeRate = 0;
       this._sendingFeePrice = _selectedCurrency.GetDefaultFeePrice();
       this._useDefaultFee = true;
+
+      if (_selectedCurrency is BitcoinBasedCurrency)
+      {
+        this._feeRate = BtcBased.FeeRate;
+      }
       this.CallUIRefresh();
     }
   }
