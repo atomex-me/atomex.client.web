@@ -13,6 +13,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Address"</summary>
         public string Address;
 
+        /// <summary>"Addresses"</summary>
+        public string Addresses;
+
         /// <summary>"Already delegated"</summary>
         public string AlreadyDelagated;
 
@@ -63,6 +66,12 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Converting error"</summary>
         public string ConvertingError;
+
+        /// <summary>"Copy"</summary>
+        public string Copy;
+
+        /// <summary>"Copying the private key to the clipboard may result in the loss of all your coins in the wallet. Are you sure you want to copy the private key for {0}?"</summary>
+        public string CopyPrivateAddrWarning;
 
         /// <summary>"Conversion error. Please contant technical support"</summary>
         public string CvConversionError;
@@ -291,6 +300,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Previous"</summary>
         public string Previous;
+
+        /// <summary>"Private key for {0} successfully copied to clipboard."</summary>
+        public string PrivKeyCopied;
 
         /// <summary>"No tokens"</summary>
         public string PwNoTokens;

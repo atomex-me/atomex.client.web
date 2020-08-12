@@ -291,7 +291,7 @@ var notificationsReady=false;
 function dragTable()
 {
   var p=document.querySelector('.tableFixHead');
-  if (!p)
+  if (!p||p.classList.contains('no-js'))
   {
     return;
   }

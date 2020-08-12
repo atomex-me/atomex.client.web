@@ -56,6 +56,7 @@
                         OnReceiveClick="@ReceiveOpenCloseHandler"
                         OnUpdateClick="@OnUpdateHandler"
                         OnConvertClick="@OnConvertHandler" 
+                        OnAddressesClick="@OnAddressesOpenCloseHandler"
                         CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
                         IsLoading="@WalletStorage.IsUpdating" 
                         IsTezos="@true" />
@@ -67,14 +68,18 @@
                       OnReceiveClick="@ReceiveOpenCloseHandler"
                       OnUpdateClick="@OnUpdateHandler"
                       OnConvertClick="@OnConvertHandler" 
+                      OnAddressesClick="@OnAddressesOpenCloseHandler"
                       CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
-                      IsLoading="@WalletStorage.IsUpdating"/>
-                }                  
+                      IsLoading="@WalletStorage.IsUpdating" />
+                }
                 <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
                     <SendModal OnCancelClick="@SendOpenCloseHandler" />
                 </Modal>
                 <Modal IsOpen="@ReceiveModalOpened" OnClose="@ReceiveOpenCloseHandler">
                     <ReceiveModal OnCancelClick="@ReceiveOpenCloseHandler" />
+                </Modal>
+                <Modal IsOpen="@AddressesModalOpened" OnClose="@OnAddressesOpenCloseHandler">
+                  <AddressesModal OnCancelClick="@OnAddressesOpenCloseHandler" />
                 </Modal>
             </div>
             <WalletDataTable
@@ -182,23 +187,40 @@
 
   private void ConvertOpenCloseHandler()
   {
+    if (!ReceiveModalOpened) CloseModals();
     ConvertModalOpened = !ConvertModalOpened;
   }
 
   private void SendOpenCloseHandler()
   {
-    WalletStorage.ResetSendData();
+    if (!SendModalOpened) WalletStorage.ResetSendData();
     SendModalOpened = !SendModalOpened;
   }
 
   private void ReceiveOpenCloseHandler()
   {
+    if (!ReceiveModalOpened) CloseModals();
     ReceiveModalOpened = !ReceiveModalOpened;
+  }
+
+  private void OnAddressesOpenCloseHandler()
+  {
+    if (!AddressesModalOpened) CloseModals();
+    AddressesModalOpened = !AddressesModalOpened;
   }
 
   private bool SendModalOpened { get; set; } = false;
   private bool ReceiveModalOpened { get; set; } = false;
   private bool ConvertModalOpened { get; set; } = false;
+  private bool AddressesModalOpened { get; set; } = false;
+
+  private void CloseModals()
+  {
+    if (SendModalOpened) SendModalOpened = false;
+    if (ReceiveModalOpened) ReceiveModalOpened = false;
+    if (AddressesModalOpened) AddressesModalOpened = false;
+    if (ConvertModalOpened) ConvertModalOpened = false;
+  }
 
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
@@ -210,6 +232,7 @@
 
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
 
+    WalletStorage.CloseModals += CloseModals;
     WalletStorage.RefreshRequested += StateHasChanged;
     SwapStorage.RefreshRequested += StateHasChanged;
 

@@ -3,7 +3,7 @@
 @inject SwapStorage swapStorage;
 @inject IJSRuntime JSRuntime;
 
-<div class="tableFixHead @(Variant.ToName().ToLower())">
+<div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant==AvailableVariants.Addresses ? "no-js" : "")">
   @if (Variant == AvailableVariants.Transactions && OpenedTx?.Currency.Name == walletStorage.SelectedCurrency.Name) {
     <DetailTxInfo
       OpenedTx="@OpenedTx"
@@ -95,6 +95,41 @@
         }
         </tbody>
       }
+
+      @if (Variant == AvailableVariants.Addresses) {
+        <thead>
+        <tr>
+          <th>Address</th>
+          <th>Path</th>
+          <th>Balance</th>
+          <th>Key</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        @foreach (var address in Addresses) {
+          <tr>
+            <td class="transaction-desc">
+              <a
+                href="@($"{walletStorage.SelectedCurrency.AddressExplorerUri}{address.Address}")"
+                target="_blank">
+                @address.Address
+              </a>
+              <button class="copy-button small" @onclick="@(() => OnCopyAddressClick(address.Address))" type="button" />
+            </td>
+            <td class="transaction-desc">
+              @address.Path
+            </td>
+            <td>
+              @address.Balance
+            </td>
+            <td>
+              <button class="copy-button priv-key" @onclick="@(() => OnCopyPrivateKey.InvokeAsync(address.Address))" type="button" />
+            </td>
+          </tr>
+        }
+        </tbody>
+      }
   </table>
 </div>
 
@@ -111,6 +146,12 @@
   [Parameter]
   public IEnumerable<Swap> SwapsData { get; set; }
 
+  [Parameter]
+  public IEnumerable<AddressInfo> Addresses { get; set; }
+
+  [Parameter]
+  public EventCallback<string> OnCopyPrivateKey { get; set; }
+
   private Currency getCurrency(string Currency)
   {
     return AccountStorage.Currencies.GetByName(Currency);
@@ -120,7 +161,8 @@
   {
     Currencies,
     Transactions,
-    Swaps
+    Swaps,
+    Addresses
   }
 
   private Transaction OpenedTx = null;
@@ -205,6 +247,11 @@
     TX_INFO_BLOCK_HEIGHT.Add("XTZ", 200);
     TX_INFO_BLOCK_HEIGHT.Add("FA12", 200);
     TX_INFO_BLOCK_HEIGHT.Add("TZBTC", 200);
+  }
+
+  private async void OnCopyAddressClick(string address)
+  {
+    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", address);
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)

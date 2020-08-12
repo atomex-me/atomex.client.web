@@ -1,0 +1,143 @@
+@using System.Globalization;
+@using Serilog;
+@inject IJSRuntime JSRuntime;
+@inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
+
+<div class="modal__container">
+  <div class="dark-background__no-grad modal-title">
+    @Translations.Addresses
+  </div>
+
+  @if (Addresses != null && Addresses.Count() > 0 && String.IsNullOrEmpty(ExportPrivKeyAddress)) {
+    <WalletDataTable
+      Variant="@WalletDataTable.AvailableVariants.Addresses"
+      Addresses="@Addresses"
+      OnCopyPrivateKey="@OnCopyPrivateKey" />
+  }
+
+  @if(!String.IsNullOrEmpty(Warning)) {
+    <p class="modal-subtitle">@Translations.PrivKeyCopied.Replace("{0}", ExportPrivKeyAddress)</p>
+    <div class="modal-buttons-container">
+      <NavigateButton Variant="center" OnClick="() => OnCancelClick.InvokeAsync(null)">
+        @Translations.SvOk
+      </NavigateButton>
+    </div>
+  } else if(!String.IsNullOrEmpty(ExportPrivKeyAddress)) {
+    <p class="modal-subtitle">@Translations.CopyPrivateAddrWarning.Replace("{0}", ExportPrivKeyAddress)</p>
+    <div class="modal-buttons-container">
+      <div>
+        <NavigateButton Variant="left" OnClick="handleCancel">
+          @Translations.Cancel
+        </NavigateButton>
+        <NavigateButton Variant="right" OnClick="ExportKey">
+          @Translations.Copy
+        </NavigateButton>
+      </div>
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter]
+  public EventCallback OnCancelClick { get; set; }
+
+  private void handleCancel()
+  {
+    ExportPrivKeyAddress = String.Empty;
+    Warning = String.Empty;
+  }
+
+  private string ExportPrivKeyAddress = String.Empty;
+
+  private void OnCopyPrivateKey(string address)
+  {
+    ExportPrivKeyAddress = address;
+  }
+
+  private Currency _currency => walletStorage.SelectedCurrency;
+
+  private IEnumerable<AddressInfo> Addresses { get; set; }
+
+  private string _warning;
+  public string Warning
+  {
+    get => _warning;
+    set
+    {
+      _warning = value;
+    }
+  }
+  public bool HasWarning => !string.IsNullOrEmpty(Warning);
+
+  public async void Load()
+  {
+    try
+    {
+      var account = accountStorage.Account.GetCurrencyAccount(_currency.Name);
+
+      var addresses = (await account.GetAddressesAsync())
+          .ToList();
+
+      addresses.Sort((a1, a2) =>
+      {
+        var chainResult = a1.KeyIndex.Chain.CompareTo(a2.KeyIndex.Chain);
+
+        return chainResult == 0
+                    ? a1.KeyIndex.Index.CompareTo(a2.KeyIndex.Index)
+                    : chainResult;
+      });
+
+      Addresses = addresses.Select(a => new AddressInfo
+      {
+        Address = a.Address,
+        Path = $"m/44'/{_currency.Bip44Code}/0'/{a.KeyIndex.Chain}/{a.KeyIndex.Index}",
+        Balance = a.Balance.ToString(CultureInfo.InvariantCulture),
+      });
+    }
+    catch (Exception e)
+    {
+      Log.Error(e, "Error while load addresses.");
+    }
+  }
+
+  private async void ExportKey()
+  {
+    try
+    {
+      var walletAddress = await accountStorage.Account
+        .GetAddressAsync(_currency.Name, ExportPrivKeyAddress);
+
+      var hdWallet = accountStorage.Account.Wallet as HdWallet;
+
+      using var privateKey = hdWallet.KeyStorage
+          .GetPrivateKey(_currency, walletAddress.KeyIndex);
+
+      using var unsecuredPrivateKey = privateKey.ToUnsecuredBytes();
+
+      var hex = Hex.ToHexString(unsecuredPrivateKey.Data);
+
+      await JSRuntime.InvokeAsync<string>("copyTextToClipboard", hex);
+
+      Warning = Translations.PrivKeyCopied;
+
+    }
+    catch (Exception e)
+    {
+      Log.Error(e, "Private key export error");
+    }
+    finally
+    {
+      StateHasChanged();
+    }
+  }
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    walletStorage.RefreshRequested += StateHasChanged;
+
+    Load();
+  }
+}

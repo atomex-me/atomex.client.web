@@ -76,6 +76,7 @@
   "Delegating": "Delegating",
   "NoDelegationsFound": "No delegations found",
   "Address": "Address",
+  "Addresses": "Addresses",
   "EstimatedPrice": "Estimated price",
   "EstimatedPaymentFee": "Estimated payment fee",
   "EstimatedRedeemFee": "Estimated redeem fee",
@@ -170,5 +171,8 @@
   "ActiveSwapsWarning": "You have active swaps. Closing the application or sign out may result in loss of funds as a result of the failure of the refund or redeem operations.",
   "Warning": "Warning",
   "UpdatingPortfolioTitle": "Restoring wallet data, please wait...",
-  "Loading": "Loading"
+  "Loading": "Loading",
+  "CopyPrivateAddrWarning": "Copying the private key to the clipboard may result in the loss of all your coins in the wallet. Are you sure you want to copy the private key for {0}?",
+  "Copy": "Copy",
+  "PrivKeyCopied": "Private key for {0} successfully copied to clipboard."
 }

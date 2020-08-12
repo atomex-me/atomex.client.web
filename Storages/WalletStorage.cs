@@ -72,6 +72,12 @@ namespace atomex_frontend.Storages
       RefreshRequested?.Invoke();
     }
 
+    public event Action CloseModals;
+    private void CallCloseModals()
+    {
+      CloseModals?.Invoke();
+    }
+
     public event Action<bool> RefreshMarket;
     private void CallMarketRefresh(bool force = true)
     {
@@ -1718,6 +1724,8 @@ namespace atomex_frontend.Storages
       {
         this._feeRate = BtcBased.FeeRate;
       }
+
+      this.CallCloseModals();
       this.CallUIRefresh();
     }
   }

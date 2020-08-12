@@ -2,4 +2,4 @@
 
 Multi-platform client application for https://github.com/atomex-me
 
-Match https://github.com/atomex-me/atomex.client.wpf/commit/14f41d85f8ba7dc0051007f3c2f0adc395736e96 WPF
+Match https://github.com/atomex-me/atomex.client.wpf/commit/537b807c5a053245b8b7888f2f5a1a71b66400ad WPF

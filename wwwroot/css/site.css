@@ -648,6 +648,16 @@ button:hover {
     height: 205px;
 }
 
+.tableFixHead.addresses {
+    height: auto;
+    max-height: 450px;
+}
+
+.tableFixHead.addresses>table {
+    margin: 0;
+    width: 100%;
+}
+
 .js-resize-height {
     cursor: ns-resize;
 }
@@ -812,6 +822,14 @@ table>thead>tr>th {
 
 .tzbtc {
     background-image: url('images/tzbtc_90x90.png');
+}
+
+.nyx {
+    background-image: url('images/tezos_90x90.png');
+}
+
+.fa2 {
+    background-image: url('images/tezos_90x90.png');
 }
 
 .currency-name {
@@ -1140,10 +1158,21 @@ table>thead>tr>th {
     background-color: inherit;
 }
 
+.copy-button:hover {
+    background-color: rgba(0, 0, 0, 0.0);
+}
+
 .copy-button.small {
     background-size: 17px;
     width: 17px;
     height: 17px;
+}
+
+.copy-button.priv-key {
+    background-size: 17px;
+    width: 17px;
+    height: 17px;
+    background-image: url('icons/key.svg');
 }
 
 .receive-modal-dropdown__container {
