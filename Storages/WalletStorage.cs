@@ -144,6 +144,11 @@ namespace atomex_frontend.Storages
       get => this._selectedCurrency;
       set
       {
+        if (value.Name != this._selectedCurrency.Name)
+        {
+          this.ResetSendData();
+        }
+
         this._selectedCurrency = value;
 
         if (CurrentWalletSection == WalletSection.Conversion)
@@ -151,8 +156,6 @@ namespace atomex_frontend.Storages
           debounceFirstCurrencySelection.Stop();
           debounceFirstCurrencySelection.Start();
         }
-
-        this.ResetSendData();
       }
     }
 
@@ -223,6 +226,13 @@ namespace atomex_frontend.Storages
     public decimal SendingFeePrice
     {
       get => this._sendingFeePrice;
+      set
+      {
+        if (value >= 0)
+        {
+          UpdateFeePrice(value);
+        }
+      }
     }
 
 
@@ -1109,7 +1119,9 @@ namespace atomex_frontend.Storages
                 : 0;
 
         if (feeAmount != null)
+        {
           _ethTotalFee = feeAmount.Value;
+        }
       }
       catch { }
     }
@@ -1118,14 +1130,15 @@ namespace atomex_frontend.Storages
     protected async void UpdateSendingFee(decimal fee)
     {
       if (IsFeeUpdating)
+      {
         return;
+      }
 
       this._sendingFee = fee;
-      // this.CallUIRefresh();
 
       if (_sendingAmount == 0)
       {
-        _sendingFee = 0;
+        // _sendingFee = 0;
         this.CallUIRefresh();
         return;
       }
@@ -1364,6 +1377,99 @@ namespace atomex_frontend.Storages
         finally
         {
           IsFeeUpdating = false;
+        }
+      }
+    }
+
+    private async void UpdateFeePrice(decimal value)
+    {
+      if (IsFeeUpdating)
+        return;
+
+      IsFeeUpdating = true;
+
+      _sendingFeePrice = value;
+
+      Warning = string.Empty;
+
+      if (SelectedCurrency is Ethereum)
+      {
+        try
+        {
+          if (_sendingAmount == 0)
+          {
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice) > SelectedCurrencyData.Balance)
+              Warning = Translations.CvInsufficientFunds;
+            return;
+          }
+
+          if (value == 0)
+          {
+            Warning = Translations.CvLowFees;
+            UpdateTotalFeeString();
+            return;
+          }
+
+          if (!UseDefaultFee)
+          {
+            var (maxAmount, maxFee, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+            UpdateTotalFeeString();
+          }
+        }
+        finally
+        {
+          IsFeeUpdating = false;
+          this.CallUIRefresh();
+        }
+      }
+
+      else if (SelectedCurrency is ERC20)
+      {
+        try
+        {
+          if (_sendingAmount == 0)
+          {
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice) > SelectedCurrencyData.Balance)
+              Warning = Translations.CvInsufficientFunds;
+            return;
+          }
+
+          if (value == 0)
+          {
+            Warning = Translations.CvLowFees;
+            UpdateTotalFeeString();
+            return;
+          }
+
+          if (!UseDefaultFee)
+          {
+            var (maxAmount, maxFee, _) = await accountStorage.Account
+                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+
+            if (_sendingAmount > maxAmount)
+            {
+              var availableAmount = SelectedCurrencyData.Balance;
+
+              if (_sendingAmount <= availableAmount)
+                Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
+              else
+                Warning = Translations.CvInsufficientFunds;
+              return;
+            }
+            UpdateTotalFeeString();
+          }
+        }
+        finally
+        {
+          IsFeeUpdating = false;
+          this.CallUIRefresh();
         }
       }
     }

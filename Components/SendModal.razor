@@ -88,7 +88,7 @@
         InputName="gasLimit"
         Value="@walletStorage.GasLimitString"
         OnChange="@SendGasLimitChange"
-        Disabled="@walletStorage.UseDefaultFee"
+        Disabled="@true"
         AdditionalRightInfo="GAS"
         Theme="dark" />
     }
@@ -180,7 +180,7 @@
 
   private bool GetDefaultFeeDisabled
   {
-    get => walletStorage.SelectedCurrency is Ethereum || walletStorage.SelectedCurrency is Tether;
+    get => false;
   }
 
   private bool GetFormValid
@@ -223,11 +223,14 @@
   private System.Timers.Timer debounceInputAmount;
   private System.Timers.Timer debounceInputFee;
   private System.Timers.Timer debounceInputAddress;
+  private System.Timers.Timer debounceInputGasPrice;
+  private System.Timers.Timer debounceInputGasLimit;
+
   private string SendingAmountString = "0";
   private string SendingFeeString = "0";
-
-
   private string SendingAddress = "";
+  private string GasPrice = "1";
+  private string GasLimit = "0";
 
   private void SendAddressChange(string address)
   {
@@ -277,12 +280,32 @@
 
   private void SendGasPriceChange(string gasPrice)
   {
-    // walletStorage.GasPrice = Helper.StrToDecimal(gasPrice);
+    debounceInputGasPrice.Stop();
+    debounceInputGasPrice.Start();
+    GasPrice = gasPrice;
+  }
+
+  private void OnUserFinishGasPrice(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+    {
+      walletStorage.SendingFeePrice = Helper.StrToDecimal(GasPrice);
+    });
   }
 
   private void SendGasLimitChange(string gasLimit)
   {
-    // walletStorage.GasLimit = Helper.StrToDecimal(gasLimit);
+    debounceInputGasLimit.Stop();
+    debounceInputGasLimit.Start();
+    GasLimit = gasLimit;
+  }
+
+  private void OnUserFinishGasLimit(Object source, ElapsedEventArgs e)
+  {
+    InvokeAsync(() =>
+    {
+      walletStorage.SendingFee = Helper.StrToDecimal(GasLimit);
+    });
   }
 
   private void OnUseDefaultFeeChange(bool value)
@@ -332,6 +355,8 @@
   {
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+    walletStorage.UseDefaultFee = true;
+
     walletStorage.RefreshRequested += StateHasChanged;
 
     debounceInputAmount = new System.Timers.Timer(850);
@@ -345,6 +370,14 @@
     debounceInputAddress = new System.Timers.Timer(850);
     debounceInputAddress.Elapsed += OnUserFinishAddress;
     debounceInputAddress.AutoReset = false;
+
+    debounceInputGasPrice = new System.Timers.Timer(850);
+    debounceInputGasPrice.Elapsed += OnUserFinishGasPrice;
+    debounceInputGasPrice.AutoReset = false;
+
+    debounceInputGasLimit = new System.Timers.Timer(850);
+    debounceInputGasLimit.Elapsed += OnUserFinishGasLimit;
+    debounceInputGasLimit.AutoReset = false;
   }
 
   private enum States
