@@ -28,3 +28,4 @@ build:
     stage: build
     script:
         - "dotnet publish -c Release"
+        - "scp -r /builds/atomex/atomex.client.blazor/bin/Release/netstandard2.1/publish/wwwroot kos@wallet.test.atomex.me:/home/kos"
