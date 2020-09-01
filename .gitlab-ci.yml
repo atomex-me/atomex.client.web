@@ -4,6 +4,8 @@ stages:
     - build
 
 before_script:
+    - "git submodule init"
+    - "git submodule update"
     - "dotnet restore"
 
 build:
