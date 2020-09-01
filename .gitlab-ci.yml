@@ -1,0 +1,12 @@
+image: mcr.microsoft.com/dotnet/core/sdk:3.0
+
+stages:
+    - build
+
+before_script:
+    - "dotnet restore"
+
+build:
+    stage: build
+    script:
+        - "dotnet publish -c Release"

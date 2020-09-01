@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <RazorLangVersion>3.0</RazorLangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +30,7 @@
     <Folder Include="wwwroot\conf\" />
     <Folder Include="wwwroot\css\animations\" />
   </ItemGroup>
+  
   <ItemGroup>
     <Content Remove="Pages\WalletPage.razor" />
     <Content Remove="atomex.client.core\Atomex.Client.Core\currencies.json" />
