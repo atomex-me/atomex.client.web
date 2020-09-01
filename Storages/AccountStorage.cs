@@ -212,8 +212,8 @@ namespace atomex_frontend.Storages
         return;
       }
 
-      var confJson = await httpClient.GetJsonAsync<dynamic>("conf/configuration.json");
-      Stream confStream = Common.Helper.GenerateStreamFromString(confJson.ToString());
+      var confJson = await httpClient.GetAsync("conf/configuration.json");
+      Stream confStream = await confJson.Content.ReadAsStreamAsync();
 
       IConfiguration configuration = new ConfigurationBuilder()
           .AddJsonStream(confStream)

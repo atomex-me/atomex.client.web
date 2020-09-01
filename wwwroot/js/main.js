@@ -36,11 +36,27 @@ function copyTextToClipboard(text)
   }
   navigator.clipboard.writeText(text).then(function ()
   {
+    const MAX_NOTIFICATION_TEXT_LEN=50;
     console.log('Async: Copying to clipboard was successful!');
+    showNotificationInWallet(`Successfully copied ${text.length>MAX_NOTIFICATION_TEXT_LEN? `${text.substring(0,MAX_NOTIFICATION_TEXT_LEN)}...`:text} to clipboard.`)
   },function (err)
   {
     console.error('Async: Could not copy text: ',err);
+    showNotificationInWallet('Could not copy text to clipboard');
   });
+
+}
+
+function showNotificationInWallet(text)
+{
+  const notificationDom=document.querySelector('.notification');
+  if (notificationDom.innerText.length===0)
+  {
+    notificationDom.innerText=text;
+    notificationDom.classList.add('open');
+    setTimeout(() => notificationDom.classList.remove('open'),2500);
+    setTimeout(() => notificationDom.innerText='',3000);
+  }
 }
 
 var dataTypes=[ "WalletAddress","Transaction","Output","Swap","Order" ];

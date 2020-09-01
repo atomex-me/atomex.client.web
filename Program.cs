@@ -6,8 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Blazored.LocalStorage;
 using atomex_frontend.Storages;
-
-using Serilog.Context;
+using System.Net.Http;
 
 namespace atomex_frontend
 {
@@ -18,15 +17,15 @@ namespace atomex_frontend
       var builder = WebAssemblyHostBuilder.CreateDefault(args);
       builder.RootComponents.Add<App>("app");
 
-      builder.Services.AddBaseAddressHttpClient();
+      builder.Services.AddSingleton(new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
       builder.Services.AddI18nText();
       builder.Services.AddBlazoredLocalStorage();
-      builder.Services.AddSingleton<AccountStorage, AccountStorage>();
-      builder.Services.AddSingleton<UserStorage, UserStorage>();
-      builder.Services.AddSingleton<RegisterStorage, RegisterStorage>();
-      builder.Services.AddSingleton<WalletStorage, WalletStorage>();
-      builder.Services.AddSingleton<SwapStorage, SwapStorage>();
-      builder.Services.AddSingleton<BakerStorage, BakerStorage>();
+      builder.Services.AddScoped<AccountStorage, AccountStorage>();
+      builder.Services.AddScoped<UserStorage, UserStorage>();
+      builder.Services.AddScoped<RegisterStorage, RegisterStorage>();
+      builder.Services.AddScoped<WalletStorage, WalletStorage>();
+      builder.Services.AddScoped<SwapStorage, SwapStorage>();
+      builder.Services.AddScoped<BakerStorage, BakerStorage>();
 
       await builder
         .Build()
