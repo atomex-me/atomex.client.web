@@ -890,10 +890,9 @@ namespace atomex_frontend.Storages
                 ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
-
             _sendingFee = estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee();
 
-            FeeRate = BtcBased.FeeRate;
+            FeeRate = await BtcBased.GetFeeRateAsync();
           }
           else
           {
@@ -926,7 +925,7 @@ namespace atomex_frontend.Storages
 
             _sendingFee = SelectedCurrency.GetDefaultFee();
 
-            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+            _sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
 
             if (_sendingAmount > maxAmount)
             {
@@ -971,7 +970,7 @@ namespace atomex_frontend.Storages
 
             _sendingFee = SelectedCurrency.GetDefaultFee();
 
-            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+            _sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
 
             if (_sendingAmount > maxAmount)
             {
@@ -1034,7 +1033,8 @@ namespace atomex_frontend.Storages
                 ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
-            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee(), SelectedCurrency.GetDefaultFeePrice());
+            var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee(), defaultFeePrice);
           }
           else
           {
@@ -1064,6 +1064,8 @@ namespace atomex_frontend.Storages
       {
         try
         {
+          var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+
           if (UseDefaultFee)
           {
             var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
@@ -1079,7 +1081,7 @@ namespace atomex_frontend.Storages
                 ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
-            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee(), SelectedCurrency.GetDefaultFeePrice());
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee(), defaultFeePrice);
           }
           else
           {
@@ -1090,7 +1092,7 @@ namespace atomex_frontend.Storages
                 ? SelectedCurrencyData.Balance
                 : maxAmount + maxFeeAmount;
 
-            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice);
 
             if (_sendingAmount > maxAmount || _sendingAmount + feeAmount > availableAmount)
             {
@@ -1156,7 +1158,9 @@ namespace atomex_frontend.Storages
 
           if (_sendingAmount == 0)
           {
-            if (SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice()) > availableAmount)
+            var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice) > availableAmount)
               Warning = Translations.CvInsufficientFunds;
 
             IsFeeUpdating = true;
@@ -1292,7 +1296,9 @@ namespace atomex_frontend.Storages
         {
           if (_sendingAmount == 0)
           {
-            if (SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice()) > SelectedCurrencyData.Balance)
+            var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice) > SelectedCurrencyData.Balance)
               Warning = Translations.CvInsufficientFunds;
 
             return;
@@ -1305,7 +1311,8 @@ namespace atomex_frontend.Storages
             var (maxAmount, maxAvailableFee, _) = await accountStorage.Account
                 .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, decimal.MaxValue, 0, false);
 
-            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+            var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice);
 
             var estimatedFeeAmount = _sendingAmount != 0
                 ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
@@ -1339,9 +1346,11 @@ namespace atomex_frontend.Storages
       {
         try
         {
+          var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+
           if (_sendingAmount == 0)
           {
-            if (SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice()) > SelectedCurrencyData.Balance)
+            if (SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice) > SelectedCurrencyData.Balance)
               Warning = Translations.CvInsufficientFunds;
 
             return;
@@ -1360,7 +1369,7 @@ namespace atomex_frontend.Storages
                 ? SelectedCurrencyData.Balance
                 : maxAmount + maxFeeAmount;
 
-            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice);
 
             if (_sendingAmount + feeAmount > availableAmount)
             {
@@ -1537,10 +1546,10 @@ namespace atomex_frontend.Storages
             if (maxAmount > 0)
               _sendingAmount = maxAmount;
 
+            var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, defaultFeePrice);
 
-            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, SelectedCurrency.GetDefaultFeePrice());
-
-            FeeRate = BtcBased.FeeRate;
+            FeeRate = await BtcBased.GetFeeRateAsync();
           }
           else // manual fee
           {
@@ -1596,7 +1605,7 @@ namespace atomex_frontend.Storages
               Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
 
             _sendingFee = SelectedCurrency.GetDefaultFee();
-            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+            _sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
           }
           else
           {
@@ -1645,7 +1654,7 @@ namespace atomex_frontend.Storages
               _sendingAmount = maxAmount;
 
             _sendingFee = SelectedCurrency.GetDefaultFee();
-            _sendingFeePrice = SelectedCurrency.GetDefaultFeePrice();
+            _sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
             UpdateTotalFeeString(maxFeeAmount);
           }
           else
@@ -1686,6 +1695,8 @@ namespace atomex_frontend.Storages
           if (availableAmount == 0)
             return;
 
+          var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+
           if (UseDefaultFee)
           {
             var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
@@ -1696,14 +1707,14 @@ namespace atomex_frontend.Storages
             else
               Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
 
-            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, SelectedCurrency.GetDefaultFeePrice());
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, defaultFeePrice);
           }
           else
           {
             var (maxAmount, maxFee, _) = await accountStorage.Account
                 .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
-            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice);
 
             if (_sendingFee < maxFee)
             {
@@ -1737,6 +1748,8 @@ namespace atomex_frontend.Storages
           if (SelectedCurrencyData.Balance == 0)
             return;
 
+          var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+
           if (UseDefaultFee)
           {
             var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
@@ -1745,7 +1758,7 @@ namespace atomex_frontend.Storages
             if (maxAmount > 0)
               _sendingAmount = maxAmount;
 
-            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, SelectedCurrency.GetDefaultFeePrice());
+            _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(maxFeeAmount, defaultFeePrice);
           }
           else
           {
@@ -1756,7 +1769,7 @@ namespace atomex_frontend.Storages
                 ? SelectedCurrencyData.Balance
                 : maxAmount + maxFeeAmount;
 
-            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, SelectedCurrency.GetDefaultFeePrice());
+            var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice);
 
             if (availableAmount - feeAmount > 0)
             {
@@ -1816,22 +1829,22 @@ namespace atomex_frontend.Storages
       }
     }
 
-    public void ResetSendData()
+    public async void ResetSendData()
     {
       this.SendingToAddress = "";
       this.Warning = string.Empty;
       this._sendingAmount = 0;
       this._sendingFee = 0;
       this._ethTotalFee = 0;
-      this._sendingFeePrice = _selectedCurrency.GetDefaultFeePrice();
       this._useDefaultFee = true;
+
+      this.CallCloseModals();
 
       if (_selectedCurrency is BitcoinBasedCurrency)
       {
-        this._feeRate = BtcBased.FeeRate;
+        this._feeRate = await BtcBased.GetFeeRateAsync();
       }
-
-      this.CallCloseModals();
+      this._sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
       this.CallUIRefresh();
     }
   }

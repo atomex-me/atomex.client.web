@@ -253,7 +253,7 @@ namespace atomex_frontend.Storages
 
         _estimatedMaxAmount = orderBook.EstimateMaxAmount(side, FromCurrency.DigitsMultiplier);
 
-        EstimatedRedeemFee = ToCurrency.GetRedeemFee(walletAddress);
+        EstimatedRedeemFee = await ToCurrency.GetRedeemFeeAsync(walletAddress);
 
         _isNoLiquidity = Amount != 0 && _estimatedOrderPrice == 0;
 
@@ -401,10 +401,10 @@ namespace atomex_frontend.Storages
       var walletAddress = await App.Account
           .GetRedeemAddressAsync(ToCurrency.FeeCurrencyName);
 
-      EstimatedRedeemFee = ToCurrency.GetRedeemFee(walletAddress);
+      EstimatedRedeemFee = await ToCurrency.GetRedeemFeeAsync(walletAddress);
 
       RewardForRedeem = walletAddress.AvailableBalance() < EstimatedRedeemFee && !(ToCurrency is BitcoinBasedCurrency)
-          ? ToCurrency.GetRewardForRedeem()
+          ? await ToCurrency.GetRewardForRedeemAsync()
           : 0;
 
       this.CallUIRefresh();
@@ -443,7 +443,7 @@ namespace atomex_frontend.Storages
                 currency: FromCurrency.Name,
                 amount: Amount,
                 fee: 0,
-                feePrice: 0,
+                feePrice: await FromCurrency.GetDefaultFeePriceAsync(),
                 feeUsagePolicy: FeeUsagePolicy.EstimatedFee,
                 addressUsagePolicy: AddressUsagePolicy.UseMinimalBalanceFirst,
                 transactionType: BlockchainTransactionType.SwapPayment))
