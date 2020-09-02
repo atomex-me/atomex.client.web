@@ -1684,14 +1684,16 @@ table>thead>tr>th {
     border-radius: 15px;
     padding: 10px;
     box-shadow: 0 0 10px black;
-    bottom: 65px;
+    bottom: 0;
     right: 50%;
     text-align: center;
     transition: all 0.15s ease-in-out;
-    transform: translate(50%, calc(100% + 65px));
+    transform: translateX(50%);
     z-index: 100;
+    opacity: 0;
 }
 
 .notification.open {
-    transform: translateX(50%);
+    bottom: 65px;
+    opacity: 1;
 }
