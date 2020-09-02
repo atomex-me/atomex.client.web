@@ -1,12 +1,28 @@
-image: mcr.microsoft.com/dotnet/core/sdk:3.0
+image: mcr.microsoft.com/dotnet/core/sdk:3.1.401
+
+variables:
+  DEPLOY_SERVER: "wallet.test.atomex.me"
 
 stages:
     - build
 
 before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh/id_rsa
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+    - "git submodule init"
+    - "git submodule update"
     - "dotnet restore"
 
 build:
     stage: build
     script:
-        - "dotnet publish -c Release"
+        - dotnet publish -c Release
+        - ssh gitlab-ci@$DEPLOY_SERVER "rm -rf /home/gitlab-ci/wwwroot"
+        - "scp -r /builds/atomex/atomex.client.blazor/bin/Release/netstandard2.1/publish/wwwroot gitlab-ci@$DEPLOY_SERVER:/home/gitlab-ci"
+        - ssh gitlab-ci@$DEPLOY_SERVER "rm -rf /home/gitlab-ci/wallet.atomex.me && cp -r /home/gitlab-ci/wwwroot /home/gitlab-ci/wallet.atomex.me"
