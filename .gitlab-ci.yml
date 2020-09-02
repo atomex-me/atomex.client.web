@@ -1,18 +1,13 @@
 image: mcr.microsoft.com/dotnet/core/sdk:3.1.401
 
+variables:
+  DEPLOY_SERVER: "wallet.test.atomex.me"
+
 stages:
     - build
 
 before_script:
-    ##
-    ## Install ssh-agent if not already installed, it is required by Docker.
-    ## (change apt-get to yum if you use an RPM-based image)
-    ##
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client git -y )'
-
-    ##
-    ## Run ssh-agent (inside the build environment)
-    ##
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 700 ~/.ssh/id_rsa
@@ -27,5 +22,7 @@ before_script:
 build:
     stage: build
     script:
-        - "dotnet publish -c Release"
-        - "scp -r /builds/atomex/atomex.client.blazor/bin/Release/netstandard2.1/publish/wwwroot gitlab-ci@wallet.test.atomex.me:/home/gitlab-ci"
+        - dotnet publish -c Release
+        - ssh gitlab-ci@DEPLOY_SERVER "rm -rf /home/gitlab-ci/wwwroot"
+        - "scp -r /builds/atomex/atomex.client.blazor/bin/Release/netstandard2.1/publish/wwwroot gitlab-ci@$DEPLOY_SERVER:/home/gitlab-ci"
+        - ssh gitlab-ci@DEPLOY_SERVER "sudo su && rm -rf /var/www/wallet.atomex.me && cp -r /home/gitlab-ci/wwwroot /var/www/wallet.atomex.me"
