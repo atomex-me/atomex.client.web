@@ -18,7 +18,7 @@ before_script:
     - chmod 700 ~/.ssh/id_rsa
     - eval "$(ssh-agent -s)"
     - ssh-add ~/.ssh/id_rsa
-    - ssh-keyscan -H 'gitlab.com' >> ~/.ssh/known_hosts
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
 
     - "git submodule init"
     - "git submodule update"
@@ -28,4 +28,4 @@ build:
     stage: build
     script:
         - "dotnet publish -c Release"
-        - "scp -r /builds/atomex/atomex.client.blazor/bin/Release/netstandard2.1/publish/wwwroot kos@wallet.test.atomex.me:/home/kos"
+        - "scp -r /builds/atomex/atomex.client.blazor/bin/Release/netstandard2.1/publish/wwwroot gitlab-ci@wallet.test.atomex.me:/home/gitlab-ci"
