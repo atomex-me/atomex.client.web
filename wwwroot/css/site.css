@@ -13,6 +13,10 @@ body {
     user-select: none;
 }
 
+form {
+    width: 100%;
+}
+
 * {
     outline: none !important;
 }
@@ -1696,4 +1700,10 @@ table>thead>tr>th {
 .notification.open {
     bottom: 65px;
     opacity: 1;
+}
+
+.username-hidden {
+    opacity: 0;
+    position: absolute !important;
+    z-index: -1;
 }

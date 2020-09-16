@@ -44,7 +44,8 @@
                             OnKeyPress="@OnKeyPress"
                             InputPlaceholder="@Translations.EnterPasswordPlaceholder"
                             Error="@(WalletPasswordError.Length > 0)"
-                            ErrorDescription="@WalletPasswordError" />
+                            ErrorDescription="@WalletPasswordError"
+                            SavedData="@($"{AvailableWallets[SelectedWalletIndex]} (Storage)")" />
 
                     <div class="buttons-container">
                         <NavigateButton Variant="left"

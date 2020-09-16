@@ -382,3 +382,29 @@ function walletLoaded()
 {
   setTimeout(() => { notificationsReady=true; },15000);
 }
+
+function passwordSaveFormReady()
+{
+  document.querySelector('form').addEventListener('submit',e =>
+  {
+    e.preventDefault();
+    history.pushState({},makeRandomTitle());
+  },true);
+}
+
+function submitPasswordForm()
+{
+  document.querySelector('.js-submitForm').click();
+}
+
+
+function makeRandomTitle()
+{
+  let text="";
+  let possible="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for (let i=0;i<10;i++)
+    text+=possible.charAt(Math.floor(Math.random()*possible.length));
+
+  return text;
+}

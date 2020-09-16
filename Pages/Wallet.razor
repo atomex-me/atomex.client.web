@@ -6,6 +6,7 @@
 @inject SwapStorage SwapStorage;
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager UriHelper;
+@using Serilog;
 
 <div>
   <div class="wallet-page dark-background">
@@ -186,6 +187,8 @@
   {
     if (!ConvertModalOpened) CloseModals();
     ConvertModalOpened = !ConvertModalOpened;
+
+    Log.Error("Test error;");
   }
 
   private void SendOpenCloseHandler()

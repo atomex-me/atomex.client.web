@@ -1,9 +1,16 @@
-﻿@if(!String.IsNullOrEmpty(To)) {
+﻿@inject IJSRuntime JSRuntime;
+
+@if(!String.IsNullOrEmpty(To)) {
     <span class="navigate-button @Variant" disabled="@Disabled">
         <NavLink class="button-link" href="@To">@ChildContent</NavLink>
     </span>
 } else {
-    <button class="navigate-button @Variant" @onclick="OnClick" disabled="@Disabled" type="button">
+    <button
+        class="navigate-button @Variant"
+        @onclick="handleClick"
+        disabled="@Disabled"
+        type="button"
+    >
         @ChildContent
     </button>
 }
@@ -23,4 +30,16 @@
 
     [Parameter]
     public string To { get; set; }
+
+    [Parameter]
+    public bool IsSubmit { get; set; }
+
+    private async void handleClick()
+    {
+      OnClick.InvokeAsync(null).FireAndForget();
+      if (IsSubmit)
+      {
+        await JSRuntime.InvokeVoidAsync("submitPasswordForm");
+      }
+    }
 }

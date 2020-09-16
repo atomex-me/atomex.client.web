@@ -2,6 +2,7 @@
 @inject AccountStorage accountStorage;
 @inject BakerStorage bs;
 @using Serilog;
+@using Serilog.Debugging;
 @using Sentry;
 @using Serilog.Events;
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
@@ -35,20 +36,21 @@
       await localStorage.SetItemAsync("uid", userId);
     }
 
-    //SelfLog.Enable(m => Log.Error(m));
+    SelfLog.Enable(m => Log.Error(m));
+
     Log.Logger = new LoggerConfiguration()
-        .Enrich.FromLogContext()
-        .MinimumLevel.Debug()
-        .WriteTo.Sentry(o =>
-        {
-          o.Dsn = new Dsn("https://6594911b8d25434c9259dcd06858af4a@sentry.baking-bad.org/3");
-          o.MinimumEventLevel = LogEventLevel.Error;
-          o.MinimumBreadcrumbLevel = LogEventLevel.Error;
-          o.AttachStacktrace = true;
-          o.SendDefaultPii = true;
-          o.ServerName = userId;
-        })
-        //.WriteTo.BrowserConsole()
-        .CreateLogger();
+      .Enrich.FromLogContext()
+      .MinimumLevel.Debug()
+      .WriteTo.Sentry(o =>
+      {
+        o.Dsn = new Dsn("http://e97df826880c468ca338e1f33a644031@51.15.15.23:9000/4");
+        o.MinimumEventLevel = LogEventLevel.Error;
+        o.MinimumBreadcrumbLevel = LogEventLevel.Error;
+        o.AttachStacktrace = true;
+        o.SendDefaultPii = true;
+        o.ServerName = userId;
+      })
+      //.WriteTo.BrowserConsole()
+      .CreateLogger();
   }
 }

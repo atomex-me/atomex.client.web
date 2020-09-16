@@ -10,16 +10,32 @@
                 <span>@Description</span>
             </div>
         }
-        <input type="@InputType"
-               value="@Value"
-               placeholder="@InputPlaceholder"
-               name="@InputName"
-               @oninput="HandleChange"
-               onkeydown="@GetNumberValidator"
-               onkeypress="@OnKeyPress"
-               disabled="@Disabled"
-               class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "")"
-               autocomplete="@(InputType == "password" ? "new-password" : "off")" />
+        @if(!String.IsNullOrEmpty(SavedData)) {
+            <Form SaveData="@SavedData">
+                <input type="@InputType"
+                    value="@Value"
+                    placeholder="@InputPlaceholder"
+                    name="@InputName"
+                    @oninput="HandleChange"
+                    onkeydown="@GetNumberValidator"
+                    onkeypress="@OnKeyPress"
+                    disabled="@Disabled"
+                    class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "")"
+                    autocomplete="@(InputType == "password" ? "current-password" : "off")" />
+            </Form>
+        } else {
+            <input type="@InputType"
+                value="@Value"
+                placeholder="@InputPlaceholder"
+                name="@InputName"
+                @oninput="HandleChange"
+                onkeydown="@GetNumberValidator"
+                onkeypress="@OnKeyPress"
+                disabled="@Disabled"
+                class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "")"
+                autocomplete="@(InputType == "password" ? "current-password" : "off")" />
+        }
+
         @if(AdditionalRightInfo.Length > 0) {
             <span class="additional-input-info">@AdditionalRightInfo</span>
         }
@@ -70,6 +86,9 @@
 
     [Parameter]
     public string WithButton { get; set; }
+
+    [Parameter]
+    public string SavedData { get; set; }
 
     private string GetNumberValidator
     {

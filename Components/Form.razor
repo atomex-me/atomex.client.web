@@ -1,0 +1,33 @@
+@inject IJSRuntime JSRuntime;
+
+<form action="#" autocomplete="on">
+  <input
+    id="username"
+    name="username"
+    type="text"
+    autocomplete="username"
+    value="@SaveData"
+    class="username-hidden"
+    tabindex="-1" />
+  @ChildContent
+  <input
+    type="submit"
+    class="js-submitForm"
+    style="display: none;" />
+</form>
+
+@code {
+  [Parameter]
+  public RenderFragment ChildContent { get; set; }
+
+  [Parameter]
+  public string SaveData { get; set; }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await JSRuntime.InvokeVoidAsync("passwordSaveFormReady");
+    }
+  }
+}

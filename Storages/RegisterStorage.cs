@@ -298,7 +298,7 @@ namespace atomex_frontend.Storages
           .FirstOrDefault(x => x.Key == strLang).Value;
     }
 
-    private Atomex.Core.Network GetNetworkCode()
+    public Atomex.Core.Network GetNetworkCode()
     {
       if (SelectedNetType == Nets.MainNet.ToName())
       {

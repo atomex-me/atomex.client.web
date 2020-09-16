@@ -2,6 +2,7 @@
 @inject RegisterStorage RegisterStorage
 @inject UserStorage UserStorage
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@using Atomex.Core
 
 <div class="register dark-background">
   <div class="loading-container">
@@ -39,15 +40,22 @@
               else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
               {
               <div class="register-row-container">
-                  <Input InputType="password" InputName="derivedPassword"
-                      Value="@RegisterStorage.DerivedKeyPassword1" OnChange="@RegisterStorage.SetDerivedKeyPassword1"
+                  <Input
+                      InputType="password"
+                      InputName="derivedPassword1"
+                      Value="@RegisterStorage.DerivedKeyPassword1"
+                      OnChange="@RegisterStorage.SetDerivedKeyPassword1"
                       InputPlaceholder="@Translations.EnterPasswordPlaceholder"
                       Error="@(GetDerivedPasswordError.Length > 0)" />
 
-                  <Input InputType="password" InputName="derivedPassword"
-                      Value="@RegisterStorage.DerivedKeyPassword2" OnChange="@RegisterStorage.SetDerivedKeyPassword2"
+                  <Input
+                      InputType="password"
+                      InputName="derivedPassword2"
+                      Value="@RegisterStorage.DerivedKeyPassword2"
+                      OnChange="@RegisterStorage.SetDerivedKeyPassword2"
                       InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
-                      Error="@(GetDerivedPasswordError.Length > 0)" ErrorDescription="@GetDerivedPasswordError" />
+                      Error="@(GetDerivedPasswordError.Length > 0)"
+                      ErrorDescription="@GetDerivedPasswordError" />
 
                   <PasswordStrongness type="@RegisterStorage.DerivedPasswordStrongness" />
               </div>
@@ -55,15 +63,23 @@
               else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)
               {
               <div class="register-row-container">
-                  <Input InputType="password" InputName="storagePassword" Value="@RegisterStorage.StoragePassword1"
+                  <Input
+                      InputType="password"
+                      InputName="storagePassword1"
+                      Value="@RegisterStorage.StoragePassword1"
                       OnChange="@RegisterStorage.SetStoragePassword1"
                       InputPlaceholder="@Translations.EnterPasswordPlaceholder"
                       Error="@(GetStoragePasswordError.Length > 0)" />
 
-                  <Input InputType="password" InputName="storagePassword" Value="@RegisterStorage.StoragePassword2"
+                  <Input
+                      InputType="password" 
+                      InputName="password"
+                      Value="@RegisterStorage.StoragePassword2"
                       OnChange="@RegisterStorage.SetStoragePassword2"
                       InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
-                      Error="@(GetStoragePasswordError.Length > 0)" ErrorDescription="@GetStoragePasswordError" />
+                      Error="@(GetStoragePasswordError.Length > 0)"
+                      ErrorDescription="@GetStoragePasswordError"
+                      SavedData="@($"{GetWalletName} (Storage)")" />
 
                   <PasswordStrongness type="@RegisterStorage.StoragePasswordStrongness" />
               </div>
@@ -75,8 +91,12 @@
                   <NavigateButton Variant="left" OnClick="RegisterStorage.DecrementCurrentStep">
                     @(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType ? Translations.Cancel : Translations.Previous)
                   </NavigateButton>
-                  <NavigateButton Variant="right" OnClick="RegisterStorage.IncrementCurrentStep"
-                      Disabled="@GetCurrentStepIsError" >
+                  <NavigateButton
+                    Variant="right"
+                    OnClick="RegisterStorage.IncrementCurrentStep"
+                    Disabled="@GetCurrentStepIsError"
+                    IsSubmit="@(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)"  
+                  >
                       @(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword ? Translations.Finish :
                       Translations.Next)
                   </NavigateButton>
@@ -88,6 +108,13 @@
 </div>
 
 @code {
+  private string GetWalletName
+  {
+    get => RegisterStorage.GetNetworkCode() == Atomex.Core.Network.TestNet ?
+      $"[test] {RegisterStorage.WalletName}" :
+      RegisterStorage.WalletName;
+  }
+
   string GetDerivedPasswordError
   {
     get { return PasswordError(RegisterStorage.DerivedPasswordsError); }
