@@ -43,7 +43,7 @@
       .MinimumLevel.Debug()
       .WriteTo.Sentry(o =>
       {
-        o.Dsn = new Dsn("http://e97df826880c468ca338e1f33a644031@51.15.15.23:9000/4");
+        o.Dsn = new Dsn("https://e97df826880c468ca338e1f33a644031@sentry.baking-bad.org/4");
         o.MinimumEventLevel = LogEventLevel.Error;
         o.MinimumBreadcrumbLevel = LogEventLevel.Error;
         o.AttachStacktrace = true;
