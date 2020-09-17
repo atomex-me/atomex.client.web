@@ -147,9 +147,13 @@
 
       using var unsecuredPrivateKey = privateKey.ToUnsecuredBytes();
 
-      var hex = Hex.ToHexString(unsecuredPrivateKey.Data);
+      var pk = _currency is BitcoinBasedCurrency btcBased
+               ? new NBitcoin.Key(unsecuredPrivateKey)
+                        .GetWif(btcBased.Network)
+                        .ToWif()
+               : Hex.ToHexString(unsecuredPrivateKey);
 
-      await JSRuntime.InvokeAsync<string>("copyTextToClipboard", hex);
+      await JSRuntime.InvokeAsync<string>("copyTextToClipboard", pk);
 
       Warning = Translations.PrivKeyCopied;
 
