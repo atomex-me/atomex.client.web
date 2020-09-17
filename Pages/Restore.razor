@@ -12,29 +12,47 @@
         }
         <div class="light-background register-splash @(RegisterStorage.Loading ?  " loading" : "" )">
             <div>
-                <h2 class="text-center">@Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Title"]</h2>
-                <p class="text-center">@Translations[$"RestoreStep{(int)RegisterStorage.CurrentStep}Description"]</p>
+                <h2 class="text-center">
+                  @Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Title"]
+                </h2>
+                <p class="text-center">
+                  @Translations[$"RestoreStep{(int)RegisterStorage.CurrentStep}Description"]
+                </p>
                 @if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType)
                 {
-                <Dropdown OnChange="@RegisterStorage.SetSelectedNetType" Options="@GetNetOptions" Description="Type"
+                  <Dropdown
+                    OnChange="@RegisterStorage.SetSelectedNetType"
+                    Options="@GetNetOptions" Description="Type"
                     CurrentValue="@RegisterStorage.SelectedNetType" />
                 }
                 else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletName)
                 {
-                <Input InputType="text" InputName="walletName" Value="@RegisterStorage.WalletName"
-                    OnChange="@RegisterStorage.SetWalletName" InputPlaceholder="@Translations.EnterWalletName"
-                    Error="@(GetWalletNameError.Length > 0)" ErrorDescription="@GetWalletNameError" />
+                  <Input
+                    InputType="text"
+                    InputName="walletName"
+                    Value="@RegisterStorage.WalletName"
+                    OnChange="@RegisterStorage.SetWalletName"
+                    InputPlaceholder="@Translations.EnterWalletName"
+                    Error="@(GetWalletNameError.Length > 0)"
+                    ErrorDescription="@GetWalletNameError"
+                    DefaultFocus />
                 }
                 else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.MnemonicPhrase)
                 {
                   <div class="register-row-container">
-                    <Dropdown OnChange="@RegisterStorage.SetSelectedLanguage" Options="@GetLangsList"
-                        Description="@Translations.Language" CurrentValue="@GetCurrentMnemonicLang" />
-
-                    <Input InputType="text" InputName="mnemonics" Value="@RegisterStorage.RestoreMnemonic"
-                        OnChange="@RegisterStorage.SetRestoreMnemonic" InputPlaceholder="@Translations.MnemonicPhrase"
-                        Error="@(GetMnemonicError.Length > 0)" ErrorDescription="@GetMnemonicError" />
-                    
+                    <Dropdown
+                      OnChange="@RegisterStorage.SetSelectedLanguage"
+                      Options="@GetLangsList"
+                      Description="@Translations.Language"
+                      CurrentValue="@GetCurrentMnemonicLang" />
+                    <Input
+                      InputType="text"
+                      InputName="mnemonics"
+                      Value="@RegisterStorage.RestoreMnemonic"
+                      OnChange="@RegisterStorage.SetRestoreMnemonic"
+                      InputPlaceholder="@Translations.MnemonicPhrase"
+                      Error="@(GetMnemonicError.Length > 0)"
+                      ErrorDescription="@GetMnemonicError" />
                   </div>
                 }
                 else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
@@ -45,23 +63,30 @@
                       InputName="derivedPassword"
                       Value="@RegisterStorage.DerivedKeyPassword1"
                       OnChange="@RegisterStorage.SetDerivedKeyPassword1"
-                      InputPlaceholder="@Translations.EnterPasswordPlaceholder" />
-
+                      InputPlaceholder="@Translations.EnterPasswordPlaceholder"
+                      DefaultFocus />
                   </div>
                 }
                 else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)
                 {
                   <div class="register-row-container">
-                      <Input InputType="password" InputName="storagePassword" Value="@RegisterStorage.StoragePassword1"
-                          OnChange="@RegisterStorage.SetStoragePassword1"
-                          InputPlaceholder="@Translations.EnterPasswordPlaceholder"
-                          Error="@(GetStoragePasswordError.Length > 0)" />
-
-                      <Input InputType="password" InputName="storagePassword" Value="@RegisterStorage.StoragePassword2"
-                          OnChange="@RegisterStorage.SetStoragePassword2"
-                          InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
-                          Error="@(GetStoragePasswordError.Length > 0)" ErrorDescription="@GetStoragePasswordError" />
-
+                      <Input
+                        InputType="password"
+                        InputName="storagePassword"
+                        Value="@RegisterStorage.StoragePassword1"
+                        OnChange="@RegisterStorage.SetStoragePassword1"
+                        InputPlaceholder="@Translations.EnterPasswordPlaceholder"
+                        Error="@(GetStoragePasswordError.Length > 0)"
+                        DefaultFocus />
+                      <Input
+                        InputType="password"
+                        InputName="storagePassword"
+                        Value="@RegisterStorage.StoragePassword2"
+                        OnChange="@RegisterStorage.SetStoragePassword2"
+                        InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
+                        Error="@(GetStoragePasswordError.Length > 0)"
+                        ErrorDescription="@GetStoragePasswordError"
+                        SavedData="@($"{RegisterStorage.GetWalletName} (Storage)")" />
                       <PasswordStrongness type="@RegisterStorage.StoragePasswordStrongness" />
                   </div>
                 }
@@ -69,12 +94,18 @@
 
             <div>
                 <div class="buttons-container">
-                    <NavigateButton Variant="left" OnClick="RegisterStorage.DecrementCurrentStep" >
-                        @(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType ? Translations.Cancel : Translations.Previous)
+                    <NavigateButton
+                      Variant="left"
+                      OnClick="RegisterStorage.DecrementCurrentStep" >
+                      @(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType ? Translations.Cancel : Translations.Previous)
                     </NavigateButton>
-                    <NavigateButton Variant="right" OnClick="RegisterStorage.RestoreIncrementStep"
-                        Disabled="@GetCurrentStepIsError">
-                        @(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword ? Translations.Restore :
+                    <NavigateButton
+                      Variant="right"
+                      OnClick="RegisterStorage.RestoreIncrementStep"
+                      Disabled="@GetCurrentStepIsError" 
+                      TriggeredByEnter >
+                      @(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword ?
+                        Translations.Restore :
                         Translations.Next)
                     </NavigateButton>
                 </div>

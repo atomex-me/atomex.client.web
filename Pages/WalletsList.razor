@@ -41,19 +41,23 @@
                             InputName="storagePassword"
                             Value="@WalletPassword"
                             OnChange="@OnWalletPasswordChange"
-                            OnKeyPress="@OnKeyPress"
                             InputPlaceholder="@Translations.EnterPasswordPlaceholder"
                             Error="@(WalletPasswordError.Length > 0)"
                             ErrorDescription="@WalletPasswordError"
-                            SavedData="@($"{AvailableWallets[SelectedWalletIndex]} (Storage)")" />
+                            SavedData="@($"{AvailableWallets[SelectedWalletIndex]} (Storage)")"
+                            DefaultFocus />
 
                     <div class="buttons-container">
-                        <NavigateButton Variant="left"
-                                        OnClick="OnCancelClick">
+                        <NavigateButton
+                          Variant="left"
+                          OnClick="OnCancelClick" >
                             @Translations.Cancel
                         </NavigateButton>
-                        <NavigateButton Variant="right"
-                                        OnClick="OnUlockClick">
+                        <NavigateButton
+                          Variant="right"
+                          OnClick="OnUlockClick" 
+                          TriggeredByEnter
+                          Disabled="@(String.IsNullOrEmpty(WalletPassword))">
                             @Translations.Unlock
                         </NavigateButton>
                     </div>
@@ -77,19 +81,18 @@
     set { }
   }
 
-  private async void OnKeyPress(KeyboardEventArgs e)
+  @* private async void OnKeyPress(KeyboardEventArgs e)
   {
     if (e.Key == "Enter")
     {
       await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
     }
-  }
+  } *@
 
-  private async void OnWalletClick(int index)
+  private void OnWalletClick(int index)
   {
     Console.WriteLine($"{AvailableWallets[index]} {index}");
     SelectedWalletIndex = index;
-    await JSRuntime.InvokeVoidAsync("focusPass");
   }
 
   private void OnWalletPasswordChange(string pass)

@@ -1,4 +1,6 @@
-﻿<div class="atomex-input-container atomex-input @Theme @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "") @(Disabled ? "disabled" : "")">
+﻿@inject IJSRuntime JSRuntime;
+
+<div class="atomex-input-container atomex-input @Theme @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "") @(Disabled ? "disabled" : "")">
     <div class="@(Error ? "error-input" : "no-error")">
         @if (InputType == "password")
         {
@@ -18,9 +20,8 @@
                     name="@InputName"
                     @oninput="HandleChange"
                     onkeydown="@GetNumberValidator"
-                    onkeypress="@OnKeyPress"
                     disabled="@Disabled"
-                    class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "")"
+                    class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "") @(DefaultFocus ? "defaultFocus" : "")"
                     autocomplete="@(InputType == "password" ? "current-password" : "off")" />
             </Form>
         } else {
@@ -30,9 +31,8 @@
                 name="@InputName"
                 @oninput="HandleChange"
                 onkeydown="@GetNumberValidator"
-                onkeypress="@OnKeyPress"
                 disabled="@Disabled"
-                class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "")"
+                class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "") @(DefaultFocus ? "defaultFocus" : "")"
                 autocomplete="@(InputType == "password" ? "current-password" : "off")" />
         }
 
@@ -64,9 +64,6 @@
     public EventCallback<string> OnChange { get; set; }
 
     [Parameter]
-    public EventCallback<KeyboardEventArgs> OnKeyPress { get; set; }
-
-    [Parameter]
     public string Value { get; set; }
 
     [Parameter]
@@ -90,14 +87,24 @@
     [Parameter]
     public string SavedData { get; set; }
 
+    [Parameter]
+    public bool DefaultFocus { get; set; } = false;
+
     private string GetNumberValidator
     {
       get => InputType == "number" ? "return event.keyCode !== 69" : "";
     }
 
-
     protected async void HandleChange(ChangeEventArgs evt)
     {
       await OnChange.InvokeAsync(evt.Value.ToString());
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+      if (firstRender && DefaultFocus)
+      {
+    await JSRuntime.InvokeVoidAsync("focusInput", "defaultFocus");
+      }
     }
 }

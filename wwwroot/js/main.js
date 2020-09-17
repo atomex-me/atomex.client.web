@@ -367,16 +367,57 @@ function signOut(text)
   window.location.href="/";
 }
 
-function focusPass()
+function focusInput(targetClassName)
 {
-  setTimeout(() =>
+  try
   {
-    try
-    {
-      document.querySelector('input[name="storagePassword"]').focus();
-    } catch { }
-  },100)
+    document.querySelector(`.${targetClassName}`).focus();
+  } catch (e)
+  {
+    console.error("Unable to find target focusable element.");
+  }
 }
+
+function clickNext(targetClassName)
+{
+  try
+  {
+    let element=document.querySelector(`.${targetClassName}`);
+    if (element.tagName.toUpperCase()!=='BUTTON')
+    {
+      element=element.querySelector("a");
+    }
+
+    element.click();
+  } catch (e)
+  {
+    console.error("Unable to find target clickable element.");
+  }
+}
+
+let bindedHandler;
+function startListenEnterEvent(targetClassName)
+{
+  bindedHandler=enterClickHandler.bind(undefined,targetClassName);
+  document.addEventListener('keypress',bindedHandler,true)
+  console.log("startListenEnterEvent");
+}
+
+function enterClickHandler(targetClassName,event)
+{
+  if (event.key==="Enter")
+  {
+    clickNext(targetClassName);
+    console.log("enterClickHandler");
+  }
+}
+
+function stopListenEnterEvent(targetClassName)
+{
+  document.removeEventListener('keypress',bindedHandler,true);
+  console.log("stopListenEnterEvent");
+}
+
 
 function walletLoaded()
 {

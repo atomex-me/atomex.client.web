@@ -1,16 +1,16 @@
 ﻿@inject IJSRuntime JSRuntime;
+@implements IDisposable
 
 @if(!String.IsNullOrEmpty(To)) {
-    <span class="navigate-button @Variant" disabled="@Disabled">
+    <span class="navigate-button @Variant @(TriggeredByEnter ? "nextButtonClickableByEnter" : "")" disabled="@Disabled">
         <NavLink class="button-link" href="@To">@ChildContent</NavLink>
     </span>
 } else {
     <button
-        class="navigate-button @Variant"
+        class="navigate-button @Variant @(TriggeredByEnter ? "nextButtonClickableByEnter" : "")"
         @onclick="handleClick"
         disabled="@Disabled"
-        type="button"
-    >
+        type="button" >
         @ChildContent
     </button>
 }
@@ -34,12 +34,31 @@
     [Parameter]
     public bool IsSubmit { get; set; }
 
+    [Parameter]
+    public bool TriggeredByEnter { get; set; } = false;
+
     private async void handleClick()
     {
       OnClick.InvokeAsync(null).FireAndForget();
       if (IsSubmit)
       {
-        await JSRuntime.InvokeVoidAsync("submitPasswordForm");
+    await JSRuntime.InvokeVoidAsync("submitPasswordForm");
+      }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+      if (firstRender && TriggeredByEnter)
+      {
+    await JSRuntime.InvokeVoidAsync("startListenEnterEvent", "nextButtonClickableByEnter");
+      }
+    }
+
+    public async void Dispose()
+    {
+      if (TriggeredByEnter)
+      {
+    await JSRuntime.InvokeVoidAsync("stopListenEnterEvent", "nextButtonClickableByEnter");
       }
     }
 }

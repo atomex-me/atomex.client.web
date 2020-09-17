@@ -125,6 +125,13 @@ namespace atomex_frontend.Storages
       set { }
     }
 
+    public string GetWalletName
+    {
+      get => GetNetworkCode() == Atomex.Core.Network.TestNet ?
+        $"[test] {WalletName}" :
+        WalletName;
+    }
+
     public bool Loading { get; set; }
 
     public PasswordErrors DerivedPasswordsError
