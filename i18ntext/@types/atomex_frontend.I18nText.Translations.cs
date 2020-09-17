@@ -16,6 +16,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Addresses"</summary>
         public string Addresses;
 
+        /// <summary>"{0} successfully updated."</summary>
+        public string AddressUpdated;
+
         /// <summary>"Already delegated"</summary>
         public string AlreadyDelagated;
 

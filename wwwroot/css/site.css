@@ -1019,6 +1019,10 @@ table>thead>tr>th {
     z-index: 100;
 }
 
+.modal-window.big {
+    width: 950px;
+}
+
 .no-flex {
     display: block;
 }
@@ -1183,6 +1187,20 @@ table>thead>tr>th {
     width: 17px;
     height: 17px;
     background-image: url('icons/key.svg');
+}
+
+.refresh-address-button {
+    border: none;
+    background-repeat: no-repeat;
+    background-color: inherit;
+    background-size: 17px;
+    width: 17px;
+    height: 17px;
+    background-image: url('icons/refresh.svg');
+}
+
+.refresh-address-button:hover {
+    background-color: rgba(0, 0, 0, 0.0);
 }
 
 .receive-modal-dropdown__container {
@@ -1706,4 +1724,64 @@ table>thead>tr>th {
     opacity: 0;
     position: absolute !important;
     z-index: -1;
+}
+
+@-ms-keyframes spin {
+    from {
+        -ms-transform: rotate(0deg);
+    }
+
+    to {
+        -ms-transform: rotate(360deg);
+    }
+}
+
+@-moz-keyframes spin {
+    from {
+        -moz-transform: rotate(0deg);
+    }
+
+    to {
+        -moz-transform: rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spin {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.rotate {
+    -webkit-animation-name: spin;
+    -webkit-animation-duration: 1000ms;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -moz-animation-name: spin;
+    -moz-animation-duration: 1000ms;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+    -ms-animation-name: spin;
+    -ms-animation-duration: 1000ms;
+    -ms-animation-iteration-count: infinite;
+    -ms-animation-timing-function: linear;
+
+    animation-name: spin;
+    animation-duration: 1000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
 }

@@ -13,7 +13,9 @@
     <WalletDataTable
       Variant="@WalletDataTable.AvailableVariants.Addresses"
       Addresses="@Addresses"
-      OnCopyPrivateKey="@OnCopyPrivateKey" />
+      OnCopyPrivateKey="@OnCopyPrivateKey"
+      OnUpdateAddress="@OnUpdateAddress"
+      UpdatingAddress="@UpdatingAddress" />
   }
 
   @if(!String.IsNullOrEmpty(Warning)) {
@@ -24,7 +26,9 @@
       </NavigateButton>
     </div>
   } else if(!String.IsNullOrEmpty(ExportPrivKeyAddress)) {
-    <p class="modal-subtitle">@Translations.CopyPrivateAddrWarning.Replace("{0}", ExportPrivKeyAddress)</p>
+    <p class="modal-subtitle">
+      @Translations.CopyPrivateAddrWarning.Replace("{0}", ExportPrivKeyAddress)
+    </p>
     <div class="modal-buttons-container">
       <div>
         <NavigateButton Variant="left" OnClick="handleCancel">
@@ -70,7 +74,35 @@
   }
   public bool HasWarning => !string.IsNullOrEmpty(Warning);
 
-  public async void Load()
+  private string UpdatingAddress = String.Empty;
+  private async void OnUpdateAddress(string address)
+  {
+    Console.WriteLine($"Started updating {address}");
+    UpdatingAddress = address;
+    await new HdWalletScanner(accountStorage.Account)
+         .ScanAddressAsync(_currency.Name, address)
+         .ConfigureAwait(false);
+
+    var balance = await accountStorage.Account
+             .GetAddressBalanceAsync(_currency.Name, address)
+             .ConfigureAwait(false);
+
+    foreach (var a in Addresses)
+    {
+      if (a.Address == address)
+      {
+        a.Balance = balance.Available.ToString(CultureInfo.InvariantCulture);
+      }
+    }
+
+    Console.WriteLine($"Ended updating {address}");
+
+    await JSRuntime.InvokeVoidAsync("showNotificationInWallet", Translations.AddressUpdated.Replace("{0}", UpdatingAddress));
+    UpdatingAddress = String.Empty;
+    StateHasChanged();
+  }
+
+  public async Task Load()
   {
     try
     {
@@ -138,6 +170,6 @@
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     walletStorage.RefreshRequested += StateHasChanged;
 
-    Load();
+    Load().FireAndForget();
   }
 }

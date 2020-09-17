@@ -6,6 +6,7 @@
 @inject SwapStorage SwapStorage;
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager UriHelper;
+@using Serilog;
 
 <div>
   <div class="wallet-page dark-background">
@@ -75,7 +76,7 @@
                 <Modal IsOpen="@ReceiveModalOpened" OnClose="@ReceiveOpenCloseHandler">
                     <ReceiveModal OnCancelClick="@ReceiveOpenCloseHandler" />
                 </Modal>
-                <Modal IsOpen="@AddressesModalOpened" OnClose="@OnAddressesOpenCloseHandler">
+                <Modal Big IsOpen="@AddressesModalOpened" OnClose="@OnAddressesOpenCloseHandler">
                   <AddressesModal OnCancelClick="@OnAddressesOpenCloseHandler" />
                 </Modal>
             </div>
