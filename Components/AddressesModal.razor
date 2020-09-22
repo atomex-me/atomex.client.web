@@ -87,14 +87,6 @@
              .GetAddressBalanceAsync(_currency.Name, address)
              .ConfigureAwait(false);
 
-    // foreach (var a in Addresses)
-    //{
-    //  if (a.Address == address)
-    //  {
-    //    a.Balance = balance.Available.ToString(CultureInfo.InvariantCulture);
-    //  }
-    //}
-
     await Load();
 
     Console.WriteLine($"Ended updating {address}");
