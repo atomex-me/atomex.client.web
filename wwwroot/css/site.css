@@ -826,6 +826,14 @@ table>thead>tr>th {
     background-image: url('images/tether_90x90.png');
 }
 
+.tbtc {
+    background-image: url('images/tbtc.svg');
+}
+
+.wbtc {
+    background-image: url('images/wbtc.png');
+}
+
 .fa12 {
     background-image: url('images/fa12_90x90.png');
 }
@@ -922,13 +930,15 @@ table>thead>tr>th {
 }
 
 .currencies-row {
-    margin-top: 25px;
+    margin-top: 15px;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
 }
 
 .currencies-row>* {
     margin-right: 30px;
+    margin-top: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -936,7 +946,7 @@ table>thead>tr>th {
 }
 
 .currencies-row>*:last-child {
-    margin: 0;
+    margin-right: 0;
 }
 
 .currency-card {
@@ -957,6 +967,7 @@ table>thead>tr>th {
 
 .tezos-card__container {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
 }
 
@@ -1573,7 +1584,6 @@ table>thead>tr>th {
 .delegation__title {
     align-self: center;
     flex-basis: 100%;
-    transform: translateY(50%);
     font-family: RobotoRegular;
     font-size: 16px;
     color: var(--medium-gray);

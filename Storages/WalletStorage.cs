@@ -721,6 +721,8 @@ namespace atomex_frontend.Storages
               BtcFee
             ), tx.Currency);
           break;
+        case TBTC _:
+        case WBTC _:
         case Tether _:
           EthereumTransaction usdtTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(usdtTrans);

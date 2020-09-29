@@ -32,12 +32,12 @@
       <div>
         <span class="send-confirmation__label convert">@(Translations.WithPaymentFee):</span>
         <span class="send-confirmation__address">@Helper.DecimalToStr(swapStorage.EstimatedPaymentFee) <span class="currency-code">@swapStorage.FromCurrency.FeeCode</span></span>
-        <span class="send-confirmation__usd">($@Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.FromCurrency.FeeCode, swapStorage.EstimatedPaymentFee)) <span class="currency-code">USD</span>)</span>
+        <span class="send-confirmation__usd">($@Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.FromCurrency.FeeCode, swapStorage.EstimatedPaymentFee), "F2") <span class="currency-code">USD</span>)</span>
       </div>
       <div>
         <span class="send-confirmation__label convert">@(Translations.WithRedeemFee):</span>
         <span class="send-confirmation__address">@Helper.DecimalToStr(swapStorage.EstimatedRedeemFee) <span class="currency-code">@swapStorage.ToCurrency.FeeCode</span></span>
-        <span class="send-confirmation__usd">($@Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.FeeCode, swapStorage.EstimatedRedeemFee)) <span class="currency-code">USD</span>)</span>
+        <span class="send-confirmation__usd">($@Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.FeeCode, swapStorage.EstimatedRedeemFee), "F2") <span class="currency-code">USD</span>)</span>
       </div>
     </div>
 

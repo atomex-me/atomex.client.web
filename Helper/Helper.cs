@@ -8,11 +8,8 @@ using Atomex.Blockchain.Tezos;
 using Atomex.Blockchain.Ethereum;
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.EthereumTokens;
-using Atomex.Core;
 
 using Atomex.TezosTokens;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace atomex_frontend.Common
 {
@@ -70,7 +67,7 @@ namespace atomex_frontend.Common
   {
     public static decimal GetTransAmount(EthereumTransaction tx)
     {
-      if (tx.Currency is Tether)
+      if (tx.Currency is Tether || tx.Currency is TBTC || tx.Currency is WBTC)
       {
         var Erc20 = tx.Currency as ERC20;
         var usdtResult = 0m;

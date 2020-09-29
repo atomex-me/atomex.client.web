@@ -272,7 +272,7 @@ namespace atomex_frontend.Storages
         AtomexApp = new AtomexApp()
             .UseCurrenciesProvider(currenciesProvider)
             .UseSymbolsProvider(symbolsProvider)
-            .UseCurrenciesUpdater(new CurrenciesUpdater(currenciesProvider))
+            // .UseCurrenciesUpdater(new CurrenciesUpdater(currenciesProvider))
             .UseQuotesProvider(new BitfinexQuotesProvider(
                 currencies: currenciesProvider.GetCurrencies(CurrentNetwork),
                 baseCurrency: BitfinexQuotesProvider.Usd))
