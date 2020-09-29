@@ -23,6 +23,8 @@ build:
     stage: build
     script:
         - dotnet publish -c Release
+        - ssh gitlab-ci@$DEPLOY_SERVER "rm -rf /home/gitlab-ci/dump"
+        - ssh gitlab-ci@$DEPLOY_SERVER "mv /home/gitlab-ci/wwwroot /home/gitlab-ci/dump"
         - ssh gitlab-ci@$DEPLOY_SERVER "rm -rf /home/gitlab-ci/wwwroot"
         - "scp -r /builds/atomex/atomex.client.blazor/bin/Release/netstandard2.1/publish/wwwroot gitlab-ci@$DEPLOY_SERVER:/home/gitlab-ci"
         - ssh gitlab-ci@$DEPLOY_SERVER "rm -rf /home/gitlab-ci/wallet.atomex.me && cp -r /home/gitlab-ci/wwwroot /home/gitlab-ci/wallet.atomex.me"
