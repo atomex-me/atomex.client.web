@@ -7,26 +7,35 @@
       @(Label):
     </span>
   }
-  <RoundedContainer OnClick="@OnDropdownClick">
-    <CurrencyModalCard
-      SelectedBaker="@SelectedBaker"
-      SelectedCurrency="@SelectedCurrency"
-      Amount="@(walletStorage.GetCurrencyData(SelectedCurrency, "balance"))" />
+  <div class="relative">
+    <RoundedContainer OnClick="@OnDropdownClick">
+      <CurrencyModalCard
+        SelectedBaker="@SelectedBaker"
+        SelectedCurrency="@SelectedCurrency"
+        Amount="@(walletStorage.GetCurrencyData(SelectedCurrency, "balance"))" />
 
-    @if (IsOpened) {
-      <div class="exchange-dropdown">
-        @foreach (Currency currency in walletStorage.AvailableCurrencies)
-        {
-          if (!IsSecondCurrency || (IsSecondCurrency && GetCurrencyIsConverted(currency))) {
-            <CurrencyModalCard
-              SelectedCurrency="@currency"
-              Amount="@(walletStorage.GetCurrencyData(currency, "balance"))"
-              OnClick="() => OnCurrencyClick(currency)" />
+      @if (IsOpened) {
+        <div class="exchange-dropdown">
+          @foreach (Currency currency in walletStorage.AvailableCurrencies)
+          {
+            if (!IsSecondCurrency || (IsSecondCurrency && GetCurrencyIsConverted(currency))) {
+              <CurrencyModalCard
+                SelectedCurrency="@currency"
+                Amount="@(walletStorage.GetCurrencyData(currency, "balance"))"
+                OnClick="() => OnCurrencyClick(currency)" />
+            }
           }
-        }
-      </div>
+        </div>
+      }
+    </RoundedContainer>
+    @if (WithExchange) {
+      <button
+        class="change-selected-currencies__button"
+        disabled="@(GetCurrencyIsConverted(walletStorage.SelectedSecondCurrency) ? false : true)"
+        @onclick="walletStorage.SwapCurrencies" >
+      </button>
     }
-  </RoundedContainer>
+  </div>
 </div>
 
 @code {
@@ -47,6 +56,9 @@
 
   [Parameter]
   public EventCallback<int> HandleOpen { get; set; }
+
+  [Parameter]
+  public bool WithExchange { get; set; } = false;
 
   private bool GetCurrencyIsConverted(Currency currency)
   {

@@ -1255,7 +1255,7 @@ table>thead>tr>th {
     margin-left: -80px;
 }
 
-.exchange-container>.rounded-dark-container::after {
+.exchange-container .rounded-dark-container::after {
     position: absolute;
     right: 20px;
     top: 29px;
@@ -1269,11 +1269,11 @@ table>thead>tr>th {
     transition: transform .3s;
 }
 
-.exchange-container.opened>.rounded-dark-container::after {
+.exchange-container.opened .rounded-dark-container::after {
     transform: none;
 }
 
-.exchange-container>.rounded-dark-container {
+.exchange-container .rounded-dark-container {
     width: 400px;
     position: relative;
     cursor: pointer;
@@ -1794,4 +1794,26 @@ table>thead>tr>th {
     animation-duration: 1000ms;
     animation-iteration-count: infinite;
     animation-timing-function: linear;
+}
+
+.change-selected-currencies__button {
+    position: absolute;
+    bottom: 25px;
+    right: -10px;
+    transform: translate(100%, 100%);
+    border: none;
+    height: 60px;
+    background-color: var(--dark-input-dark-blue);
+    padding: 10px 20px;
+    border-radius: 20px;
+    color: white;
+    background-image: url(icons/sort.svg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 30px;
+    padding: 30px;
+}
+
+.relative {
+    position: relative;
 }

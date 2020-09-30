@@ -1849,5 +1849,12 @@ namespace atomex_frontend.Storages
       this._sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
       this.CallUIRefresh();
     }
+
+    public void SwapCurrencies()
+    {
+      var firstCurrency = SelectedCurrency;
+      SelectedCurrency = SelectedSecondCurrency;
+      SelectedSecondCurrency = firstCurrency;
+    }
   }
 }
