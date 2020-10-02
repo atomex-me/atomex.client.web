@@ -214,8 +214,8 @@ namespace atomex_frontend.Storages
 
       if ((dbVersion == 0 || dbVersion == 1) && CURRENT_DB_VERSION == 2 && CurrentNetwork == Network.MainNet)
       {
-          await migradeDB_0_OR_1_TO_2();
-          return;
+        await migradeDB_0_OR_1_TO_2();
+        return;
       }
 
       var confJson = await httpClient.GetAsync("conf/configuration.json");
@@ -278,7 +278,8 @@ namespace atomex_frontend.Storages
         AtomexApp = new AtomexApp()
             .UseCurrenciesProvider(currenciesProvider)
             .UseSymbolsProvider(symbolsProvider)
-            // .UseCurrenciesUpdater(new CurrenciesUpdater(currenciesProvider))
+            .UseCurrenciesUpdater(new CurrenciesUpdater(currenciesProvider))
+            .UseSymbolsUpdater(new SymbolsUpdater(symbolsProvider))
             .UseQuotesProvider(new BitfinexQuotesProvider(
                 currencies: currenciesProvider.GetCurrencies(CurrentNetwork),
                 baseCurrency: BitfinexQuotesProvider.Usd))
@@ -426,14 +427,14 @@ namespace atomex_frontend.Storages
 
     private async Task migradeDB_0_OR_1_TO_2()
     {
-        Console.WriteLine($"Applying migration database to verson {CURRENT_DB_VERSION}.");
+      Console.WriteLine($"Applying migration database to verson {CURRENT_DB_VERSION}.");
 
-        await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
-        await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Output.ToName(), CurrentWalletName);
-        await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
+      await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
+      await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Output.ToName(), CurrentWalletName);
+      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
 
-        Console.WriteLine("Migration applied, DB version saved, restarting.");
-        ConnectToWallet(CurrentWalletName, _password).FireAndForget();
+      Console.WriteLine("Migration applied, DB version saved, restarting.");
+      ConnectToWallet(CurrentWalletName, _password).FireAndForget();
     }
   }
 }
