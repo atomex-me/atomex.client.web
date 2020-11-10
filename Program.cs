@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -7,6 +8,7 @@ using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Blazored.LocalStorage;
 using atomex_frontend.Storages;
 using System.Net.Http;
+using Plk.Blazor.DragDrop;
 
 namespace atomex_frontend
 {
@@ -20,6 +22,7 @@ namespace atomex_frontend
       builder.Services.AddSingleton(new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
       builder.Services.AddI18nText();
       builder.Services.AddBlazoredLocalStorage();
+      builder.Services.AddBlazorDragDrop();
       builder.Services.AddScoped<AccountStorage, AccountStorage>();
       builder.Services.AddScoped<UserStorage, UserStorage>();
       builder.Services.AddScoped<RegisterStorage, RegisterStorage>();
@@ -72,6 +75,21 @@ namespace atomex_frontend
       T[] Arr = (T[])Enum.GetValues(src.GetType());
       int j = Array.IndexOf<T>(Arr, src) - 1;
       return (Arr.Length == j) ? Arr[0] : Arr[j];
+    }
+
+    private static Random rng = new Random();
+
+    public static void Shuffle<T>(this IList<T> list)
+    {
+      int n = list.Count;
+      while (n > 1)
+      {
+        n--;
+        int k = rng.Next(n + 1);
+        T value = list[k];
+        list[k] = list[n];
+        list[n] = value;
+      }
     }
   }
 }

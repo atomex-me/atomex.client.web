@@ -17,6 +17,7 @@
     <PackageReference Include="Serilog.Sinks.BrowserConsole" Version="1.0.0-dev-00012" />
     <PackageReference Include="Toolbelt.Blazor.I18nText" Version="9.0.0.3" />
     <PackageReference Include="Toolbelt.Blazor.TimeZoneKit" Version="7.0.0" />
+    <PackageReference Include="blazor-dragdrop" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

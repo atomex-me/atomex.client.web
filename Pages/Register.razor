@@ -2,133 +2,121 @@
 @inject RegisterStorage RegisterStorage
 @inject UserStorage UserStorage
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
-@using Atomex.Core
+@using Plk.Blazor.DragDrop;
 
 <div class="register dark-background">
   <div class="loading-container">
-      @if (RegisterStorage.Loading)
-      {
-      <Loader />}
-      <div class="light-background register-splash @(RegisterStorage.Loading ?  " loading" : "" )">
-          <div>
-              <h2 class="text-center">
-                @Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Title"]
-              </h2>
-              <p class="text-center">
-                @Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Description"]
-              </p>
-              @if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType)
-              {
-                <Dropdown
-                  OnChange="@RegisterStorage.SetSelectedNetType"
-                  Options="@GetNetOptions"
-                  Description="Type"
-                  CurrentValue="@RegisterStorage.SelectedNetType" />
-              }
-              else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletName)
-              {
-                <Input
-                  InputType="text"
-                  InputName="walletName"
-                  Value="@RegisterStorage.WalletName"
-                  OnChange="@RegisterStorage.SetWalletName"
-                  InputPlaceholder="@Translations.EnterWalletName"
-                  Error="@(GetWalletNameError.Length > 0)"
-                  ErrorDescription="@GetWalletNameError"
-                  DefaultFocus />
-              }
-              else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.MnemonicPhrase)
-              {
-                <div class="register-row-container">
-                    <Dropdown
-                      OnChange="@RegisterStorage.SetSelectedLanguage"
-                      Options="@GetLangsList"
-                      Description="@Translations.Language"
-                      CurrentValue="@GetCurrentMnemonicLang" />
-                    <Dropdown
-                      OnChange="@RegisterStorage.SetMnemonicWordCount"
-                      Options="@GetMnemonicWordOptions"
-                      Description="@Translations.WordCount"
-                      CurrentValue="@RegisterStorage.MnemonicWordCount" />
-                    <MnemonicOutput
-                      OnClick="@RegisterStorage.GenerateMnemonic"
-                      MnemonicPhrases="@RegisterStorage.MnemonicString" />
-                </div>
-              }
-              else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
-              {
-              <div class="register-row-container">
-                  <Input
-                      InputType="password"
-                      InputName="derivedPassword1"
-                      Value="@RegisterStorage.DerivedKeyPassword1"
-                      OnChange="@RegisterStorage.SetDerivedKeyPassword1"
-                      InputPlaceholder="@Translations.EnterPasswordPlaceholder"
-                      Error="@(GetDerivedPasswordError.Length > 0)"
-                      DefaultFocus />
-
-                  <Input
-                      InputType="password"
-                      InputName="derivedPassword2"
-                      Value="@RegisterStorage.DerivedKeyPassword2"
-                      OnChange="@RegisterStorage.SetDerivedKeyPassword2"
-                      InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
-                      Error="@(GetDerivedPasswordError.Length > 0)"
-                      ErrorDescription="@GetDerivedPasswordError" />
-
-                  <PasswordStrongness type="@RegisterStorage.DerivedPasswordStrongness" />
-              </div>
-              }
-              else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)
-              {
-              <div class="register-row-container">
-                  <Input
-                      InputType="password"
-                      InputName="storagePassword1"
-                      Value="@RegisterStorage.StoragePassword1"
-                      OnChange="@RegisterStorage.SetStoragePassword1"
-                      InputPlaceholder="@Translations.EnterPasswordPlaceholder"
-                      Error="@(GetStoragePasswordError.Length > 0)"
-                      DefaultFocus />
-
-                  <Input
-                      InputType="password" 
-                      InputName="password"
-                      Value="@RegisterStorage.StoragePassword2"
-                      OnChange="@RegisterStorage.SetStoragePassword2"
-                      InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
-                      Error="@(GetStoragePasswordError.Length > 0)"
-                      ErrorDescription="@GetStoragePasswordError"
-                      SavedData="@($"{RegisterStorage.GetWalletName} (Storage)")" />
-
-                  <PasswordStrongness type="@RegisterStorage.StoragePasswordStrongness" />
-              </div>
-              }
+    @if (RegisterStorage.Loading)
+    {
+      <Loader />
+    }
+    <div class="light-background register-splash @(RegisterStorage.Loading ?  " loading" : "" )">
+      <div>
+        <h2 class="text-center">
+          @Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Title"]
+        </h2>
+        <p class="text-center">
+          @Translations[$"RegisterStep{(int)RegisterStorage.CurrentStep}Description"]
+        </p>
+        @if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType)
+        {
+          <Dropdown OnChange="@RegisterStorage.SetSelectedNetType" Options="@GetNetOptions" Description="Type"
+            CurrentValue="@RegisterStorage.SelectedNetType" />
+        }
+        else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletName)
+        {
+          <Input InputType="text" InputName="walletName" Value="@RegisterStorage.WalletName"
+            OnChange="@RegisterStorage.SetWalletName" InputPlaceholder="@Translations.EnterWalletName"
+            Error="@(GetWalletNameError.Length > 0)" ErrorDescription="@GetWalletNameError" DefaultFocus />
+        }
+        else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.MnemonicPhrase)
+        {
+          <div class="register-row-container">
+            <Dropdown OnChange="@RegisterStorage.SetSelectedLanguage" Options="@GetLangsList"
+              Description="@Translations.Language" CurrentValue="@GetCurrentMnemonicLang" />
+            <Dropdown OnChange="@RegisterStorage.SetMnemonicWordCount" Options="@GetMnemonicWordOptions"
+              Description="@Translations.WordCount" CurrentValue="@RegisterStorage.MnemonicWordCount" />
+            <MnemonicOutput OnClick="@RegisterStorage.GenerateMnemonic"
+              MnemonicPhrases="@RegisterStorage.MnemonicString" />
           </div>
+        }
 
-          <div>
-              <div class="buttons-container">
-                  <NavigateButton
-                    Variant="left"
-                    OnClick="RegisterStorage.DecrementCurrentStep" >
-                    @(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType ? Translations.Cancel : Translations.Previous)
-                  </NavigateButton>
-                  <NavigateButton
-                    Variant="right"
-                    OnClick="RegisterStorage.IncrementCurrentStep"
-                    Disabled="@GetCurrentStepIsError"
-                    IsSubmit="@(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)"
-                    TriggeredByEnter
-                  >
-                      @(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword ? Translations.Finish :
-                      Translations.Next)
-                  </NavigateButton>
-              </div>
-              <Steps
-                NumberSteps="@RegisterStorage.TotalSteps"
-                CurrentStep="@((int)RegisterStorage.CurrentStep)" />
+        else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.ConfirmMnemonic)
+        {
+          <div class="mnemonic-restore__container">
+            @for (int i = 0; i < RegisterStorage.RandomMnemonicStringList.Count(); i++) {
+              int index = i;
+              <span class="mnemonic-word" @onclick="@(() =>RandomMnemonicWordCLick(index))">
+                @RegisterStorage.RandomMnemonicStringList[i]
+              </span>
+            }
           </div>
+          <hr />
+          <Dropzone
+            Items="RegisterStorage.OrderedMnemonicStringList"
+            InstantReplace="true"
+            class="mnemonic-restore__container"
+            OnItemDrop="@((string _)=> StateHasChanged())"
+          >
+            <span class="mnemonic-word" @onclick="@(() => OrderedMnemonicWordCLick(RegisterStorage.OrderedMnemonicStringList.IndexOf(context)))">
+              <span>
+                @(RegisterStorage.OrderedMnemonicStringList.IndexOf(context) + 1)
+              </span>
+              @context
+            </span>
+          </Dropzone>
+          @if (RegisterStorage.OrderedMnemonicStringList.Count() > 0 && !RegisterStorage.OrderedMnemonicCorrect) {
+            <div class="incorrect-words__error">Incorrect order. Please, try again.</div>
+          }
+        }
+        else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
+        {
+          <div class="register-row-container">
+            <Input InputType="password" InputName="derivedPassword1" Value="@RegisterStorage.DerivedKeyPassword1"
+              OnChange="@RegisterStorage.SetDerivedKeyPassword1" InputPlaceholder="@Translations.EnterPasswordPlaceholder"
+              Error="@(GetDerivedPasswordError.Length > 0)" DefaultFocus />
+
+            <Input InputType="password" InputName="derivedPassword2" Value="@RegisterStorage.DerivedKeyPassword2"
+              OnChange="@RegisterStorage.SetDerivedKeyPassword2"
+              InputPlaceholder="@Translations.ConfirmPasswordPlaceholder" Error="@(GetDerivedPasswordError.Length > 0)"
+              ErrorDescription="@GetDerivedPasswordError" />
+
+            <PasswordStrongness type="@RegisterStorage.DerivedPasswordStrongness" />
+          </div>
+        }
+        else if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)
+        {
+          <div class="register-row-container">
+            <Input InputType="password" InputName="storagePassword1" Value="@RegisterStorage.StoragePassword1"
+              OnChange="@RegisterStorage.SetStoragePassword1" InputPlaceholder="@Translations.EnterPasswordPlaceholder"
+              Error="@(GetStoragePasswordError.Length > 0)" DefaultFocus />
+
+            <Input InputType="password" InputName="password" Value="@RegisterStorage.StoragePassword2"
+              OnChange="@RegisterStorage.SetStoragePassword2" InputPlaceholder="@Translations.ConfirmPasswordPlaceholder"
+              Error="@(GetStoragePasswordError.Length > 0)" ErrorDescription="@GetStoragePasswordError"
+              SavedData="@($"{RegisterStorage.GetWalletName} (Storage)")" />
+
+            <PasswordStrongness type="@RegisterStorage.StoragePasswordStrongness" />
+          </div>
+        }
       </div>
+
+      <div>
+        <div class="buttons-container">
+          <NavigateButton Variant="left" OnClick="RegisterStorage.DecrementCurrentStep">
+            @(RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletType ? Translations.Cancel :
+                      Translations.Previous)
+          </NavigateButton>
+          <NavigateButton Variant="right" OnClick="RegisterStorage.IncrementCurrentStep"
+            Disabled="@GetCurrentStepIsError"
+            IsSubmit="@(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)" TriggeredByEnter>
+            @(RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword ? Translations.Finish :
+                      Translations.Next)
+          </NavigateButton>
+        </div>
+        <Steps NumberSteps="@RegisterStorage.TotalSteps" CurrentStep="@((int)RegisterStorage.CurrentStep)" />
+      </div>
+    </div>
   </div>
 </div>
 
@@ -150,8 +138,8 @@
     get
     {
       return RegisterStorage.WalletNameError == RegisterStorage.WalletNameErrors.Empty ?
-          Translations.EmptyWalletName : RegisterStorage.WalletNameError == RegisterStorage.WalletNameErrors.Exist
-          ? Translations.ErrorWalletNameExist : "";
+        Translations.EmptyWalletName : RegisterStorage.WalletNameError == RegisterStorage.WalletNameErrors.Exist
+      ? Translations.ErrorWalletNameExist : "";
     }
     set { }
   }
@@ -173,7 +161,7 @@
     get
     {
       return RegisterStorage.AvailableMnemonicLangs
-      .FirstOrDefault(x => x.Value == RegisterStorage.CurrentMnemonicLang).Key;
+        .FirstOrDefault(x => x.Value == RegisterStorage.CurrentMnemonicLang).Key;
     }
     set { }
   }
@@ -183,11 +171,11 @@
     get
     {
       return new string[] { RegisterStorage.MnemonicWordsAmount.Twelve.ToName(),
-  RegisterStorage.MnemonicWordsAmount.Fifteen.ToName(),
-  RegisterStorage.MnemonicWordsAmount.Eighteen.ToName(),
-  RegisterStorage.MnemonicWordsAmount.TwentyOne.ToName(),
-  RegisterStorage.MnemonicWordsAmount.TwentyFour.ToName()
-  };
+        RegisterStorage.MnemonicWordsAmount.Fifteen.ToName(),
+        RegisterStorage.MnemonicWordsAmount.Eighteen.ToName(),
+        RegisterStorage.MnemonicWordsAmount.TwentyOne.ToName(),
+        RegisterStorage.MnemonicWordsAmount.TwentyFour.ToName()
+      };
     }
     set { }
   }
@@ -198,6 +186,16 @@
     set { }
   }
 
+  private void RandomMnemonicWordCLick(int wordOrder) {
+    RegisterStorage.OrderedMnemonicStringList.Add(RegisterStorage.RandomMnemonicStringList[wordOrder]);
+    RegisterStorage.RandomMnemonicStringList.RemoveAt(wordOrder);
+  }
+
+  private void OrderedMnemonicWordCLick(int wordOrder) {
+    RegisterStorage.RandomMnemonicStringList.Add(RegisterStorage.OrderedMnemonicStringList[wordOrder]);
+    RegisterStorage.OrderedMnemonicStringList.RemoveAt(wordOrder);
+  }  
+
   private bool CurrentStepIsError()
   {
     if (RegisterStorage.CurrentStep == RegisterStorage.Steps.WalletName)
@@ -207,7 +205,8 @@
 
     if (RegisterStorage.CurrentStep == RegisterStorage.Steps.DerivedPassword)
     {
-      if (GetDerivedPasswordError.Length == 0 && RegisterStorage.DerivedKeyPassword1.Length > 0 && RegisterStorage.DerivedKeyPassword2.Length == 0)
+      if (GetDerivedPasswordError.Length == 0 && RegisterStorage.DerivedKeyPassword1.Length > 0 &&
+        RegisterStorage.DerivedKeyPassword2.Length == 0)
       {
         return true;
       }
@@ -216,12 +215,18 @@
 
     if (RegisterStorage.CurrentStep == RegisterStorage.Steps.StoragePassword)
     {
-      return GetStoragePasswordError.Length > 0 || (RegisterStorage.StoragePassword1.Length >= 0 && RegisterStorage.StoragePassword2.Length == 0);
+      return GetStoragePasswordError.Length > 0 || (RegisterStorage.StoragePassword1.Length >= 0 &&
+        RegisterStorage.StoragePassword2.Length == 0);
     }
 
     if (RegisterStorage.CurrentStep == RegisterStorage.Steps.MnemonicPhrase)
     {
       return RegisterStorage.MnemonicString.Length == 0;
+    }
+
+    if (RegisterStorage.CurrentStep == RegisterStorage.Steps.ConfirmMnemonic)
+    {
+      return !RegisterStorage.OrderedMnemonicCorrect;
     }
 
     return false;

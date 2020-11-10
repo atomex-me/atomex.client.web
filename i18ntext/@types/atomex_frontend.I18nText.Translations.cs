@@ -319,13 +319,13 @@ namespace atomex_frontend.I18nText
         /// <summary>"Please select your wallet type."</summary>
         public string RegisterStep1Description;
 
-        /// <summary>"Step 1: Wallet type"</summary>
+        /// <summary>"Шаг 1: Тип кошелька"</summary>
         public string RegisterStep1Title;
 
         /// <summary>"Please enter a name for your wallet."</summary>
         public string RegisterStep2Description;
 
-        /// <summary>"Step 2: Wallet name"</summary>
+        /// <summary>"Шаг 2: Название кошелька"</summary>
         public string RegisterStep2Title;
 
         /// <summary>"Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in safe place."</summary>
@@ -334,17 +334,23 @@ namespace atomex_frontend.I18nText
         /// <summary>"Step 3: Mnemonic phrase"</summary>
         public string RegisterStep3Title;
 
-        /// <summary>"This password can be used for secret key additional protection. To restore a secret key, you will need to enter a mnemonic phrase and this password."</summary>
+        /// <summary>"This is your mnemonic phrase words in random order. Please re-arrange words to their original order by clicking and drag&apos;n&apos;drop."</summary>
         public string RegisterStep4Description;
 
-        /// <summary>"Step 4: Derived key password (optional)"</summary>
+        /// <summary>"Step 4: Mnemonic confirm"</summary>
         public string RegisterStep4Title;
 
-        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start your wallet application."</summary>
+        /// <summary>"This password can be used for secret key additional protection. To restore a secret key, you will need to enter a mnemonic phrase and this password."</summary>
         public string RegisterStep5Description;
 
-        /// <summary>"Step 5: Storage password"</summary>
+        /// <summary>"Step 5: Derived key password (optional)"</summary>
         public string RegisterStep5Title;
+
+        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start your wallet application."</summary>
+        public string RegisterStep6Description;
+
+        /// <summary>"Step 6: Storage password"</summary>
+        public string RegisterStep6Title;
 
         /// <summary>"Restore"</summary>
         public string Restore;

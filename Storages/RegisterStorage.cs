@@ -88,6 +88,7 @@ namespace atomex_frontend.Storages
       WalletType = 1,
       WalletName,
       MnemonicPhrase,
+      ConfirmMnemonic,
       DerivedPassword,
       StoragePassword
     }
@@ -118,7 +119,47 @@ namespace atomex_frontend.Storages
     public bool StoragePassword2Typed { get; private set; }
     public PassStrongness StoragePasswordStrongness { get; private set; }
     public Steps CurrentStep { get; private set; }
-    public string MnemonicString { get; set; }
+
+    private string _mnemonicString;
+    public string MnemonicString
+    {
+      get => _mnemonicString;
+      set
+      {
+        _mnemonicString = value;
+        RandomMnemonicStringList = _mnemonicString.Split(' ').ToList();
+        OrderedMnemonicStringList = new List<string>();
+      }
+    }
+
+    public bool OrderedMnemonicCorrect
+    {
+      get => string
+             .Join(" ", OrderedMnemonicStringList)
+             .Equals(MnemonicString) && OrderedMnemonicStringList.Count() == int.Parse(MnemonicWordCount);
+    }
+
+    private List<string> _orderedMnemonicStringList = new List<string>();
+    public List<string> OrderedMnemonicStringList
+    {
+      get => _orderedMnemonicStringList;
+      set
+      {
+        _orderedMnemonicStringList = value;
+      }
+    }
+
+    private List<string> _randomMnemonicStringList = new List<string>();
+    public List<string> RandomMnemonicStringList
+    {
+      get => _randomMnemonicStringList;
+      set
+      {
+        var shuffledList = value.ToList();
+        shuffledList.Shuffle();
+        _randomMnemonicStringList = shuffledList;
+      }
+    }
     public int TotalSteps
     {
       get { return Enum.GetNames(typeof(Steps)).Length; }
@@ -291,12 +332,15 @@ namespace atomex_frontend.Storages
       int entropy = MnemonicWordsToEntropy
           .FirstOrDefault(item => item.Key == count).Value;
       _entropyLength = entropy;
+
+      GenerateMnemonic();
     }
 
     public void GenerateMnemonic()
     {
       var entropy = Rand.SecureRandomBytes(_entropyLength / 8);
       MnemonicString = new Mnemonic(CurrentMnemonicLang, entropy).ToString();
+
     }
 
     public void SetSelectedLanguage(string strLang)

@@ -1,6 +1,7 @@
 ﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
 @import url('pie-chart/pie.css');
 @import url('checkbox/index.css');
+@import url('dragdrop/index.css');
 
 html,
 body {
@@ -1816,4 +1817,40 @@ table>thead>tr>th {
 
 .relative {
     position: relative;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid var(--light-gray);
+    margin: 10px 0;
+    padding: 0;
+}
+
+.incorrect-words__error {
+    color: var(--error-color);
+    text-align: center;
+}
+
+.mnemonic-restore__container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.mnemonic-word {
+    padding: 5px 10px;
+    background-color: var(--dark-blue-background);
+    border-radius: 8px;
+    cursor: pointer;
+    text-transform: lowercase;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+.mnemonic-word > span {
+    font-size: 0.9em;
+    margin-right: 2px;
+    color: var(--light-gray);
 }

@@ -1,0 +1,67 @@
+/*add this to avoid flickering*/
+.plk-dd-inprogess > * {
+  pointer-events: none;
+}
+
+
+.plk-dd-spacing {
+  display: none;
+}
+
+.plk-dd-spacing-dragged-over {
+  padding: 25px;
+}
+
+.plk-dd-dragged-over {
+  opacity: 0.6;
+  animation: blinker 1s linear infinite;
+}
+
+.plk-dd-dragged-over > div {
+  opacity: 0.6;
+  animation: blinker 1s linear infinite;
+}
+
+.plk-dd-in-transit {
+  opacity: 0.6;
+}
+
+.plk-dd-in-transit > div {
+   opacity: 0.6;
+}
+
+@keyframes blinker {
+  50% {
+      opacity: 0.6;
+  }
+}
+
+.blink_me {
+  animation: blinker 1s linear infinite;
+}
+
+/*for flex demo*/
+
+.plk-flex .plk-dd-spacing {
+  width: 20px;
+  height: auto;
+}
+
+.plk-flex .plk-dd-dragged-over {
+  opacity: 0.6;
+  animation: blinker 1s linear infinite;
+}
+
+.plk-flex .plk-dd-dragged-over > div {
+  opacity: 0.9;
+  animation: blinker 1s linear infinite;
+}
+
+
+.plk-dd-draggable {
+  display: inline-flex;
+}
+
+.plk-dd-dropzone {
+  min-height: 40px;
+}
