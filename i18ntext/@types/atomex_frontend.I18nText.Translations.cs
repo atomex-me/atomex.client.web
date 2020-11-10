@@ -337,7 +337,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"This is your mnemonic phrase words in random order. Please re-arrange words to their original order by clicking and drag&apos;n&apos;drop."</summary>
         public string RegisterStep4Description;
 
-        /// <summary>"Step 4: Mnemonic confirm"</summary>
+        /// <summary>"Step 4: Mnemonic phrase confirmation"</summary>
         public string RegisterStep4Title;
 
         /// <summary>"This password can be used for secret key additional protection. To restore a secret key, you will need to enter a mnemonic phrase and this password."</summary>

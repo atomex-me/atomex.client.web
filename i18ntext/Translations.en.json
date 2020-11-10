@@ -2,7 +2,7 @@
   "RegisterStep1Title": "Шаг 1: Тип кошелька",
   "RegisterStep2Title": "Шаг 2: Название кошелька",
   "RegisterStep3Title": "Step 3: Mnemonic phrase",
-  "RegisterStep4Title": "Step 4: Mnemonic confirm",
+  "RegisterStep4Title": "Step 4: Mnemonic phrase confirmation",
   "RegisterStep5Title": "Step 5: Derived key password (optional)",
   "RegisterStep6Title": "Step 6: Storage password",
 
