@@ -1,14 +1,14 @@
 
 @inject WalletStorage walletStorage;
 
-<div class="modal-currency-title__container" @onclick="@OnClick">
+<div class="@($"modal-currency-title__container {Fade}")" @onclick="@OnClick">
   <div>
     @if (SelectedBaker != null) {
       <img src="@(!String.IsNullOrEmpty(SelectedBaker.Logo) ? SelectedBaker.Logo : "/css/images/atomex_logo_small.png")" class="baker-logo">
     } else {
       <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
     }
-    <div class="modal-currency-title__text-container">
+    <div class="@($"modal-currency-title__text-container {Fade}")">
       @if (SelectedBaker != null) {
         <div class="baker-name">@SelectedBaker.Name</div>
         @if(SelectedBaker.Name.ToLower() != "custom baker") {
@@ -26,7 +26,7 @@
     </div>
   </div>
   @if (SelectedBaker != null && SelectedBaker.Name.ToLower() != "custom baker") {
-    <div>
+    <div class="baker-available-amount">
       @if (SelectedBaker.StakingAvailable > 0) {
         <span>@Translations.Available</span>
       }
@@ -47,6 +47,9 @@
 
   [Parameter]
   public EventCallback OnClick { get; set; }
+
+  [Parameter]
+  public string Fade { get; set; } = String.Empty;
 
 
   I18nText.Translations Translations = new I18nText.Translations();

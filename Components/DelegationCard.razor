@@ -73,10 +73,18 @@
         </div>
         if (State == States.FillData) {
           <div class="delegate-container @(DropdownOpened ? "opened" : "") noselect">
+            @if (DropdownOpened) {
+              <DelegatorSearchInput OnChange="OnSearchChange" />
+            }
+
             <RoundedContainer>
-              <CurrencyModalCard SelectedBaker="@(bakerStorage.Baker)" OnClick="@(handleDropdown)" />
+              <CurrencyModalCard
+                SelectedBaker="@(bakerStorage.Baker)"
+                OnClick="@(handleDropdown)"
+                Fade="@(DropdownOpened ? "fade" : "")" />
+
               @if (DropdownOpened) {
-                <BakerDropdown OnBakerClick="@OnBakerClick" />
+                <BakerDropdown OnBakerClick="@OnBakerClick" SearchValue="@searchValue" />
               }
             </RoundedContainer>
           </div>
@@ -173,6 +181,10 @@
 </div>
 
 @code {
+  private string searchValue { get; set; } = String.Empty;
+  protected void OnSearchChange(string value) {
+    searchValue = value;
+  }
   private System.Timers.Timer debounceToAddress;
   private System.Timers.Timer debounceFee;
   private bool ModalOpened { get; set; } = false;

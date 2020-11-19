@@ -1,0 +1,47 @@
+@inject IJSRuntime JSRuntime;
+@using System.Timers;
+@implements IDisposable;
+
+<input class="search-delegator defaultFocus" type="text" @oninput="@handleChange" placeholder="Type to search baker"
+  value="@value" />
+
+@code {
+  [Parameter]
+  public EventCallback<string> OnChange { get; set; }
+
+  private string value { get; set; } = String.Empty;
+
+  private System.Timers.Timer debounceInputSearch;
+
+  private async void OnFinishInput(Object source, ElapsedEventArgs e)
+  {
+    await OnChange.InvokeAsync(value);
+  }
+
+  private void handleChange(ChangeEventArgs evt)
+  {
+    value = evt.Value.ToString();
+    debounceInputSearch.Stop();
+    debounceInputSearch.Start();
+  }
+
+  protected override void OnInitialized()
+  {
+    debounceInputSearch = new System.Timers.Timer(500);
+    debounceInputSearch.Elapsed += OnFinishInput;
+    debounceInputSearch.AutoReset = false;
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await JSRuntime.InvokeVoidAsync("focusInput", "defaultFocus");
+    }
+  }
+
+  public void Dispose()
+  {
+    OnChange.InvokeAsync(String.Empty).FireAndForget();
+  }
+}

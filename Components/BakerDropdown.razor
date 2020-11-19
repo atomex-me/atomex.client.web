@@ -2,11 +2,13 @@
 @inject IJSRuntime JSRuntime;
 
 <div class="exchange-dropdown baker">
-  @foreach (Baker baker in bakerStorage.FromBakersList)
+  @if (getBakerOdd)
   {
-    <CurrencyModalCard
-      SelectedBaker="@baker"
-      OnClick="() => OnBakerClick.InvokeAsync(baker)" />
+    <div class="no-display"></div>
+  }
+  @foreach (Baker baker in FilteredBakersList)
+  {
+    <CurrencyModalCard SelectedBaker="@baker" OnClick="() => OnBakerClick.InvokeAsync(baker)" />
   }
 </div>
 
@@ -14,16 +16,86 @@
   [Parameter]
   public EventCallback<Baker> OnBakerClick { get; set; }
 
+  [Parameter]
+  public string SearchValue { get; set; } = String.Empty;
+
+  private bool isRendered { get; set; } = false;
+
+  private int INITIAL_BAKERS_LIMIT = 6;
+
+  private List<Baker> FilteredBakersList
+  {
+    get
+    {
+      if (String.IsNullOrEmpty(SearchValue))
+      {
+        return BakersList;
+      }
+      else
+      {
+        return BakersList.Where(baker => baker.Name.ToLower().Contains(SearchValue.ToLower())).ToList();
+      }
+    }
+  }
+
+  private List<Baker> BakersList
+  {
+    get
+    {
+      if (!isRendered)
+      {
+        int selectedBakerIndex = bakerStorage.FromBakersList.FindIndex(bk => bk.Address == bakerStorage.Address);
+
+        if (selectedBakerIndex != -1)
+        {
+          int initialIndex = selectedBakerIndex - INITIAL_BAKERS_LIMIT;
+          initialIndex = initialIndex < 0 ? 0 : initialIndex;
+
+          int count = INITIAL_BAKERS_LIMIT * 2;
+
+          if ((initialIndex + count) > bakerStorage.FromBakersList.Count())
+          {
+            count = bakerStorage.FromBakersList.Count() - initialIndex;
+          }
+
+          return bakerStorage.FromBakersList.GetRange(initialIndex, count);
+        }
+        else
+        {
+          return bakerStorage.FromBakersList;
+        }
+      }
+      else
+      {
+        return bakerStorage.FromBakersList;
+      }
+    }
+  }
+
+  private int getBakerIndex => BakersList.FindIndex(bk => bk.Address == bakerStorage.Address);
+  private bool getBakerOdd => getBakerIndex > INITIAL_BAKERS_LIMIT && getBakerIndex % 2 != 0;
+
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender)
     {
-      var bakerIndex = bakerStorage.FromBakersList.FindIndex(bk => bk.Address == bakerStorage.Address);
-      if (bakerIndex != -1)
+      if (getBakerIndex != -1)
       {
-        await JSRuntime.InvokeVoidAsync("selectBaker", bakerIndex);
+        await JSRuntime.InvokeVoidAsync("selectBaker", getBakerIndex, "smooth");
       }
+
+      var task = Task.Run(async () =>
+      {
+        isRendered = true;
+        StateHasChanged();
+        if (getBakerIndex != -1)
+        {
+          await JSRuntime.InvokeVoidAsync("selectBaker", getBakerIndex, "instant");
+        }
+      });
+
+      task.Wait(TimeSpan.FromMilliseconds(1));
     }
   }
 }

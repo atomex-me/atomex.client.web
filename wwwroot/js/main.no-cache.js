@@ -349,16 +349,18 @@ function dragTable()
   resizer.addEventListener('mousedown',initDrag,false);
 }
 
-function selectBaker(bakerIndex)
+function selectBaker(bakerIndex, behavior = "instant")
 {
-  var bakerList=document.querySelector(".exchange-dropdown.baker");
-  if (bakerList)
-  {
-    bakerList.scrollTo({
-      top: bakerList.firstElementChild.offsetHeight*bakerIndex,
-      behavior: "smooth"
-    })
-  }
+  try {
+    let bakerList=document.querySelector(".exchange-dropdown.baker");
+    if (bakerList)
+    {
+      bakerList.scrollTo({
+        top: bakerList.children[1].offsetHeight*bakerIndex,
+        behavior: behavior
+      })
+    }
+  } catch {}
 }
 
 

@@ -1,6 +1,7 @@
 ﻿@inject IJSRuntime JSRuntime;
 
-<div class="atomex-input-container atomex-input @Theme @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "") @(Disabled ? "disabled" : "")">
+<div
+    class="atomex-input-container atomex-input @Theme @(!String.IsNullOrEmpty(Description) ? "with-description" : "") @(Error ? "no-flex" : "") @(Disabled ? "disabled" : "")">
     <div class="@(Error ? "error-input" : "no-error")">
         @if (InputType == "password")
         {
@@ -12,35 +13,28 @@
                 <span>@Description</span>
             </div>
         }
-        @if(!String.IsNullOrEmpty(SavedData)) {
+        @if (!String.IsNullOrEmpty(SavedData))
+        {
             <Form SaveData="@SavedData">
-                <input type="@InputType"
-                    value="@Value"
-                    placeholder="@InputPlaceholder"
-                    name="@InputName"
-                    @oninput="HandleChange"
-                    onkeydown="@GetNumberValidator"
-                    disabled="@Disabled"
+                <input type="@InputType" value="@Value" placeholder="@InputPlaceholder" name="@InputName"
+                    @oninput="HandleChange" onkeydown="@GetNumberValidator" disabled="@Disabled"
                     class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "") @(DefaultFocus ? "defaultFocus" : "")"
                     autocomplete="@(InputType == "password" ? "current-password" : "off")" />
             </Form>
         } else {
-            <input type="@InputType"
-                value="@Value"
-                placeholder="@InputPlaceholder"
-                name="@InputName"
-                @oninput="HandleChange"
-                onkeydown="@GetNumberValidator"
-                disabled="@Disabled"
+            <input type="@InputType" value="@Value" placeholder="@InputPlaceholder" name="@InputName"
+                @oninput="HandleChange" onkeydown="@GetNumberValidator" disabled="@Disabled"
                 class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "") @(DefaultFocus ? "defaultFocus" : "")"
                 autocomplete="@(InputType == "password" ? "current-password" : "off")" />
         }
 
-        @if(AdditionalRightInfo.Length > 0) {
+        @if (AdditionalRightInfo.Length > 0)
+        {
             <span class="additional-input-info">@AdditionalRightInfo</span>
         }
     </div>
-    @if (!String.IsNullOrEmpty(ErrorDescription)) {
+    @if (!String.IsNullOrEmpty(ErrorDescription))
+    {
         <div class="error-description">
             @ErrorDescription
         </div>
@@ -92,19 +86,19 @@
 
     private string GetNumberValidator
     {
-      get => InputType == "number" ? "return event.keyCode !== 69" : "";
+        get => InputType == "number" ? "return event.keyCode !== 69" : "";
     }
 
     protected async void HandleChange(ChangeEventArgs evt)
     {
-      await OnChange.InvokeAsync(evt.Value.ToString());
+        await OnChange.InvokeAsync(evt.Value.ToString());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-      if (firstRender && DefaultFocus)
-      {
-    await JSRuntime.InvokeVoidAsync("focusInput", "defaultFocus");
-      }
+        if (firstRender && DefaultFocus)
+        {
+            await JSRuntime.InvokeVoidAsync("focusInput", "defaultFocus");
+        }
     }
 }
