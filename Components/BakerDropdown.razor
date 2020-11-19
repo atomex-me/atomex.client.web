@@ -6,6 +6,17 @@
   {
     <div class="no-display"></div>
   }
+
+  @if (FilteredBakersList.Count() == 0)
+  {
+    <div class="modal-currency-title__container empty-result">
+      Your query didn't match any baker.
+    </div>
+  }
+  else
+  {
+
+  }
   @foreach (Baker baker in FilteredBakersList)
   {
     <CurrencyModalCard SelectedBaker="@baker" OnClick="() => OnBakerClick.InvokeAsync(baker)" />

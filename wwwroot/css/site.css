@@ -1074,6 +1074,11 @@ table>thead>tr>th {
     justify-content: space-between;
 }
 
+.modal-currency-title__container.empty-result {
+    min-height: 75px;
+    cursor: auto;
+}
+
 .modal-currency-title__container.fade {
     opacity: 0.3;
 }
