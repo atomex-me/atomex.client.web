@@ -9,6 +9,8 @@ using Blazored.LocalStorage;
 using atomex_frontend.Storages;
 using System.Net.Http;
 using Plk.Blazor.DragDrop;
+using Atomex.Common;
+using atomex_frontend.Common;
 
 namespace atomex_frontend
 {
@@ -16,6 +18,8 @@ namespace atomex_frontend
   {
     public static async Task Main(string[] args)
     {
+      FileSystem.UseFileSystem(new WebFileSystem());
+
       var builder = WebAssemblyHostBuilder.CreateDefault(args);
       builder.RootComponents.Add<App>("app");
 
