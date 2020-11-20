@@ -89,7 +89,7 @@ async function getData(walletName,dotNetObject)
   var dbVersion=await idbKeyval.get(`${walletName}/${DB_VERSION_KEY}`);
   if (typeof dbVersion==="undefined")
   {
-    dbVersion=0;
+    dbVersion=3;
   }
 
   dotNetObject.invokeMethodAsync('LoadWallet',JSON.stringify(result),dbVersion);
