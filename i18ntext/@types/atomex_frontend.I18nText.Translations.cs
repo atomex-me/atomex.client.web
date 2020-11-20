@@ -319,13 +319,13 @@ namespace atomex_frontend.I18nText
         /// <summary>"Please select your wallet type."</summary>
         public string RegisterStep1Description;
 
-        /// <summary>"Шаг 1: Тип кошелька"</summary>
+        /// <summary>"Step 1: Wallet type"</summary>
         public string RegisterStep1Title;
 
         /// <summary>"Please enter a name for your wallet."</summary>
         public string RegisterStep2Description;
 
-        /// <summary>"Шаг 2: Название кошелька"</summary>
+        /// <summary>"Step 2: Wallet name"</summary>
         public string RegisterStep2Title;
 
         /// <summary>"Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in safe place."</summary>
@@ -364,11 +364,14 @@ namespace atomex_frontend.I18nText
         /// <summary>"Please enter a mnemonic phrase for your wallet:"</summary>
         public string RestoreStep3Description;
 
-        /// <summary>"If you used a password to additioonal protect the secret key, please enter it in the box below. If you enter the wrong password, you will not be able to access your secret key and wallet."</summary>
+        /// <summary>""</summary>
         public string RestoreStep4Description;
 
-        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start your wallet application."</summary>
+        /// <summary>"If you used a password to additioonal protect the secret key, please enter it in the box below. If you enter the wrong password, you will not be able to access your secret key and wallet."</summary>
         public string RestoreStep5Description;
+
+        /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start your wallet application."</summary>
+        public string RestoreStep6Description;
 
         /// <summary>"Send"</summary>
         public string Send;

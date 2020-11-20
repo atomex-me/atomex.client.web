@@ -926,6 +926,20 @@ table>thead>tr>th {
     padding-left: 15px;
 }
 
+.transaction-desc.with-alias{
+    display: flex;
+    flex-direction: column;
+}
+
+.transaction-desc__from {
+    font-size: 12px;
+    color: var(--light-gray);
+}
+
+.transaction-desc__from-alias {
+    color: var(--light-blue-sky);
+}
+
 .negative-transaction-amount {
     color: var(--light-blue-sky);
 }

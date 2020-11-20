@@ -279,7 +279,7 @@ namespace atomex_frontend.Storages
       }
     }
 
-    public bool _allPortfolioUpdating = false;
+    private bool _allPortfolioUpdating = false;
     public bool AllPortfolioUpdating
     {
       get => this._allPortfolioUpdating;
@@ -379,6 +379,11 @@ namespace atomex_frontend.Storages
 
         _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>("BTC");
         _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<Currency>("XTZ");
+
+        if (accountStorage.LoadingUpdate && !accountStorage.LoadFromRestore)
+        {
+          await ScanAllCurrencies();
+        }
 
         URIHelper.NavigateTo("/wallet");
         accountStorage.WalletLoading = false;
@@ -788,6 +793,7 @@ namespace atomex_frontend.Storages
 
         case FA12 _:
           TezosTransaction fa12Trans = (TezosTransaction)tx;
+
           amount = CurrHelper.GetTransAmount(fa12Trans);
           description = CurrHelper.GetTransDescription(fa12Trans, amount, 0);
           string FromFa12 = fa12Trans.From;
@@ -810,12 +816,14 @@ namespace atomex_frontend.Storages
               from: FromFa12,
               to: ToFa12,
               gasLimit: GasLimitFa12,
-              isInternal: IsInternalFa12
+              isInternal: IsInternalFa12,
+              alias: fa12Trans.Alias
             ), tx.Currency);
           break;
 
         case Tezos _:
           TezosTransaction xtzTrans = (TezosTransaction)tx;
+
           amount = CurrHelper.GetTransAmount(xtzTrans);
           decimal FeeXtz = CurrHelper.GetFee(xtzTrans);
           description = CurrHelper.GetTransDescription(xtzTrans, amount, FeeXtz);
@@ -838,7 +846,8 @@ namespace atomex_frontend.Storages
               from: FromXtz,
               to: ToXtz,
               gasLimit: GasLimitXtz,
-              isInternal: IsInternalXtz
+              isInternal: IsInternalXtz,
+              alias: xtzTrans.Alias
             ), tx.Currency);
           break;
       }

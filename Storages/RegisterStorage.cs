@@ -251,7 +251,14 @@ namespace atomex_frontend.Storages
 
       if ((int)CurrentStep < TotalSteps)
       {
-        CurrentStep = CurrentStep.Next();
+        if (CurrentStep == Steps.MnemonicPhrase)
+        {
+          CurrentStep = Steps.DerivedPassword;
+        }
+        else
+        {
+          CurrentStep = CurrentStep.Next();
+        }
       }
     }
 
@@ -259,7 +266,14 @@ namespace atomex_frontend.Storages
     {
       if (CurrentStep > Steps.WalletType)
       {
-        CurrentStep = CurrentStep.Previous();
+        if (CurrentStep == Steps.DerivedPassword)
+        {
+          CurrentStep = Steps.MnemonicPhrase;
+        }
+        else
+        {
+          CurrentStep = CurrentStep.Previous();
+        }
       }
       else
       {

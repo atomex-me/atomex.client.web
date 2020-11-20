@@ -8,6 +8,7 @@ using Atomex.Blockchain.Tezos;
 using Atomex.Blockchain.Ethereum;
 using Atomex.Blockchain.BitcoinBased;
 using Atomex.EthereumTokens;
+using atomex_frontend.atomex_data_structures;
 
 using Atomex.TezosTokens;
 
@@ -220,6 +221,43 @@ namespace atomex_frontend.Common
       }
 
       return Description;
+    }
+
+    public static string GetTxDirection(Transaction tx)
+    {
+      if (tx.Amount <= 0)
+      {
+        return "To";
+      }
+
+      if (tx.Amount > 0)
+      {
+        return "From";
+      }
+
+      return String.Empty;
+    }
+
+    public static string GetTxAlias(Transaction tx)
+    {
+      if (!String.IsNullOrEmpty(tx.Alias))
+      {
+        return tx.Alias;
+      }
+      else
+      {
+        if (tx.Amount <= 0)
+        {
+          return tx.To;
+        }
+
+        if (tx.Amount > 0)
+        {
+          return tx.From;
+        }
+      }
+
+      return String.Empty;
     }
   }
 }

@@ -22,7 +22,9 @@ namespace atomex_frontend.atomex_data_structures
       decimal gasPrice = 0,
       decimal gasLimit = 0,
       decimal gasUsed = 0,
-      bool isInternal = false)
+      bool isInternal = false,
+      string alias = null
+    )
     {
 
       if (creationTime != null && creationTime.Value.Year == 1970)
@@ -44,6 +46,7 @@ namespace atomex_frontend.atomex_data_structures
       GasLimit = gasLimit;
       GasUsed = gasUsed;
       IsInternal = isInternal;
+      Alias = alias;
     }
 
     public Currency Currency { get; set; }
@@ -67,6 +70,8 @@ namespace atomex_frontend.atomex_data_structures
     public decimal GasUsed { get; set; }
 
     public bool IsInternal { get; set; }
+
+    public string Alias { get; set; }
 
     public BlockInfo BlockInfo => throw new NotImplementedException();
   }

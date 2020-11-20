@@ -51,7 +51,9 @@ namespace atomex_frontend.Storages
 
     public bool LoadFromRestore = false;
 
-    private int CURRENT_DB_VERSION = 2;
+    public bool LoadingUpdate = false;
+
+    private int CURRENT_DB_VERSION = 3;
     public AccountDataRepository ADR;
     private NavigationManager URIHelper;
     public Account Account { get; set; }
@@ -215,6 +217,12 @@ namespace atomex_frontend.Storages
       if ((dbVersion == 0 || dbVersion == 1) && CURRENT_DB_VERSION == 2 && CurrentNetwork == Network.MainNet)
       {
         await migradeDB_0_OR_1_TO_2();
+        return;
+      }
+
+      if ((dbVersion == 0 || dbVersion == 1 || dbVersion == 2) && CURRENT_DB_VERSION == 3 && CurrentNetwork == Network.MainNet)
+      {
+        await migradeDB_TO_3();
         return;
       }
 
@@ -434,6 +442,19 @@ namespace atomex_frontend.Storages
       await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
+      ConnectToWallet(CurrentWalletName, _password).FireAndForget();
+    }
+
+    private async Task migradeDB_TO_3()
+    {
+      Console.WriteLine($"Applying migration database to verson {CURRENT_DB_VERSION}.");
+
+      await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
+      await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Output.ToName(), CurrentWalletName);
+      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
+
+      Console.WriteLine("Migration applied, DB version saved, restarting.");
+      LoadingUpdate = true;
       ConnectToWallet(CurrentWalletName, _password).FireAndForget();
     }
   }
