@@ -97,6 +97,11 @@ namespace atomex_frontend.Storages
       }
     }
 
+    public void SetWalletAddress(string Address)
+    {
+      WalletAddress = FromAddressList.Find(wa => wa.Address == Address);
+    }
+
     private Baker _baker;
     public Baker Baker
     {
@@ -267,6 +272,16 @@ namespace atomex_frontend.Storages
       set { _delegations = value; }
     }
 
+
+    public bool GetAddressDelegated(string address)
+    {
+      return Delegations.FindIndex(del => del.Address == address) != -1;
+    }
+
+    public BakerData GetBakerDataByAddress(string address)
+    {
+      return Delegations.Find(del => del.Address == address).Baker;
+    }
 
     public async Task NextCommand(bool firstLoad = false)
     {

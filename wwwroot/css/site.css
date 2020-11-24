@@ -1043,6 +1043,7 @@ table>thead>tr>th {
     transform: translate(-50%, -50%);
     box-shadow: 0 0 10px black;
     z-index: 100;
+    border-radius: 20px;
 }
 
 .modal-window.big {
@@ -1916,4 +1917,78 @@ hr {
 
 .no-display {
     display: none;
+}
+
+.staking-row {
+    display: flex;
+    align-items: center;
+    border-radius: 20px;
+    padding: 20px;
+    background-color: rgba(14, 20, 34, 0.7);
+    cursor: pointer;
+    position: relative;
+    justify-content: space-between;
+}
+
+.staking-row__address {
+    display: flex;
+    flex-direction: column;
+}
+
+.staking__two-rows >*:first-child {
+    color: var(--light-blue-sky);
+}
+
+.staking__two-rows >*:last-child {
+    color: var(--medium-gray);
+}
+
+.convert-arrow-icon.staking {
+    padding: 0;
+    position: absolute;
+    left: 54%;
+}
+
+.staking-row__alias {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.staking-row__alias >img {
+    height: 48px;
+}
+
+.staking-row__alias-text {
+    display: flex;
+    margin-right: 15px;
+    flex-direction: column;
+}
+
+
+.staking-row__alias-text > span:first-child {
+    max-width: 170px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.staking-row__alias-text > span:last-child {
+    margin-left: auto;
+}
+
+.staking-container {
+    max-height: 330px;
+    overflow-y: scroll;
+}
+
+.staking-container > .staking-row {
+    margin-bottom: 10px;
+}
+
+.staking-container > .staking-row:last-child {
+    margin: 0;
+}
+
+.not-delegated {
+    color: var(--light-blue-sky);
 }

@@ -1,5 +1,6 @@
 @inject BakerStorage bakerStorage;
 @inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
 @using atomex_frontend.Common;
 @using System.Timers;
 
@@ -22,10 +23,59 @@
   }
 
   <div class="delegation__button-container">
-    <NavigateButton Variant="small" OnClick="@OpenCloseHandler">Delegate</NavigateButton>
+    <NavigateButton Variant="small" OnClick="@StakingOpenCloseHandler">Staking</NavigateButton>
   </div>
 
-  <Modal IsOpen="@ModalOpened" OnClose="@OpenCloseHandler">
+  <Modal IsOpen="@StakingModalOpened" OnClose="@StakingOpenCloseHandler">
+    <div class="loading-container">
+      <div class="modal__container">
+        <div class="dark-background__no-grad modal-title">
+          Staking
+        </div>
+        <div class="modal-subtitle">
+          Click to delegate or change your baker.
+        </div>
+
+        <div class="staking-container">
+          @foreach (var address in xtzNotNullAddresses)
+          {
+
+            <div class="staking-row" @onclick="() => {
+                bakerStorage.SetWalletAddress(address.Address);
+                StakingOpenCloseHandler();
+                DelegatorOpenCloseHandler();
+              }">
+              <div class="staking-row__address staking__two-rows">
+                <span>@address.Address</span>
+                <span>@address.AvailableBalance() XTZ</span>
+              </div>
+              <i class="convert-arrow-icon staking"></i>
+              <div class="staking-row__alias">
+                @if (bakerStorage.GetAddressDelegated(address.Address)) {
+                  <div class="staking-row__alias-text staking__two-rows">
+                    <span>@bakerStorage.GetBakerDataByAddress(address.Address).Name</span>
+                    <span>@(Helper.SetPrecision((bakerStorage.GetBakerDataByAddress(address.Address).EstimatedRoi * 100), 3).ToString("G29"))%</span>
+                  </div>
+                  <img src="@bakerStorage.GetBakerDataByAddress(address.Address).Logo" alt="">
+                } else {
+                  <span class="not-delegated">
+                    Not delegated
+                  </span>
+                }
+              </div>
+            </div>    
+          }
+        </div>
+        <div class="modal-buttons-container">
+          <NavigateButton Variant="center" OnClick="StakingOpenCloseHandler">
+              @Translations.Cancel
+          </NavigateButton>
+        </div>
+      </div>
+    </div>
+  </Modal>
+
+  <Modal IsOpen="@DelegatorModalOpened" OnClose="@DelegatorOpenCloseHandler">
 
     <div class="loading-container">
       @if (DelegationChecking || bakerStorage.FeeChecking) {
@@ -152,7 +202,7 @@
               @if ((State == States.FillData || State == States.Confirmation) && String.IsNullOrEmpty(bakerStorage.Warning) && !GetIsLoading) {
                 <NavigateButton Variant="left" OnClick="handleCancel">
                   @if (State == States.FillData) {
-                    @Translations.Cancel
+                    @Translations.CwvBack
                   }
                   @if (State == States.Confirmation) {
                     @Translations.No
@@ -187,7 +237,8 @@
   }
   private System.Timers.Timer debounceToAddress;
   private System.Timers.Timer debounceFee;
-  private bool ModalOpened { get; set; } = false;
+  private bool DelegatorModalOpened { get; set; } = false;
+  private bool StakingModalOpened { get; set; } = false;
 
   private bool DropdownOpened { get; set; } = false;
 
@@ -207,6 +258,8 @@
     .Where(wa => wa.Balance > 0)
     .Select(wa => $"{wa.Address} {Helper.SetPrecision(wa.Balance, 4)}").ToArray();
   }
+
+  List<WalletAddress> xtzNotNullAddresses = new List<WalletAddress>();
 
   private string ToAddress { get; set; }
   private void ToAddressChange(string address)
@@ -229,13 +282,23 @@
     bakerStorage.WalletAddress = bakerStorage.FromAddressList.Find(a => a.Address == address);
   }
 
-  private void OpenCloseHandler()
+  private void DelegatorOpenCloseHandler()
   {
-    ModalOpened = !ModalOpened;
-    if (ModalOpened)
+    DelegatorModalOpened = !DelegatorModalOpened;
+    if (DelegatorModalOpened)
     {
-      bakerStorage.Initialize();
+      // bakerStorage.Initialize();
       State = States.FillData;
+    } else {
+      StakingOpenCloseHandler();
+    }
+  }
+
+  private void StakingOpenCloseHandler() {
+    StakingModalOpened = !StakingModalOpened;
+
+    if (StakingModalOpened) {
+      bakerStorage.Initialize();
     }
   }
 
@@ -251,14 +314,16 @@
     {
       if (bakerStorage.Warning == Translations.NoEmptyAccounts)
       {
-        ModalOpened = false;
+        // DelegatorModalOpened = false;
+        DelegatorOpenCloseHandler();
       }
       bakerStorage.Initialize();
       State = States.FillData;
     }
     else if (State == States.FillData)
     {
-      ModalOpened = false;
+      // DelegatorModalOpened = false;
+      DelegatorOpenCloseHandler();
     }
     else if (State == States.Confirmation)
     {
@@ -267,7 +332,8 @@
 
     else if (State == States.Success)
     {
-      ModalOpened = false;
+      // DelegatorModalOpened = false;
+      DelegatorOpenCloseHandler();
     }
   }
 
@@ -336,6 +402,11 @@
   protected override async Task OnInitializedAsync()
   {
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+
+    var account = accountStorage.Account.GetCurrencyAccount("XTZ");
+    xtzNotNullAddresses = (await account.GetAddressesAsync())
+        .Where(addr => addr.AvailableBalance() > 0)
+        .ToList();
 
     debounceToAddress = new System.Timers.Timer(1000);
     debounceToAddress.Elapsed += OnUserFinishToAddress;
