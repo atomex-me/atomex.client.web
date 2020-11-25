@@ -358,20 +358,38 @@ namespace atomex_frontend.I18nText
         /// <summary>"Please select your wallet type."</summary>
         public string RestoreStep1Description;
 
+        /// <summary>"Step 1: Wallet type"</summary>
+        public string RestoreStep1Title;
+
         /// <summary>"Please enter a name for your wallet."</summary>
         public string RestoreStep2Description;
+
+        /// <summary>"Step 2: Wallet name"</summary>
+        public string RestoreStep2Title;
 
         /// <summary>"Please enter a mnemonic phrase for your wallet:"</summary>
         public string RestoreStep3Description;
 
+        /// <summary>"Step 3: Mnemonic phrase"</summary>
+        public string RestoreStep3Title;
+
         /// <summary>""</summary>
         public string RestoreStep4Description;
+
+        /// <summary>"Step 4: Mnemonic phrase confirmation"</summary>
+        public string RestoreStep4Title;
 
         /// <summary>"If you used a password to additioonal protect the secret key, please enter it in the box below. If you enter the wrong password, you will not be able to access your secret key and wallet."</summary>
         public string RestoreStep5Description;
 
+        /// <summary>"Step 4: Derived key password (optional)"</summary>
+        public string RestoreStep5Title;
+
         /// <summary>"This password is used to protect the stored secret keys and will be needed every time you start your wallet application."</summary>
         public string RestoreStep6Description;
+
+        /// <summary>"Step 5: Storage password"</summary>
+        public string RestoreStep6Title;
 
         /// <summary>"Send"</summary>
         public string Send;

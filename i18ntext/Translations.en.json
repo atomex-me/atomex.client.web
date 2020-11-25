@@ -6,6 +6,13 @@
   "RegisterStep5Title": "Step 5: Derived key password (optional)",
   "RegisterStep6Title": "Step 6: Storage password",
 
+  "RestoreStep1Title": "Step 1: Wallet type",
+  "RestoreStep2Title": "Step 2: Wallet name",
+  "RestoreStep3Title": "Step 3: Mnemonic phrase",
+  "RestoreStep4Title": "Step 4: Mnemonic phrase confirmation",
+  "RestoreStep5Title": "Step 4: Derived key password (optional)",
+  "RestoreStep6Title": "Step 5: Storage password",
+
   "RegisterStep1Description": "Please select your wallet type.",
   "RegisterStep2Description": "Please enter a name for your wallet.",
   "RegisterStep3Description": "Mnemonic phrase is used to restore your wallet if the data on your device has been lost. Please, write it down and keep in safe place.",
