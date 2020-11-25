@@ -1,64 +1,71 @@
 ﻿@inject IJSRuntime JSRuntime;
 @implements IDisposable
 
-@if(!String.IsNullOrEmpty(To)) {
-    <span class="navigate-button @Variant @(TriggeredByEnter ? "nextButtonClickableByEnter" : "")" disabled="@Disabled">
-        <NavLink class="button-link" href="@To">@ChildContent</NavLink>
+@if (!String.IsNullOrEmpty(To))
+{
+  <span class="navigate-button @Variant @(TriggeredByEnter ? "nextButtonClickableByEnter" : "")" disabled="@Disabled">
+    @if (To.StartsWith("http"))
+    {
+      <a class="button-link" href="@To" target="_blank">@ChildContent</a>
+    }
+    else
+    {
+      <NavLink class="button-link" href="@To">@ChildContent</NavLink>
+    }
     </span>
-} else {
-    <button
-        class="navigate-button @Variant @(TriggeredByEnter ? "nextButtonClickableByEnter" : "")"
-        @onclick="handleClick"
-        disabled="@Disabled"
-        type="button" >
-        @ChildContent
-    </button>
+}
+else
+{
+  <button class="navigate-button @Variant @(TriggeredByEnter ? "nextButtonClickableByEnter" : "")" @onclick="handleClick"
+    disabled="@Disabled" type="button">
+    @ChildContent
+  </button>
 }
 
-@code {
-    [Parameter]
-    public bool Disabled { get; set; }
+  @code {
+  [Parameter]
+  public bool Disabled { get; set; }
 
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
+  [Parameter]
+  public RenderFragment ChildContent { get; set; }
 
-    [Parameter]
-    public string Variant { get; set; }
+  [Parameter]
+  public string Variant { get; set; }
 
-    [Parameter]
-    public EventCallback OnClick { get; set; }
+  [Parameter]
+  public EventCallback OnClick { get; set; }
 
-    [Parameter]
-    public string To { get; set; }
+  [Parameter]
+  public string To { get; set; }
 
-    [Parameter]
-    public bool IsSubmit { get; set; }
+  [Parameter]
+  public bool IsSubmit { get; set; }
 
-    [Parameter]
-    public bool TriggeredByEnter { get; set; } = false;
+  [Parameter]
+  public bool TriggeredByEnter { get; set; } = false;
 
-    private async void handleClick()
+  private async void handleClick()
+  {
+    OnClick.InvokeAsync(null).FireAndForget();
+    if (IsSubmit)
     {
-      OnClick.InvokeAsync(null).FireAndForget();
-      if (IsSubmit)
-      {
-    await JSRuntime.InvokeVoidAsync("submitPasswordForm");
-      }
+      await JSRuntime.InvokeVoidAsync("submitPasswordForm");
     }
+  }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender && TriggeredByEnter)
     {
-      if (firstRender && TriggeredByEnter)
-      {
-    await JSRuntime.InvokeVoidAsync("startListenEnterEvent", "nextButtonClickableByEnter");
-      }
+      await JSRuntime.InvokeVoidAsync("startListenEnterEvent", "nextButtonClickableByEnter");
     }
+  }
 
-    public async void Dispose()
+  public async void Dispose()
+  {
+    if (TriggeredByEnter)
     {
-      if (TriggeredByEnter)
-      {
-    await JSRuntime.InvokeVoidAsync("stopListenEnterEvent", "nextButtonClickableByEnter");
-      }
+      await JSRuntime.InvokeVoidAsync("stopListenEnterEvent", "nextButtonClickableByEnter");
     }
+  }
 }

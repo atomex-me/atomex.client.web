@@ -26,6 +26,13 @@ namespace atomex_frontend.Storages
       LoadTranslations(I18nText);
     }
 
+    public enum DelegationStatus
+    {
+      Pending,
+      Confirmed,
+      Active
+    }
+
     I18nText.Translations Translations = new I18nText.Translations();
     private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
@@ -278,9 +285,9 @@ namespace atomex_frontend.Storages
       return Delegations.FindIndex(del => del.Address == address) != -1;
     }
 
-    public BakerData GetBakerDataByAddress(string address)
+    public Delegation GetDelegationDataByAddress(string address)
     {
-      return Delegations.Find(del => del.Address == address).Baker;
+      return Delegations.Find(del => del.Address == address);
     }
 
     public async Task NextCommand(bool firstLoad = false)
@@ -637,6 +644,16 @@ namespace atomex_frontend.Storages
 
         var tezos = _tezos;
 
+        var tzktApi = new TzktApi(_tezos);
+
+        var head = await tzktApi.GetHeadLevelAsync();
+
+        var headLevel = head.Value;
+
+        decimal currentCycle = App.Account.Network == Network.MainNet ?
+            Math.Floor((headLevel - 1) / 4096) :
+            Math.Floor((headLevel - 1) / 2048);
+
         var balance = await App.Account
             .GetBalanceAsync(tezos.Name)
             .ConfigureAwait(false);
@@ -663,13 +680,26 @@ namespace atomex_frontend.Storages
               .GetBaker(@delegate, App.Account.Network)
               .ConfigureAwait(false);
 
+          var account = await tzktApi.GetAccountByAddressAsync(wa.Address);
+
+          decimal txCycle = App.Account.Network == Network.MainNet ?
+              Math.Floor((account.Value.DelegationLevel - 1) / 4096) :
+              Math.Floor((account.Value.DelegationLevel - 1) / 2048);
+
           var delegationIndex = Delegations.FindIndex(d => d.Address == wa.Address);
 
           var delegation = new Delegation
           {
             Baker = baker,
             Address = wa.Address,
-            Balance = wa.Balance
+            Balance = wa.Balance,
+            BbUri = _tezos.BbUri,
+            DelegationTime = account.Value.DelegationTime,
+            Status = currentCycle - txCycle < 2 ?
+                  DelegationStatus.Pending.ToName() :
+                  currentCycle - txCycle < 7 ?
+                    DelegationStatus.Confirmed.ToName() :
+                    DelegationStatus.Active.ToName()
           };
 
           if (delegationIndex == -1)

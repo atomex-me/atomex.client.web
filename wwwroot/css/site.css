@@ -219,17 +219,17 @@ app {
     margin-bottom: 22px;
 }
 
-.register-splash .buttons-container {
+.buttons-container {
     margin-bottom: 20px;
     display: flex;
     justify-content: center;
 }
 
-.register-splash .buttons-container>button {
+.buttons-container>button {
     margin-right: 5px;
 }
 
-.register-splash .buttons-container>button:last-child {
+.buttons-container>button:last-child {
     margin: 0;
 }
 
@@ -1622,7 +1622,6 @@ table>thead>tr>th {
 
 .delegation-card {
     flex-direction: column;
-    justify-content: flex-end;
 }
 
 .delegation__title {
@@ -1683,27 +1682,61 @@ table>thead>tr>th {
 }
 
 .delegations-list__container {
-    flex-basis: 80%;
-    max-height: 105px;
     overflow-y: scroll;
-    margin-bottom: 5px;
+    width: 100%;
+    max-height: 140px;
 }
 
 .delegation-row {
     font-size: 14px;
+    line-height: 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 5px;
+
+    background-color: var(--dark-input-dark-blue);
+    border-radius: 10px;
+    padding: 3px 10px;
+    cursor: pointer;
+    position: relative;
 }
 
-.delegation-row>*:last-child {
+.delegation-row:last-child {
+    margin-bottom: 0;
+}
+
+.delegation-row__address {
+    display: flex;
+    flex-direction: column;
+}
+
+.delegation-row__address > span:first-child {
+    color: white;
+}
+
+.delegation-row__gray-data {
+    font-size: 14px;
+    color: var(--medium-gray);
+}
+
+.delegation__baker-container {
+    display: flex;
+    align-items: center;
+}
+
+.delegation__baker-data {
     margin-right: 10px;
+    text-align: right;
+}
+
+.delegation__baker-data__name {
+    font-size: 14px;
+    color: white;
 }
 
 .delegation-row>div>img {
-    height: 25px;
-    margin-right: 4px;
+    height: 35px;
 }
 
 .overdelegated-note {
@@ -1946,7 +1979,8 @@ hr {
 .convert-arrow-icon.staking {
     padding: 0;
     position: absolute;
-    left: 54%;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .staking-row__alias {
@@ -1990,5 +2024,67 @@ hr {
 }
 
 .not-delegated {
-    color: var(--light-blue-sky);
+    color: white;
+}
+
+.staking-info {
+    font-family: 'RobotoLight';
+    font-size: 18px;
+    color:var(--ltc-color)
+}
+
+.color-pending {
+    color: var(--orange);
+}
+
+.color-confirmed {
+    color: var(--primary);
+}
+
+.color-active {
+    color: var(--success);
+}
+
+.staking-info > p {
+    display: flex;
+}
+
+.staking-info > p > span:first-child {
+    flex-basis: 25%;
+    margin-left: 228px;
+}
+
+.detailed-baker__img {
+    height: 40px;
+    margin-right: 10px;
+}
+
+.text-divider {
+    display: flex;
+    align-items: center;
+    --text-divider-gap: 1rem;
+  }
+
+.text-divider::before,
+.text-divider::after {
+content: '';
+height: 1px;
+background-color: silver;
+flex-grow: 1;
+}
+
+.text-divider::before {
+margin-right: var(--text-divider-gap);
+}
+
+.text-divider::after {
+margin-left: var(--text-divider-gap);
+}
+
+.delegation-info-buttons a {
+    color: white;
+}
+
+.delegation-info-buttons > button:last-child {
+    margin-left: 5px !important;
 }
