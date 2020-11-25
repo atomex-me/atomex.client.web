@@ -277,7 +277,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"No"</summary>
         public string No;
 
-        /// <summary>"No delegations found"</summary>
+        /// <summary>"Receive Tezos to start staking"</summary>
         public string NoDelegationsFound;
 
         /// <summary>"You don&apos;t have non-empty accounts"</summary>

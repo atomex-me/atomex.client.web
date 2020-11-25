@@ -1625,11 +1625,12 @@ table>thead>tr>th {
 }
 
 .delegation__title {
-    align-self: center;
-    flex-basis: 100%;
     font-family: RobotoRegular;
     font-size: 16px;
     color: var(--medium-gray);
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .delegation__button-container {
