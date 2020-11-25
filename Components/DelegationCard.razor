@@ -5,11 +5,11 @@
 @using System.Timers;
 
 <div class="currency-card for-tezos delegation-card @(walletStorage.IsUpdating ? "disabled" : "")">
-  @if(bakerStorage.Delegations.Count == 0) {
+  @if(walletStorage.xtzNotNullAddresses.Count == 0) {
     <div class="delegation__title">@Translations.NoDelegationsFound</div>
   } else {
     <div class="delegations-list__container">
-      @foreach (var address in xtzNotNullAddresses)
+      @foreach (var address in walletStorage.xtzNotNullAddresses)
       {
         var delegation = bakerStorage.GetDelegationDataByAddress(address.Address);
         <div class="delegation-row" @onclick="(() => DelegationRowClicked(address.Address))">
@@ -317,8 +317,6 @@
     .Select(wa => $"{wa.Address} {Helper.SetPrecision(wa.Balance, 4)}").ToArray();
   }
 
-  List<WalletAddress> xtzNotNullAddresses = new List<WalletAddress>();
-
   private string ToAddress { get; set; }
   private void ToAddressChange(string address)
   {
@@ -454,11 +452,6 @@
   protected override async Task OnInitializedAsync()
   {
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-
-    var account = accountStorage.Account.GetCurrencyAccount("XTZ");
-    xtzNotNullAddresses = (await account.GetAddressesAsync())
-        .Where(addr => addr.AvailableBalance() > 0)
-        .ToList();
 
     debounceToAddress = new System.Timers.Timer(1000);
     debounceToAddress.Elapsed += OnUserFinishToAddress;

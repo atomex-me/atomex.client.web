@@ -335,7 +335,17 @@ namespace atomex_frontend.Storages
     }
 
     public List<WalletAddressView> FromAddressList = new List<WalletAddressView>();
-
+    public List<WalletAddress> xtzNotNullAddresses
+    {
+      get
+      {
+        var res = FromAddressList
+            .Where(addr => addr.WalletAddress.Currency == "XTZ" && addr.AvailableBalance > 0)
+            .Select(addr => addr.WalletAddress)
+            .ToList();
+        return res;
+      }
+    }
 
     public async void Initialize(bool IsRestarting)
     {
