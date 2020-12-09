@@ -385,6 +385,7 @@ namespace atomex_frontend.Storages
           GetFreeAddresses(initialCurrencyData.Currency);
         }
 
+        await bakerStorage.LoadBakerList();
         await UpdatePortfolioAtStart();
 
         _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>("BTC");
@@ -403,6 +404,7 @@ namespace atomex_frontend.Storages
           await jSRuntime.InvokeVoidAsync("walletLoaded");
         }
         catch { }
+
         if (accountStorage.LoadFromRestore)
         {
           await ScanAllCurrencies();
@@ -691,6 +693,8 @@ namespace atomex_frontend.Storages
       Transaction oldTx;
       string TxKeyInDict = $"{tx.Id}/{tx.Currency.Name}";
       var type = tx.Type.HasFlag(BlockchainTransactionType.Input) || tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ? "income" : tx.Type.HasFlag(BlockchainTransactionType.Output) ? "outcome" : "";
+
+
       if (Transactions.TryGetValue(TxKeyInDict, out oldTx))
       {
         Transactions[TxKeyInDict] = tx;
@@ -841,6 +845,7 @@ namespace atomex_frontend.Storages
           string ToXtz = xtzTrans.To;
           decimal GasLimitXtz = xtzTrans.GasLimit;
           bool IsInternalXtz = xtzTrans.IsInternal;
+          bool IsRewardTx = GetTezosTxIsReward(xtzTrans);
 
           AddTransaction(
             new Transaction(
@@ -857,7 +862,8 @@ namespace atomex_frontend.Storages
               to: ToXtz,
               gasLimit: GasLimitXtz,
               isInternal: IsInternalXtz,
-              alias: xtzTrans.Alias
+              alias: xtzTrans.Alias,
+              isRewardTx: IsRewardTx
             ), tx.Currency);
           break;
       }
@@ -1874,6 +1880,16 @@ namespace atomex_frontend.Storages
       var firstCurrency = SelectedCurrency;
       SelectedCurrency = SelectedSecondCurrency;
       SelectedSecondCurrency = firstCurrency;
+    }
+
+    private bool GetTezosTxIsReward(TezosTransaction tx)
+    {
+      if (bakerStorage.FromBakersList == null || bakerStorage.FromBakersList.Count() == 0 || String.IsNullOrEmpty(tx.Alias))
+      {
+        return false;
+      }
+
+      return bakerStorage.FromBakersList.FindIndex(baker => tx.Alias.ToLower().StartsWith($"{baker.Name.ToLower()} payouts")) != -1;
     }
   }
 }

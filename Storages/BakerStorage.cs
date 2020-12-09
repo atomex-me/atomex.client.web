@@ -331,7 +331,7 @@ namespace atomex_frontend.Storages
 
     private readonly Action _onDelegate;
 
-    private async Task LoadBakerList(bool firstLoad = false)
+    public async Task LoadBakerList(bool firstLoad = false)
     {
       Console.WriteLine("Loading bakers");
       List<Baker> bakers = null;
@@ -361,7 +361,6 @@ namespace atomex_frontend.Storages
         Console.WriteLine(e.Message, "Error while fetching bakers list");
       }
 
-      Console.WriteLine(bakers.Count);
       if (App.Account.Network == Network.TestNet && bakers.Count == 0)
       {
         bakers.Add(new Baker
@@ -394,6 +393,8 @@ namespace atomex_frontend.Storages
       });
 
       FromBakersList = bakers;
+
+      Console.WriteLine($"Loaded {FromBakersList.Count}");
 
       //await NextCommand(firstLoad);
       CallRefreshUI();

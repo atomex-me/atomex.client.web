@@ -57,7 +57,7 @@
             style="height: @(OpenedTx?.Id == transaction.Id ? $"{GetTxInfoBlockHeight}px" : $"{GetTxHeight(transaction)}px");">
             <td valign="top">
               <div class="icon-vertical-text">
-                <i class="icon transaction-icon @transaction.Type.ToName().ToLower()" title="@transaction.Type.ToName()" />
+                <i class="icon transaction-icon @GetTransactionType(transaction)" title="@transaction.Type.ToName()" />
               </div>
             </td>
             <td valign="top" class="transaction-desc with-alias">
@@ -203,6 +203,11 @@
     return tx.Currency is BitcoinBasedCurrency ? 43 : 57;
   }
   private Dictionary<string, int> TX_INFO_BLOCK_HEIGHT = new Dictionary<string, int>();
+
+  private string GetTransactionType(Transaction tx)
+  {
+    return tx.IsRewardTx ? "reward" : tx.Type.ToName().ToLower();
+  }
 
   private int GetTxInfoBlockHeight
   {

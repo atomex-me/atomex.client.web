@@ -23,7 +23,8 @@ namespace atomex_frontend.atomex_data_structures
       decimal gasLimit = 0,
       decimal gasUsed = 0,
       bool isInternal = false,
-      string alias = null
+      string alias = null,
+      bool isRewardTx = false
     )
     {
 
@@ -47,6 +48,7 @@ namespace atomex_frontend.atomex_data_structures
       GasUsed = gasUsed;
       IsInternal = isInternal;
       Alias = alias;
+      IsRewardTx = isRewardTx;
     }
 
     public Currency Currency { get; set; }
@@ -72,6 +74,8 @@ namespace atomex_frontend.atomex_data_structures
     public bool IsInternal { get; set; }
 
     public string Alias { get; set; }
+
+    public bool IsRewardTx { get; set; }
 
     public BlockInfo BlockInfo => throw new NotImplementedException();
   }

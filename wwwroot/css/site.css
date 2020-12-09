@@ -808,6 +808,10 @@ table>thead>tr>th {
     background-image: url('icons/conversion.svg');
 }
 
+.reward {
+    background-image: url('icons/hand.svg');
+}
+
 .unknown {
     background-image: url('icons/unknown.svg');
 }
