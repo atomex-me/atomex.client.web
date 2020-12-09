@@ -676,6 +676,7 @@ button:hover {
 .tableFixHead thead th {
     position: sticky;
     top: 0;
+    z-index: 1;
 }
 
 table {
@@ -763,40 +764,44 @@ table>thead>tr>th {
 }
 
 .transaction-icon {
-    background-size: 25px;
-    width: 25px;
-    height: 25px;
+    background-size: 100%;
+    width: 28px;
+    height: 28px;
     cursor: help;
 }
 
 
 
 .input {
-    background-image: url('images/received.png');
+    background-image: url('icons/sent.svg');
+    transform: rotate(-90deg);
 }
 
 .output {
-    background-image: url('images/sent.png');
+    background-image: url('icons/sent.svg');
+    transform: rotate(90deg);
 }
 
 .tokenapprove {
-    background-image: url('images/sent.png');
+    background-image: url('icons/check.svg');
 }
 
 .swapcall {
-    background-image: url('images/sent.png');
+    background-image: url('icons/check.svg');
 }
 
 .tokencall {
-    background-image: url('images/sent.png');
+    background-image: url('icons/check.svg');
 }
 
 .swapredeem {
-    background-image: url('images/refunded.png');
+    background-image: url('icons/refunded.svg');
+    background-size: 84%;
 }
 
 .swaprefund {
-    background-image: url('images/refunded.png');
+    background-image: url('icons/refunded.svg');
+    background-size: 84%;
 }
 
 .swappayment {
@@ -804,7 +809,7 @@ table>thead>tr>th {
 }
 
 .unknown {
-    background-image: url('images/unknown.png');
+    background-image: url('icons/unknown.svg');
 }
 
 .bitcoin {
