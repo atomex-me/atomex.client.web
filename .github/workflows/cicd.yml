@@ -58,7 +58,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.KEY }}
-          source: 'wwwroot'
+          source: 'bin/Release/netstandard2.1/wwwroot'
           target: 'wwwroot'
           rm: true
 
