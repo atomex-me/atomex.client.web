@@ -1,3 +1,3 @@
 [submodule "atomex.client.core"]
 	path = atomex.client.core
-	url = git@gitlab.com:atomex/atomex.client.core.git
+	url = git@github.com:atomex-me/atomex.client.core.git
