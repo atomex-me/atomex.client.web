@@ -49,9 +49,6 @@ jobs:
             mkdir -p wwwroot
             mv /home/${{ secrets.USERNAME }}/wwwroot /home/${{ secrets.USERNAME }}/dump
 
-      - name: Show current dir struct
-        run: pwd && ls -la
-
       - name: Copy static files on Atomex server
         uses: appleboy/scp-action@master
         with:
