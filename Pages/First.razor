@@ -6,29 +6,47 @@
 @using Sentry;
 @using Serilog.Events;
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JS;
 
 <div class="atomex__page light-background">
   <div class="first-page__container">
     <i class="atomex-logo"></i>
     <div class="first-page__controls">
-      <NavigateButton Variant="full" To="/wallets-list" TriggeredByEnter>
-        <span class="uppercase">My wallets</span>
-      </NavigateButton>
-      <NavigateButton Variant="full" To="/create">
-        <span class="uppercase">Create new wallet</span>
-      </NavigateButton>
-      <NavLink href="/restore">
-        I want to restore my wallet
-      </NavLink>
-      <a target="_blank" class="terms-link" href="https://atomex.me/terms">Terms of use</a>
+      @if (isMobile)
+      {
+        <a href="https://apps.apple.com/us/app/atomex-wallet-dex/id1534717828">
+          <svg class="download-app-image-start download-apple" loading="lazy" alt="Download app store"
+            rel="noopener"></svg>
+        </a>
+        <a href="https://play.google.com/store/apps/details?id=com.atomex.android">
+          <svg class="download-app-image-start download-play" loading="lazy" alt="Download google play"
+            rel="noopener"></svg>
+        </a>
+      }
+      else
+      {
+        <NavigateButton Variant="full" To="/wallets-list" TriggeredByEnter>
+          <span class="uppercase">My wallets</span>
+        </NavigateButton>
+        <NavigateButton Variant="full" To="/create">
+          <span class="uppercase">Create new wallet</span>
+        </NavigateButton>
+        <NavLink href="/restore">
+          I want to restore my wallet
+        </NavLink>
+      }
+        <a target="_blank" class="terms-link" href="https://atomex.me/terms">Terms of use</a>
+      </div>
     </div>
   </div>
-</div>
 
 
-@code {
+  @code {
+  private bool isMobile { get; set; } = false;
+
   protected override async Task OnInitializedAsync()
   {
+    isMobile = await JS.InvokeAsync<bool>("getIsMobile");
     var userId = await localStorage.GetItemAsync<string>($"uid");
     if (userId == null)
     {
@@ -40,17 +58,17 @@
 
     Log.Logger = new LoggerConfiguration()
       .Enrich.FromLogContext()
-      .MinimumLevel.Debug()
-      .WriteTo.Sentry(o =>
-      {
-        o.Dsn = new Dsn("https://e97df826880c468ca338e1f33a644031@sentry.baking-bad.org/4");
-        o.MinimumEventLevel = LogEventLevel.Error;
-        o.MinimumBreadcrumbLevel = LogEventLevel.Error;
-        o.AttachStacktrace = true;
-        o.SendDefaultPii = true;
-        o.ServerName = userId;
-      })
-      //.WriteTo.BrowserConsole()
-      .CreateLogger();
+    .MinimumLevel.Debug()
+    .WriteTo.Sentry(o =>
+    {
+      o.Dsn = new Dsn("https://e97df826880c468ca338e1f33a644031@sentry.baking-bad.org/4");
+      o.MinimumEventLevel = LogEventLevel.Error;
+      o.MinimumBreadcrumbLevel = LogEventLevel.Error;
+      o.AttachStacktrace = true;
+      o.SendDefaultPii = true;
+      o.ServerName = userId;
+    })
+    //.WriteTo.BrowserConsole()
+    .CreateLogger();
   }
 }

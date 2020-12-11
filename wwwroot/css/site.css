@@ -2098,3 +2098,22 @@ margin-left: var(--text-divider-gap);
 .delegation-info-buttons > button:last-child {
     margin-left: 5px !important;
 }
+
+.download-app-image-start {
+    width: 160px;
+    height: 50px;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .download-apple {
+    background: url(icons/download_buttons.svg) 0 -50px;
+  }
+  
+  .download-play {
+    background: url(icons/download_buttons.svg) 0 -100px;
+  }
+  
+  .download-apk {
+    background: url(icons/download_buttons.svg) 0 0;
+  }

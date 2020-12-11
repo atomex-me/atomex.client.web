@@ -95,6 +95,10 @@ async function getData(walletName,dotNetObject)
   dotNetObject.invokeMethodAsync('LoadWallet',JSON.stringify(result),dbVersion);
 }
 
+function getIsMobile() {
+  return !!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 function saveDBVersion(walletName,dbVersion)
 {
   idbKeyval.set(`${walletName}/${DB_VERSION_KEY}`,dbVersion);
