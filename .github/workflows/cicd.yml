@@ -22,9 +22,6 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Show current dir struct
-        run: ls -la
-
       - name: Upload result files
         uses: actions/upload-artifact@v2
         with:
@@ -51,6 +48,9 @@ jobs:
             rm -rf /home/${{ secrets.USERNAME }}/dump
             mkdir -p wwwroot
             mv /home/${{ secrets.USERNAME }}/wwwroot /home/${{ secrets.USERNAME }}/dump
+
+      - name: Show current dir struct
+        run: ls -la
 
       - name: Copy static files on Atomex server
         uses: appleboy/scp-action@master
