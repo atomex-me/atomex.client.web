@@ -5,13 +5,16 @@
 <footer class="wallet-page__footer">
   <div>
     <span class="footer-text version" @onclick="@copyUId">
-      Version 1.0.61
+      Version 1.0.61-rc
     </span>
   </div>
   <div>
-    <span class="footer-link footer-text @(!accountStorage.IsQuotesProviderAvailable ? "text-danger" : "")">Rates Provider @(accountStorage.IsQuotesProviderAvailable ? "✔️" : "unavailable")</span>
-    <span class="footer-link footer-text @(!accountStorage.IsMarketDataConnected ? "text-danger" : "")">Market Data @(accountStorage.IsMarketDataConnected ? "✔️" : "unavailable")</span>
-    <span class="footer-link footer-text @(!accountStorage.IsExchangeConnected ? "text-danger" : "")">Exchange @(accountStorage.IsExchangeConnected ? "✔️" : "unavailable")</span>
+    <span class="footer-link footer-text @(!accountStorage.IsQuotesProviderAvailable ? "text-danger" : "")">Rates
+      Provider @(accountStorage.IsQuotesProviderAvailable ? "✔️" : "unavailable")</span>
+    <span class="footer-link footer-text @(!accountStorage.IsMarketDataConnected ? "text-danger" : "")">Market Data
+      @(accountStorage.IsMarketDataConnected ? "✔️" : "unavailable")</span>
+    <span class="footer-link footer-text @(!accountStorage.IsExchangeConnected ? "text-danger" : "")">Exchange
+      @(accountStorage.IsExchangeConnected ? "✔️" : "unavailable")</span>
     <span id="js-datasaved-ui" class="footer-link footer-text">Data syncronized ✔️</span>
   </div>
 </footer>
