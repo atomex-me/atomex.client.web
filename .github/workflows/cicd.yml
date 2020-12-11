@@ -43,8 +43,8 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            rm -rf /home/${{ secrets.HOST }}/dump
-            mv /home/${{ secrets.HOST }}/wwwroot /home/${{ secrets.HOST }}/dump
+            rm -rf /home/${{ secrets.USERNAME }}/dump
+            mv /home/${{ secrets.USERNAME }}/wwwroot /home/${{ secrets.USERNAME }}/dump
 
       - name: Download build files
         uses: actions/download-artifact@v2
@@ -70,5 +70,5 @@ jobs:
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
           script: |
-            rm -rf /home/${{ secrets.HOST }}/wallet.atomex.me
-            cp -r /home/${{ secrets.HOST }}/wwwroot /home/${{ secrets.HOST }}/wallet.atomex.me
+            rm -rf /home/${{ secrets.USERNAME }}/wallet.atomex.me
+            cp -r /home/${{ secrets.USERNAME }}/wwwroot /home/${{ secrets.USERNAME }}/wallet.atomex.me
