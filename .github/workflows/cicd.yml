@@ -29,45 +29,46 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: atomex
-          path: atomex.client.web/atomex.client.web/bin/Release/netstandard2.1/wwwroot
+          path: bin/Release/netstandard2.1/wwwroot
 
-  # publish:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Delete old files on server
-  #       uses: appleboy/ssh-action@master
-  #       with:
-  #         host: ${{ secrets.HOST }}
-  #         username: ${{ secrets.USERNAME }}
-  #         key: ${{ secrets.KEY }}
-  #         port: ${{ secrets.PORT }}
-  #         script: |
-  #           rm -rf /home/${{ secrets.HOST }}/dump
-  #           mv /home/${{ secrets.HOST }}/wwwroot /home/${{ secrets.HOST }}/dump
+  publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old files on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            rm -rf /home/${{ secrets.HOST }}/dump
+            mv /home/${{ secrets.HOST }}/wwwroot /home/${{ secrets.HOST }}/dump
 
-  #     - name: Download build files
-  #       uses: actions/download-artifact@v2
-  #       with:
-  #         name: atomex
+      - name: Download build files
+        uses: actions/download-artifact@v2
+        with:
+          name: atomex
 
-  #     - name: Copy static files on Atomex server
-  #       uses: appleboy/scp-action@master
-  #       with:
-  #         host: ${{ secrets.HOST }}
-  #         username: ${{ secrets.USERNAME }}
-  #         port: ${{ secrets.PORT }}
-  #         key: ${{ secrets.KEY }}
-  #         source: 'wwwroot'
-  #         target: 'wwwroot'
-  #         rm: true
+      - name: Copy static files on Atomex server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          source: 'wwwroot'
+          target: 'wwwroot'
+          rm: true
 
-  #     - name: Copy new build files to nginx dir
-  #       uses: appleboy/ssh-action@master
-  #       with:
-  #         host: ${{ secrets.HOST }}
-  #         username: ${{ secrets.USERNAME }}
-  #         key: ${{ secrets.KEY }}
-  #         port: ${{ secrets.PORT }}
-  #         script: |
-  #           rm -rf /home/${{ secrets.HOST }}/wallet.atomex.me
-  #           cp -r /home/${{ secrets.HOST }}/wwwroot /home/${{ secrets.HOST }}/wallet.atomex.me
+      - name: Copy new build files to nginx dir
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            rm -rf /home/${{ secrets.HOST }}/wallet.atomex.me
+            cp -r /home/${{ secrets.HOST }}/wwwroot /home/${{ secrets.HOST }}/wallet.atomex.me
