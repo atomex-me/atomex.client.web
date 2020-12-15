@@ -7,3 +7,4 @@ artifacts/
 .vs/
 .dotnet/
 *.binlog
+.DS_Store/
