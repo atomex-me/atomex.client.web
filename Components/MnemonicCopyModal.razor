@@ -1,0 +1,38 @@
+@inject IJSRuntime JSRuntime;
+@inject RegisterStorage regStorage;
+
+<div class="modal__container">
+  <div class="dark-background__no-grad modal-title">
+    @Translations.CvWarning
+  </div>
+
+  <div class="modal-subtitle">
+    @Translations.SeedCopyWarning
+  </div>
+
+  <div class="buttons-container">
+    <NavigateButton Variant="left" OnClick="OnCancelClick">
+      @Translations.Cancel
+    </NavigateButton>
+    <NavigateButton Variant="right" OnClick="OnCopyClick">
+      @Translations.Copy
+    </NavigateButton>
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public EventCallback OnCancelClick { get; set; }
+
+  private async void OnCopyClick()
+  {
+    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", regStorage.MnemonicString);
+    await OnCancelClick.InvokeAsync(null);
+  }
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+  }
+}

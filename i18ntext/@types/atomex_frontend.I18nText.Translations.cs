@@ -391,6 +391,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Step 5: Storage password"</summary>
         public string RestoreStep6Title;
 
+        /// <summary>"We highly recommend to not copy Mnemonic Phrase, it&apos;s better to write on paper due to security risk."</summary>
+        public string SeedCopyWarning;
+
         /// <summary>"Send"</summary>
         public string Send;
 

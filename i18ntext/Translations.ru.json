@@ -185,5 +185,6 @@
   "CopyPrivateAddrWarning": "Copying the private key to the clipboard may result in the loss of all your coins in the wallet. Are you sure you want to copy the private key for {0}?",
   "Copy": "Copy",
   "PrivKeyCopied": "Private key for {0} successfully copied to clipboard.",
-  "AddressUpdated": "{0} successfully updated."
+  "AddressUpdated": "{0} successfully updated.",
+  "SeedCopyWarning": "We highly recommend to not copy Mnemonic Phrase, it's better to write on paper due to security risk."
 }

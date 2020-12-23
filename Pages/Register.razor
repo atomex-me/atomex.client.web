@@ -38,6 +38,18 @@
               Description="@Translations.WordCount" CurrentValue="@RegisterStorage.MnemonicWordCount" />
             <MnemonicOutput OnClick="@RegisterStorage.GenerateMnemonic"
               MnemonicPhrases="@RegisterStorage.MnemonicString" />
+
+              <Modal IsOpen="@CopySeedModalOpened" OnClose="@CopySeedOpenCloseHandler">
+                  <MnemonicCopyModal OnCancelClick="@CopySeedOpenCloseHandler" />
+              </Modal>
+
+            @if(!String.IsNullOrEmpty(RegisterStorage.MnemonicString)) {
+              <div class="register__copy-seed__container">
+                <NavigateButton Variant="center" OnClick="CopySeedOpenCloseHandler">Copy Mnemonic Phrase</NavigateButton>
+              </div>
+              <div>
+              </div>
+            }
           </div>
         }
 
@@ -121,6 +133,13 @@
 </div>
 
 @code {
+  private bool CopySeedModalOpened = false;
+
+  private void CopySeedOpenCloseHandler()
+  {
+    CopySeedModalOpened = !CopySeedModalOpened;
+  }
+
   string GetDerivedPasswordError
   {
     get { return PasswordError(RegisterStorage.DerivedPasswordsError); }

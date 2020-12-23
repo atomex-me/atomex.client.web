@@ -1197,7 +1197,7 @@ table>thead>tr>th {
     cursor: pointer;
     top: -17px;
     right: -17px;
-    z-index: 10;
+    z-index: 100;
 }
 
 .receive-qrcode {
@@ -2117,3 +2117,8 @@ margin-left: var(--text-divider-gap);
   .download-apk {
     background: url(icons/download_buttons.svg) 0 0;
   }
+
+.register__copy-seed__container {
+    display: flex;
+    justify-content: center;
+}
