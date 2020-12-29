@@ -2,19 +2,26 @@
 @inject SwapStorage swapStorage;
 
 <div class="exchange-amount-container">
-  @if(Label.Length > 0) {
+  @if (Label.Length > 0)
+  {
     <span>
       @(Label):
     </span>
   }
   <div class="exchange-amount__input">
-    <input type="number" value="@(Helper.DecimalToStr(Amount))" @oninput="@HandleChange" onkeydown="return event.keyCode !== 69" />
+    <input type="number" value="@(Helper.DecimalToStr(Amount))" @oninput="@HandleChange"
+      onkeydown="return event.keyCode !== 69" />
     <div class="exchexchange-amount__input-add-info">
       <span class="currency-abbr">@SelectedCurrency.Name</span>
-      <div class="exchange-amount-container__usd-amount">($@Helper.DecimalToStr(DollarAmount, "F2") <span class="currency-abbr small">USD</span>)</div>
+      <div class="exchange-amount-container__usd-amount">($@Helper.DecimalToStr(DollarAmount, "F2") <span
+          class="currency-abbr small">USD</span>)</div>
     </div>
-    <div class="exchange-amount__available-container" @onclick="@(() => swapStorage.Amount = swapStorage.EstimatedMaxAmount)">
-      <RoundedContainer>
+    <div class="exchange-amount__available-container"
+      @onclick="@(() => swapStorage.Amount = swapStorage.EstimatedMaxAmount)">
+      <RoundedContainer Classname="atomex-tooltip">
+        <span class="atomex-tooltiptext">
+          The limit applies to a single trade. In case you require more liquidity make multiple trades.
+        </span>
         Available: @(Helper.DecimalToStr(TotalAmount)) <span class="currency-abbr small">@SelectedCurrency.Name</span>
       </RoundedContainer>
     </div>

@@ -2122,3 +2122,44 @@ margin-left: var(--text-divider-gap);
     display: flex;
     justify-content: center;
 }
+
+.atomex-tooltip {
+    margin: 0;
+  }
+  
+  .atomex-tooltip .atomex-tooltiptext {
+    visibility: hidden;
+    width: 100%;
+    background-color: rgba(14, 20, 34);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 6px;
+  
+    position: absolute;
+    z-index: 1;
+  }
+  
+  .atomex-tooltip:hover .atomex-tooltiptext {
+    visibility: visible;
+    font-family: RobotoLight;
+    font-size: 16px;
+  }
+
+  .atomex-tooltip .atomex-tooltiptext::after {
+    content: " ";
+    position: absolute;
+    top: 100%; /* At the bottom of the tooltip */
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(14, 20, 34) transparent transparent transparent;
+  }
+
+  .atomex-tooltip .atomex-tooltiptext {
+    width: 150%;
+    bottom: 120%;
+    left: 50%;
+    margin-left: -75%;
+  }

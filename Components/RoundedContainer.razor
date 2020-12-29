@@ -1,8 +1,11 @@
-  <div class="rounded-dark-container" @onclick="@OnClick">
-    @ChildContent
-  </div>
+<div class="rounded-dark-container @(Classname)" @onclick="@OnClick">
+  @ChildContent
+</div>
 
 @code {
+  [Parameter]
+  public string Classname { get; set; } = String.Empty;
+
   [Parameter]
   public RenderFragment ChildContent { get; set; }
 
