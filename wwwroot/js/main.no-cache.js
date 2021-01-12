@@ -61,6 +61,7 @@ function showNotificationInWallet(text)
 
 var dataTypes=[ "WalletAddress","Transaction","Output","Swap","Order" ];
 var dataStore={};
+var currentWalletName = "";
 
 async function getData(walletName,dotNetObject)
 {
@@ -92,6 +93,7 @@ async function getData(walletName,dotNetObject)
     dbVersion=3;
   }
 
+  currentWalletName = walletName;
   dotNetObject.invokeMethodAsync('LoadWallet',JSON.stringify(result),dbVersion);
 }
 
@@ -368,9 +370,9 @@ function selectBaker(bakerIndex, behavior = "instant")
 }
 
 
-function signOut(text)
+function signOut(path = "/")
 {
-  window.location.href="/";
+  window.location.href=path;
 }
 
 function focusInput(targetClassName)
@@ -424,10 +426,16 @@ function stopListenEnterEvent(targetClassName)
   console.log("stopListenEnterEvent");
 }
 
-
 function walletLoaded()
 {
   setTimeout(() => { notificationsReady=true; },15000);
+
+  idleTimeout(function() {
+    localStorage.setItem("walletLoggedOutDueInactivity", `"${currentWalletName}"`);
+    signOut("/wallets-list");
+  }, {
+    timeout: 120 * 1000 // 120 sec timeout idle;
+  });
 }
 
 function passwordSaveFormReady()

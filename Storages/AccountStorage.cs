@@ -372,7 +372,7 @@ namespace atomex_frontend.Storages
         AtomexApp.UseTerminal(null);
         AtomexApp.Stop();
 
-        await jSRuntime.InvokeVoidAsync("signOut", Translations.ActiveSwapsWarning);
+        await jSRuntime.InvokeVoidAsync("signOut");
       }
       catch (Exception e)
       {
