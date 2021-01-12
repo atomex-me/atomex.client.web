@@ -94,6 +94,7 @@ async function getData(walletName,dotNetObject)
   }
 
   currentWalletName = walletName;
+  window.dotNetObject = dotNetObject;
   dotNetObject.invokeMethodAsync('LoadWallet',JSON.stringify(result),dbVersion);
 }
 
@@ -426,15 +427,15 @@ function stopListenEnterEvent(targetClassName)
   console.log("stopListenEnterEvent");
 }
 
-function walletLoaded()
+function walletLoaded(timeoutSeconds)
 {
   setTimeout(() => { notificationsReady=true; },15000);
 
   idleTimeout(function() {
-    localStorage.setItem("walletLoggedOutDueInactivity", `"${currentWalletName}"`);
-    signOut("/wallets-list");
+    dotNetObject.invokeMethodAsync('SignOut', false, "/wallets-list");
   }, {
-    timeout: 120 * 1000 // 120 sec timeout idle;
+    timeout: timeoutSeconds * 1000,
+    loop: true
   });
 }
 

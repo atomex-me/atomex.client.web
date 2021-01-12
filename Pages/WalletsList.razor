@@ -122,12 +122,10 @@
     IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
     AvailableWallets = availableWalletsList.ToArray<string>();
 
-    var lastLoggedWalletNameDueInactivityKey = "walletLoggedOutDueInactivity";
-
-    var lastLoggedWalletName = await localStorage.GetItemAsync<string>(lastLoggedWalletNameDueInactivityKey);
+    var lastLoggedWalletName = await localStorage.GetItemAsync<string>(AccountStorage.lastLoggedWalletNameDueInactivityKey);
     if (!String.IsNullOrEmpty(lastLoggedWalletName)) {
       SelectedWalletIndex = Array.IndexOf(AvailableWallets, lastLoggedWalletName);
-      await localStorage.RemoveItemAsync(lastLoggedWalletNameDueInactivityKey);
+      await localStorage.RemoveItemAsync(AccountStorage.lastLoggedWalletNameDueInactivityKey);
     } else {
       SelectedWalletIndex = -1;
     }

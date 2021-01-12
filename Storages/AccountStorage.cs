@@ -48,6 +48,8 @@ namespace atomex_frontend.Storages
     {
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
+    public string lastLoggedWalletNameDueInactivityKey = "walletLoggedOutDueInactivity";
+    public int IdleTimeoutToLogout = 120; // Seconds amount for logging out if user afk;
 
     public bool LoadFromRestore = false;
 
@@ -361,18 +363,22 @@ namespace atomex_frontend.Storages
       //     Console.WriteLine($"New transaction!! {e.Transaction.Id}");
     }
 
-    public async void SignOut()
+    [JSInvokableAttribute("SignOut")]
+    public async void SignOut(bool notFromIdle = true, string path = "/")
     {
-      Console.WriteLine("Signing out");
       try
       {
-        if (await WhetherToCancelClosingAsync())
+        if (await WhetherToCancelClosingAsync(notFromIdle))
           return;
 
         AtomexApp.UseTerminal(null);
         AtomexApp.Stop();
 
-        await jSRuntime.InvokeVoidAsync("signOut");
+        if (!notFromIdle)
+        {
+          await localStorage.SetItemAsync(lastLoggedWalletNameDueInactivityKey, CurrentWalletName);
+        }
+        await jSRuntime.InvokeVoidAsync("signOut", path);
       }
       catch (Exception e)
       {
@@ -380,17 +386,17 @@ namespace atomex_frontend.Storages
       }
     }
 
-    private async Task<bool> WhetherToCancelClosingAsync()
+    private async Task<bool> WhetherToCancelClosingAsync(bool notFromIdle)
     {
-      // if (!AtomexApp.Account.UserSettings.ShowActiveSwapWarning)
-      //   return false;
-
       var hasActiveSwaps = await HasActiveSwapsAsync();
 
       if (!hasActiveSwaps)
         return false;
 
-      await jSRuntime.InvokeVoidAsync("alert", Translations.ActiveSwapsWarning);
+      if (notFromIdle)
+      {
+        await jSRuntime.InvokeVoidAsync("alert", Translations.ActiveSwapsWarning);
+      }
       return true;
     }
 

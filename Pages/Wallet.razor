@@ -30,7 +30,7 @@
 
           <WalletMenuButton
               Variant="@WalletSection.Signout"
-              OnClick="@AccountStorage.SignOut"
+              OnClick="@(() => AccountStorage.SignOut())"
               IsActive="@false" />
       </div>
       <div class="wallet-page__container">
