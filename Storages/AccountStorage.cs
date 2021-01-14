@@ -49,7 +49,7 @@ namespace atomex_frontend.Storages
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
     public string lastLoggedWalletNameDueInactivityKey = "walletLoggedOutDueInactivity";
-    public int IdleTimeoutToLogout = 120; // Seconds amount for logging out if user afk;
+    public int IdleTimeoutToLogout = 1800; // Seconds amount for logging out if user afk, 30 min now;
 
     public bool LoadFromRestore = false;
 
