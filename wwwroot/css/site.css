@@ -1244,6 +1244,19 @@ table>thead>tr>th {
     background-image: url('icons/key.svg');
 }
 
+.info-tooltip {
+    background-size: 15px;
+    width: 15px;
+    height: 15px;
+    display: inline-block;
+    background-position: center;
+    background-repeat: no-repeat;
+    cursor: pointer;
+    position: relative;
+    font-style: initial;
+    background-image: url('icons/information.svg');
+}
+
 .refresh-address-button {
     border: none;
     background-repeat: no-repeat;
@@ -1794,6 +1807,10 @@ table>thead>tr>th {
     padding-bottom: 18px;
 }
 
+.convert-warning.no-critical {
+    color: var(--atomex-yellow);
+}
+
 .send-warning {
     color: var(--error-color);
     text-align: center;
@@ -2134,7 +2151,7 @@ margin-left: var(--text-divider-gap);
     color: #fff;
     text-align: center;
     border-radius: 6px;
-    padding: 6px;
+    padding: 10px;
   
     position: absolute;
     z-index: 1;
@@ -2163,3 +2180,23 @@ margin-left: var(--text-divider-gap);
     left: 50%;
     margin-left: -75%;
   }
+
+  .atomex-tooltip .atomex-tooltiptext.fees {
+      width: 360px;
+      margin-left: -180px;
+      bottom: 25px;
+      left: 50%;
+  }
+
+  .mr-small {
+      margin-right: 5px;
+  }
+
+
+.strong {
+    font-family: RobotoRegular;
+}
+
+.total-fee__text {
+    color: var(--atomex-yellow);
+}

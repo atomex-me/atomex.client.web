@@ -109,6 +109,12 @@ namespace atomex_frontend.I18nText
         /// <summary>"Atomex services unavailable. Please check your network connection or contact technical support"</summary>
         public string CvServicesUnavailable;
 
+        /// <summary>"Sufficient network fee for this amount ({0} is {1})."</summary>
+        public string CvSufficientNetworkFee;
+
+        /// <summary>"Too high network fee for this amount ({0} is {1})!"</summary>
+        public string CvTooHighNetworkFee;
+
         /// <summary>"Wallet locked. Please unlock the wallet to continue"</summary>
         public string CvWalletLocked;
 
@@ -207,6 +213,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Wallet with this name already exist"</summary>
         public string ErrorWalletNameExist;
+
+        /// <summary>"Estimated network fees"</summary>
+        public string EstimatedNetworkFee;
 
         /// <summary>"Estimated payment fee"</summary>
         public string EstimatedPaymentFee;
@@ -549,6 +558,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"with redeem fee"</summary>
         public string WithRedeemFee;
+
+        /// <summary>"with total network fees"</summary>
+        public string WithTotalNetworkFees;
 
         /// <summary>"Word count"</summary>
         public string WordCount;

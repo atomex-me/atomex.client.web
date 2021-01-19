@@ -79,9 +79,9 @@ namespace atomex_frontend.Storages
     }
 
     public event Action<bool> RefreshMarket;
-    private void CallMarketRefresh(bool force = true)
+    private void CallMarketRefresh(bool reset = false)
     {
-      RefreshMarket?.Invoke(force);
+      RefreshMarket?.Invoke(reset);
     }
 
     private AccountStorage accountStorage;
@@ -134,7 +134,7 @@ namespace atomex_frontend.Storages
       Task.Run(() =>
       {
         this.CheckForSimilarCurrencies();
-        this.CallMarketRefresh();
+        this.CallMarketRefresh(reset: true);
       });
     }
 
@@ -147,15 +147,15 @@ namespace atomex_frontend.Storages
         if (value.Name != this._selectedCurrency.Name)
         {
           this.ResetSendData();
+
+          if (CurrentWalletSection == WalletSection.Conversion)
+          {
+            debounceFirstCurrencySelection.Stop();
+            debounceFirstCurrencySelection.Start();
+          }
         }
 
         this._selectedCurrency = value;
-
-        if (CurrentWalletSection == WalletSection.Conversion)
-        {
-          debounceFirstCurrencySelection.Stop();
-          debounceFirstCurrencySelection.Start();
-        }
       }
     }
 
@@ -311,7 +311,8 @@ namespace atomex_frontend.Storages
       set { this._isAmountUpdating = value; this.CallUIRefresh(); }
     }
 
-    private bool _forceMarketUpdate = true;
+    public string lastSwapFromCurrencyName = "XTZ";
+
     private WalletSection _currentWalletSection = WalletSection.Portfolio;
     public WalletSection CurrentWalletSection
     {
@@ -322,9 +323,11 @@ namespace atomex_frontend.Storages
 
         if (_currentWalletSection == WalletSection.Conversion)
         {
+          _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>(lastSwapFromCurrencyName);
           this.CheckForSimilarCurrencies();
-          this.CallMarketRefresh(force: _forceMarketUpdate);
-          _forceMarketUpdate = false;
+          this.CallMarketRefresh();
+        } else {
+          lastSwapFromCurrencyName = SelectedCurrency.Name;
         }
 
         if (_currentWalletSection == WalletSection.Wallets)

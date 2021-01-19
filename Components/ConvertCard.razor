@@ -25,19 +25,64 @@
     @if(!NoInfo) {
         <div class="exchange-info">
             <RoundedContainer>
-                <div class="gray-text">@Translations.EstimatedPrice: <span class="white-text">@Helper.DecimalToStr(swapStorage.EstimatedPrice)</span></div>
-                <div class="gray-text">@Translations.EstimatedPaymentFee: <span class="white-text">@Helper.DecimalToStr(swapStorage.EstimatedPaymentFee)</span>
-                    <span class="currency-abbr small white-text">@(swapStorage.FromCurrency.FeeCode.ToUpper())</span>
-                    <span class="currency-abbr small">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.FromCurrency.FeeCode, swapStorage.EstimatedPaymentFee), "F2"))</span>
+                <div class="gray-text">
+                    @Translations.EstimatedPrice: 
+                    <span class="white-text">
+                        @Helper.DecimalToStr(swapStorage.EstimatedPrice)
+                    </span>
                 </div>
-                <div class="gray-text">@Translations.EstimatedRedeemFee: <span class="white-text">@Helper.DecimalToStr(swapStorage.EstimatedRedeemFee)</span>
-                    <span class="currency-abbr small white-text">@(swapStorage.ToCurrency.FeeCode.ToUpper())</span>
-                    <span class="currency-abbr small">$@(Helper.DecimalToStr(walletStorage.GetDollarValue(swapStorage.ToCurrency.FeeCode, swapStorage.EstimatedRedeemFee), "F2"))</span>
+                <div class="gray-text">
+                    @Translations.EstimatedNetworkFee: 
+                    <span class="white-text">
+                        $@(Helper.DecimalToStr(swapStorage.EstimatedTotalNetworkFeeInBase, "F2"))
+                    </span>
+                    <span class="mr-small"></span>
+                    <i class="info-tooltip atomex-tooltip">
+                        <span class="atomex-tooltiptext fees">
+                            <p class="text-divider gray-text">Network fee for atomic swap</p>
+                            <div>
+                                <span class="gray-text">Payment fee:</span> 
+                                <span class="strong">
+                                    @(Helper.DecimalToStr(swapStorage.EstimatedPaymentFee)) 
+                                    @swapStorage.FromFeeCurrencyFormat
+                                </span> 
+                                <span class="gray-text">
+                                    ($@(Helper.DecimalToStr(swapStorage.EstimatedPaymentFeeInBase, "F2"))) 
+                                </span>+
+                            </div>
+                            <div>
+                                <span class="gray-text">Redeem fee:</span> 
+                                <span class="strong">
+                                    @(Helper.DecimalToStr(swapStorage.EstimatedRedeemFee)) 
+                                    @swapStorage.TargetFeeCurrencyFormat
+                                </span> 
+                                <span class="gray-text">
+                                    ($@(Helper.DecimalToStr(swapStorage.EstimatedRedeemFeeInBase, "F2"))) 
+                                </span>+
+                            </div>
+                            <p>
+                                <span class="gray-text">Maker fee:</span> 
+                                <span class="strong">
+                                    @(Helper.DecimalToStr(swapStorage.EstimatedMakerNetworkFee)) 
+                                    @swapStorage.FromCurrency.Name
+                                </span> 
+                                <span class="gray-text">
+                                    ($@(Helper.DecimalToStr(swapStorage.EstimatedMakerNetworkFeeInBase, "F2"))) 
+                                </span>=
+                            </p>
+                            <div>
+                                <span class="gray-text">Total network fee:</span> 
+                                <span class="strong total-fee__text">
+                                    $@(Helper.DecimalToStr(swapStorage.EstimatedTotalNetworkFeeInBase, "F2"))
+                                </span> 
+                            </div>
+                        </span>
+                    </i>
                 </div>
             </RoundedContainer>
         </div>
         @if (!String.IsNullOrEmpty(swapStorage.Warning)) {
-            <div class="convert-warning">@swapStorage.Warning</div>
+            <div class="convert-warning @(getWarningClass)">@swapStorage.Warning</div>
         }
     }
 </div>
@@ -45,6 +90,10 @@
 @code {
     [Parameter]
     public bool NoInfo { get; set; } = false;
+
+    private string getWarningClass {
+        get => !swapStorage.IsCriticalWarning ? "no-critical": "";
+    }
 
     private string GetIsModal
     {

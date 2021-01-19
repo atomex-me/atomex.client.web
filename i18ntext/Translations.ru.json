@@ -90,6 +90,7 @@
   "EstimatedPrice": "Estimated price",
   "EstimatedPaymentFee": "Estimated payment fee",
   "EstimatedRedeemFee": "Estimated redeem fee",
+  "EstimatedNetworkFee": "Estimated network fees",
   "No": "No",
   "Yes": "Yes",
   "Error": "Error",
@@ -100,6 +101,7 @@
   "WithPrice": "with price",
   "WithPaymentFee": "with payment fee",
   "WithRedeemFee": "with redeem fee",
+  "WithTotalNetworkFees": "with total network fees",
   "SwapNote": "NOTE: Do not sign out or close the application until the swap is completed, otherwise it may result in a loss of funds.",
   "SwapSuccessfullyCreated": "Swap successfully created.",
   "MnemonicPhrase": "Mnemonic phrase",
@@ -186,5 +188,7 @@
   "Copy": "Copy",
   "PrivKeyCopied": "Private key for {0} successfully copied to clipboard.",
   "AddressUpdated": "{0} successfully updated.",
-  "SeedCopyWarning": "We highly recommend to not copy Mnemonic Phrase, it's better to write on paper due to security risk."
+  "SeedCopyWarning": "We highly recommend to not copy Mnemonic Phrase, it's better to write on paper due to security risk.",
+  "CvSufficientNetworkFee": "Sufficient network fee for this amount ({0} is {1}).",
+  "CvTooHighNetworkFee": "Too high network fee for this amount ({0} is {1})!"
 }
