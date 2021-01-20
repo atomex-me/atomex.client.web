@@ -190,5 +190,10 @@
   "AddressUpdated": "{0} successfully updated.",
   "SeedCopyWarning": "We highly recommend to not copy Mnemonic Phrase, it's better to write on paper due to security risk.",
   "CvSufficientNetworkFee": "Sufficient network fee for this amount ({0} is {1}).",
-  "CvTooHighNetworkFee": "Too high network fee for this amount ({0} is {1})!"
+  "CvTooHighNetworkFee": "Too high network fee for this amount ({0} is {1})!",
+  "NetworkFeesTitle": "Network fees for atomic swap",
+  "PaymentFee": "Payment fee",
+  "RedeemFee": "Redeem fee",
+  "MakerFee": "Maker fee",
+  "TotalNetworkFees": "Total network fees"
 }

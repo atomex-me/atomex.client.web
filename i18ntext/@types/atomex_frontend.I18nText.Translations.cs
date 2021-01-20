@@ -268,6 +268,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Loading"</summary>
         public string Loading;
 
+        /// <summary>"Maker fee"</summary>
+        public string MakerFee;
+
         /// <summary>"Fee"</summary>
         public string MinersFee;
 
@@ -279,6 +282,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Mnemonic phrase"</summary>
         public string MnemonicPhrase;
+
+        /// <summary>"Network fees for atomic swap"</summary>
+        public string NetworkFeesTitle;
 
         /// <summary>"Next"</summary>
         public string Next;
@@ -307,6 +313,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Create at least &quot;Meduim&quot; strongness password"</summary>
         public string PasswordWeak;
 
+        /// <summary>"Payment fee"</summary>
+        public string PaymentFee;
+
         /// <summary>"Portfolio"</summary>
         public string Portfolio;
 
@@ -324,6 +333,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Received"</summary>
         public string Recevived;
+
+        /// <summary>"Redeem fee"</summary>
+        public string RedeemFee;
 
         /// <summary>"Please select your wallet type."</summary>
         public string RegisterStep1Description;
@@ -525,6 +537,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Total fee"</summary>
         public string TotalFee;
+
+        /// <summary>"Total network fees"</summary>
+        public string TotalNetworkFees;
 
         /// <summary>"Transaction signing error"</summary>
         public string TxSigningError;
