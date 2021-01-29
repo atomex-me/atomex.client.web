@@ -906,6 +906,10 @@ table>thead>tr>th {
     background-image: url('icons/logout.svg');
 }
 
+.wallet-menu-icon.settings {
+    background-image: url('icons/gear.svg');
+}
+
 .wallet-menu__button {
     width: 100%;
     border: none;
@@ -2216,4 +2220,21 @@ margin-left: var(--text-divider-gap);
 
 .total-fee__text {
     color: var(--atomex-yellow);
+}
+
+.settings-page {
+    margin: 30px;
+}
+
+.settings-header {
+    font-family: 'RobotoLight';
+    font-size: 18px;
+}
+
+.settings-save-button {
+    margin-left: 30px;
+}
+
+.timeout-setting__container {
+    display: flex;
 }

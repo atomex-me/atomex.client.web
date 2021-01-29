@@ -28,10 +28,18 @@
                 IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Conversion)" />
           </div>
 
+          <div>
           <WalletMenuButton
-              Variant="@WalletSection.Signout"
-              OnClick="@(() => AccountStorage.SignOut())"
-              IsActive="@false" />
+              Variant="@WalletSection.Settings"
+              OnClick="@WalletMenuButtonClick"
+              IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Settings)" />
+
+            <WalletMenuButton
+                Variant="@WalletSection.Signout"
+                OnClick="@(() => AccountStorage.SignOut())"
+                IsActive="@false" />            
+          </div>
+
       </div>
       <div class="wallet-page__container">
           @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio) {
@@ -129,6 +137,10 @@
                 Variant="@WalletDataTable.AvailableVariants.Swaps"
                 TransactionsData="@WalletStorage.SelectedCurrencyTransactions"
                 SwapsData="@SwapStorage.Swaps" />
+          }
+          
+          @if (WalletStorage.CurrentWalletSection == WalletSection.Settings) {
+            <SettingsPage Value="@AccountStorage.IdleTimeoutToLogout" />
           }
       </div>
   </div>

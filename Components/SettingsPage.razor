@@ -1,0 +1,50 @@
+
+@inject AccountStorage accountStorage;
+@inject IJSRuntime JSRuntime;
+@using atomex_frontend.Common
+
+
+<div class="settings-page">
+  <p class="settings-header">
+    Inactivity time to wallet auto log out:
+  </p>
+  <div class="timeout-setting__container">
+    <Input
+      InputType="number"
+      InputName="idletimeout"
+      Description="Seconds:"
+      Value="@Helper.IntToStr(Value)"
+      OnChange="@OnChange"
+      InputPlaceholder="Enter idle timeout:"
+      DefaultFocus />
+      <div class="settings-save-button">
+        <NavigateButton
+          Disabled="@GetDisabled"
+          Variant="center"
+          OnClick=@OnSave>
+          Save
+        </NavigateButton>
+      </div>
+  </div>
+</div>
+
+@code {
+  [Parameter]
+  public int Value { get; set; }
+
+  private bool GetDisabled {
+    get => !(Value >= 30 && Value <= 60 * 60);
+  }
+  public void OnChange(string value)
+  {
+    int number;
+    bool success = Int32.TryParse(value, out number);
+    Value = success ? number : 0;
+  }
+
+  private async void OnSave() {
+    await JSRuntime.InvokeVoidAsync("updateIdletimeout", Value);
+    await JSRuntime.InvokeVoidAsync("showNotificationInWallet",
+      $"Inactivity time to auto log out updated to {Value} seconds.");
+  }
+}

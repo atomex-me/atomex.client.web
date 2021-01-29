@@ -42,6 +42,10 @@ namespace atomex_frontend.Common
       return value.ToString(CultureInfo.InvariantCulture);
     }
 
+    public static string IntToStr(int value) {
+      return value.ToString(CultureInfo.InvariantCulture);
+    }
+
     public static string DecimalToStr(decimal value, string format)
     {
       return value.ToString(format, CultureInfo.InvariantCulture);
