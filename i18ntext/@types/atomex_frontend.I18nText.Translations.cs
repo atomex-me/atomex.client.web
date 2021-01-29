@@ -187,6 +187,18 @@ namespace atomex_frontend.I18nText
         /// <summary>"An error has occurred while delegation"</summary>
         public string DelegationError;
 
+        /// <summary>"Delete"</summary>
+        public string Delete;
+
+        /// <summary>"Deleting wallet may result in the loss of your funds."</summary>
+        public string DeleteWalletWarningFirst;
+
+        /// <summary>"Are you sure you want to delete the wallet {0}?"</summary>
+        public string DeleteWalletWarningSecond;
+
+        /// <summary>"Deleting Wallet"</summary>
+        public string DeletingWallet;
+
         /// <summary>"Description"</summary>
         public string Description;
 
@@ -246,6 +258,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Gas price"</summary>
         public string GasPrice;
+
+        /// <summary>"I&apos;m understand"</summary>
+        public string ImUnderstand;
 
         /// <summary>"Instantly sending of currency."</summary>
         public string InstantlySendingOfCurrency;
@@ -558,6 +573,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Use default fee"</summary>
         public string UseDefaultFee;
+
+        /// <summary>"Wallet {0} deleted successfully"</summary>
+        public string WalletDeletedMsg;
 
         /// <summary>"Wallets"</summary>
         public string Wallets;

@@ -71,6 +71,13 @@
   {
     <div>No wallets founded</div>
   }
+
+  <Modal IsOpen="@DeleteModalOpened" OnClose="@OnDeleteWalletOpenCloseHandler">
+    <DeleteWalletModal
+      OnCancelClick="@OnDeleteWalletOpenCloseHandler"
+      WalletName="@DeletingWalletName"
+      DeletedSuccessfull="@AfterWalletDeleted" />
+  </Modal>
 </div>
 
 @code {
@@ -83,14 +90,28 @@
     set { }
   }
 
+  private void OnDeleteWalletOpenCloseHandler() {
+    DeleteModalOpened = !DeleteModalOpened;
+  }
+
+  private async void AfterWalletDeleted() {
+    await LoadAvailableWallets();
+    DeletingWalletName = string.Empty;
+    StateHasChanged();
+  }
+
+  private bool DeleteModalOpened { get; set; } = false;
+
+  private string DeletingWalletName { get; set; } = string.Empty;
+
   private void OnWalletClick(int index)
   {
-    // Console.WriteLine($"{AvailableWallets[index]} {index}");
     SelectedWalletIndex = index;
   }
 
   private void OnDeleteWallet(int index) {
-    Console.WriteLine($"Deleting wallet with name {AvailableWallets[index]}");
+    DeletingWalletName = AvailableWallets[index];
+    OnDeleteWalletOpenCloseHandler();
   }
 
   private void OnWalletPasswordChange(string pass)
@@ -113,6 +134,11 @@
     await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
   }
 
+  private async Task LoadAvailableWallets() {
+    IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
+    AvailableWallets = availableWalletsList.ToArray<string>();
+  }
+
   I18nText.Translations Translations = new I18nText.Translations();
   protected override async Task OnInitializedAsync()
   {
@@ -120,8 +146,7 @@
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
 
-    IList<string> availableWalletsList = await AccountStorage.GetAvailableWallets();
-    AvailableWallets = availableWalletsList.ToArray<string>();
+    await LoadAvailableWallets();
 
     var lastLoggedWalletName = await localStorage.GetItemAsync<string>(AccountStorage.lastLoggedWalletNameDueInactivityKey);
     if (!String.IsNullOrEmpty(lastLoggedWalletName)) {

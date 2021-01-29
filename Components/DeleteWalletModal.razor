@@ -1,0 +1,88 @@
+@inject IJSRuntime JSRuntime;
+@inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
+
+<div class="modal__container">
+  <div class="dark-background__no-grad modal-title">
+    @Translations.DeletingWallet
+  </div>
+
+
+  @if(CurrentStep == States.Deleted) {
+    <p class="modal-subtitle">@Translations.WalletDeletedMsg.Replace("{0}", WalletName)</p>
+    <div class="modal-buttons-container">
+      <NavigateButton Variant="center" OnClick="() => OnCancelClick.InvokeAsync(null)">
+        @Translations.SvOk
+      </NavigateButton>
+    </div>
+  } else if(CurrentStep == States.FirstWarning) {
+    <p class="modal-subtitle">
+      @Translations.DeleteWalletWarningFirst
+    </p>
+    <div class="modal-buttons-container">
+      <div>
+        <NavigateButton Variant="left" OnClick="() => OnCancelClick.InvokeAsync(null)">
+          @Translations.Cancel
+        </NavigateButton>
+        <NavigateButton Variant="right" OnClick="GotoLastStep">
+          @Translations.ImUnderstand
+        </NavigateButton>
+      </div>
+    </div>
+  } else if(CurrentStep == States.SecondWarning) {
+    <p class="modal-subtitle">
+      @Translations.DeleteWalletWarningSecond.Replace("{0}", WalletName)
+    </p>
+    <div class="modal-buttons-container">
+      <div>
+        <NavigateButton Variant="left" OnClick="() => OnCancelClick.InvokeAsync(null)">
+          @Translations.Cancel
+        </NavigateButton>
+        <NavigateButton Variant="right" OnClick="DeleteWallet">
+          @Translations.Delete
+        </NavigateButton>
+      </div>
+    </div>
+  }
+
+</div>
+
+@code {
+  private enum States {
+    FirstWarning,
+    SecondWarning,
+    Deleted
+  }
+
+
+  [Parameter]
+  public EventCallback OnCancelClick { get; set; }
+
+  [Parameter]
+  public string WalletName { get; set; }
+
+  [Parameter]
+  public EventCallback DeletedSuccessfull { get; set; }
+
+  private States CurrentStep { get; set; } = States.FirstWarning;
+
+  private void GotoLastStep() {
+    CurrentStep = States.SecondWarning;
+  }
+
+  private async void DeleteWallet()
+  {
+    await accountStorage.DeleteFromAvailableWallet(WalletName);
+    await JSRuntime.InvokeVoidAsync("deleteWalletData", WalletName);
+    CurrentStep = States.Deleted;
+    await DeletedSuccessfull.InvokeAsync(null);
+  }
+
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    walletStorage.RefreshRequested += StateHasChanged;
+  }
+}

@@ -158,6 +158,14 @@ namespace atomex_frontend.Storages
       return availableWalletsList;
     }
 
+    public async Task DeleteFromAvailableWallet(string walletName) {
+      IList<string> availableWalletsList = await GetAvailableWallets();
+      var listWithDeletedWallet = availableWalletsList.Where(wallet => !wallet.StartsWith(walletName));
+      var newSerializedWalletNames = JsonConvert.SerializeObject(listWithDeletedWallet.ToArray<string>());
+      await localStorage.SetItemAsync("available_wallets", newSerializedWalletNames);
+      await localStorage.RemoveItemAsync(lastLoggedWalletNameDueInactivityKey);
+    }
+
     public async Task SaveWallet(HdWallet wallet, SecureString storagePass, string walletName)
     {
       IList<string> availableWalletsList = await GetAvailableWallets();

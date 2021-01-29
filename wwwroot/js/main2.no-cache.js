@@ -464,3 +464,12 @@ function makeRandomTitle()
 
   return text;
 }
+
+async function deleteWalletData(walletName) {
+  localStorage.removeItem(`${walletName}.wallet`);
+
+  let keys = await idbKeyval.keys();
+  keys = keys.filter(key => key.indexOf(walletName) === 0);
+
+  keys.forEach(key => idbKeyval.del(key));
+}
