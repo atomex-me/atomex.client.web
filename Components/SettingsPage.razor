@@ -44,6 +44,7 @@
 
   private async void OnSave() {
     await JSRuntime.InvokeVoidAsync("updateIdletimeout", Value);
+    accountStorage.IdleTimeoutToLogout = Value;
     await JSRuntime.InvokeVoidAsync("showNotificationInWallet",
       $"Inactivity time to auto log out updated to {Value} seconds.");
   }
