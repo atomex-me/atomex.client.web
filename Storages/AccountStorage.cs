@@ -49,7 +49,7 @@ namespace atomex_frontend.Storages
       Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(null);
     }
     public string lastLoggedWalletNameDueInactivityKey = "walletLoggedOutDueInactivity";
-    public int IdleTimeoutToLogout = 1800; // Seconds amount for logging out if user afk, 30 min now;
+    public int IdleTimeoutToLogout = 900; // Seconds amount for logging out if user afk, 30 min now;
 
     public bool LoadFromRestore = false;
 
@@ -81,9 +81,9 @@ namespace atomex_frontend.Storages
     private IConfiguration symbolsConfiguration;
     private Assembly coreAssembly;
     private HttpClient httpClient;
-    private ILocalStorageService localStorage;
+    public ILocalStorageService localStorage;
     public IJSRuntime jSRuntime;
-    private string CurrentWalletName;
+    public string CurrentWalletName;
     private SecureString _password;
 
     private Network CurrentNetwork

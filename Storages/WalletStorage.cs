@@ -404,6 +404,15 @@ namespace atomex_frontend.Storages
         CurrentWalletSection = WalletSection.Portfolio;
         try
         {
+          int idleForWallet = await accountStorage
+            .localStorage
+            .GetItemAsync<int>($"idle_timeout_{accountStorage.CurrentWalletName}");
+
+          if (idleForWallet != 0)
+          {
+            accountStorage.IdleTimeoutToLogout = idleForWallet;
+          }
+          
           await jSRuntime.InvokeVoidAsync("walletLoaded", accountStorage.IdleTimeoutToLogout);
         }
         catch { }

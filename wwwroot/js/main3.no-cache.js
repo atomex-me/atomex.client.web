@@ -427,16 +427,29 @@ function stopListenEnterEvent(targetClassName)
   console.log("stopListenEnterEvent");
 }
 
-function walletLoaded(timeoutSeconds)
-{
-  setTimeout(() => { notificationsReady=true; },15000);
+let timeoutObj;
 
-  idleTimeout(function() {
+function startIdleTracker(timeoutSeconds) {
+  localStorage.setItem(`idle_timeout_${currentWalletName}`, timeoutSeconds);
+
+  timeoutObj = idleTimeout(function() { // https://www.npmjs.com/package/idle-timeout
     dotNetObject.invokeMethodAsync('SignOut', false, "/wallets-list");
   }, {
     timeout: timeoutSeconds * 1000,
     loop: true
   });
+}
+
+function walletLoaded(timeoutSeconds)
+{
+  setTimeout(() => { notificationsReady=true; },15000);
+  startIdleTracker(timeoutSeconds);
+}
+
+function updateIdletimeout(timeoutSeconds) {
+  timeoutObj.destroy();
+
+  startIdleTracker(timeoutSeconds);
 }
 
 function passwordSaveFormReady()
@@ -467,6 +480,7 @@ function makeRandomTitle()
 
 async function deleteWalletData(walletName) {
   localStorage.removeItem(`${walletName}.wallet`);
+  localStorage.removeItem(`idle_timeout_${walletName}`);
 
   let keys = await idbKeyval.keys();
   keys = keys.filter(key => key.indexOf(walletName) === 0);
