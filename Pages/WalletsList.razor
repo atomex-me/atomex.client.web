@@ -22,8 +22,8 @@
               <span>@AvailableWallets[walletIndex]</span>
               <button
                 class="delete-wallet"
-                @onclick="@(e => OnDeleteWallet(walletIndex))">
-                Delete
+                @onclick="@(e => OnDeleteWallet(walletIndex))"
+                @onclick:stopPropagation="true">
               </button>
             </div>
           }

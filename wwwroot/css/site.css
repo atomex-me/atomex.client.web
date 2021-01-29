@@ -561,7 +561,7 @@ button:hover {
 }
 
 .wallet-item:hover .delete-wallet {
-    display: initial;
+    opacity: 0.6;
 }
 
 .wallet-item:hover .wallet-icon {
@@ -576,8 +576,16 @@ button:hover {
 }
 
 .delete-wallet {
-    display: none;
-    width: 30px;
+    border: none;
+    background: none;
+    background-image: url('icons/delete.svg');
+    background-position: center;
+    background-size: 25px;
+    background-repeat: no-repeat;
+    width: 26px;
+    height: 26px;
+    transition: 0.1s all ease-in-out;
+    opacity: 0;
     margin-left: auto;
 }
 
