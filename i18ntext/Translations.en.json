@@ -39,9 +39,10 @@
   "Unlock": "Unlock",
   "Finish": "Finish",
   "Restore": "Restore",
+  "Delete": "Delete",
   "PasswordMismatchError": "Passwords mismatch",
   "PasswordEmpty": "Passwords could not be empty",
-  "PasswordWeak": "Create at least \"Meduim\" strongness password",
+  "PasswordWeak": "Create at least \"Medium\" strongness password",
   "ErrorWalletNameExist": "Wallet with this name already exist",
   "InvalidPassword": "Invalid password",
   "Portfolio": "Portfolio",
@@ -195,5 +196,10 @@
   "PaymentFee": "Payment fee",
   "RedeemFee": "Redeem fee",
   "MakerFee": "Maker fee",
-  "TotalNetworkFees": "Total network fees"
+  "TotalNetworkFees": "Total network fees",
+  "DeleteWalletWarningFirst": "Deleting wallet may result in the loss of your funds.",
+  "DeleteWalletWarningSecond": "Are you sure you want to delete the wallet {0}?",
+  "WalletDeletedMsg": "Wallet {0} deleted successfully",
+  "ImUnderstand": "I'm understand",
+  "DeletingWallet": "Deleting Wallet"
 }

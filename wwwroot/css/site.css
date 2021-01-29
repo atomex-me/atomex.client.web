@@ -560,16 +560,33 @@ button:hover {
     color: white;
 }
 
+.wallet-item:hover .delete-wallet {
+    opacity: 0.6;
+}
+
 .wallet-item:hover .wallet-icon {
     background-image: url('icons/wallet-selected.svg');
 }
 
-.wallet-item>*:last-child {
+.wallet-item>*:nth-child(2) {
     text-overflow: ellipsis;
     overflow: hidden;
-    width: 85%;
     white-space: nowrap;
     margin-left: 10px;
+}
+
+.delete-wallet {
+    border: none;
+    background: none;
+    background-image: url('icons/delete.svg');
+    background-position: center;
+    background-size: 25px;
+    background-repeat: no-repeat;
+    width: 26px;
+    height: 26px;
+    transition: 0.1s all ease-in-out;
+    opacity: 0;
+    margin-left: auto;
 }
 
 .wallets-list__unlock-container {
