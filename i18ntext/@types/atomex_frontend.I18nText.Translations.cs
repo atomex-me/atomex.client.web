@@ -310,7 +310,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"Passwords mismatch"</summary>
         public string PasswordMismatchError;
 
-        /// <summary>"Create at least &quot;Meduim&quot; strongness password"</summary>
+        /// <summary>"Create at least &quot;Medium&quot; strongness password"</summary>
         public string PasswordWeak;
 
         /// <summary>"Payment fee"</summary>
