@@ -20,6 +20,11 @@
             <div class="wallet-item" @onclick="@(e => OnWalletClick(walletIndex))">
               <i class="wallet-icon" />
               <span>@AvailableWallets[walletIndex]</span>
+              <button
+                class="delete-wallet"
+                @onclick="@(e => OnDeleteWallet(walletIndex))">
+                Delete
+              </button>
             </div>
           }
           </div>
@@ -78,18 +83,14 @@
     set { }
   }
 
-  @* private async void OnKeyPress(KeyboardEventArgs e)
-    {
-    if (e.Key == "Enter")
-    {
-    await AccountStorage.ConnectToWallet(AvailableWallets[SelectedWalletIndex], WalletPassword.ToSecureString());
-    }
-    } *@
-
   private void OnWalletClick(int index)
   {
-    Console.WriteLine($"{AvailableWallets[index]} {index}");
+    // Console.WriteLine($"{AvailableWallets[index]} {index}");
     SelectedWalletIndex = index;
+  }
+
+  private void OnDeleteWallet(int index) {
+    Console.WriteLine($"Deleting wallet with name {AvailableWallets[index]}");
   }
 
   private void OnWalletPasswordChange(string pass)

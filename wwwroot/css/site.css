@@ -560,16 +560,25 @@ button:hover {
     color: white;
 }
 
+.wallet-item:hover .delete-wallet {
+    display: initial;
+}
+
 .wallet-item:hover .wallet-icon {
     background-image: url('icons/wallet-selected.svg');
 }
 
-.wallet-item>*:last-child {
+.wallet-item>*:nth-child(2) {
     text-overflow: ellipsis;
     overflow: hidden;
-    width: 85%;
     white-space: nowrap;
     margin-left: 10px;
+}
+
+.delete-wallet {
+    display: none;
+    width: 30px;
+    margin-left: auto;
 }
 
 .wallets-list__unlock-container {
