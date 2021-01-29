@@ -4,7 +4,9 @@ obj/
 *.user
 artifacts/
 .vscode/
+.idea/
 .vs/
 .dotnet/
 *.binlog
 .DS_Store/
+.DS_Store
