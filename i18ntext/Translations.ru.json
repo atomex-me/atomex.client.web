@@ -200,6 +200,6 @@
   "DeleteWalletWarningFirst": "Deleting wallet may result in the loss of your funds.",
   "DeleteWalletWarningSecond": "Are you sure you want to delete the wallet {0}?",
   "WalletDeletedMsg": "Wallet {0} deleted successfully",
-  "ImUnderstand": "I'm understand",
+  "ImUnderstand": "I understand",
   "DeletingWallet": "Deleting Wallet"
 }
