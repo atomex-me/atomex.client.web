@@ -12,7 +12,7 @@
     <Input
       InputType="number"
       InputName="idletimeout"
-      Description="Seconds:"
+      Description="Seconds"
       Value="@Helper.IntToStr(Value)"
       OnChange="@OnChange"
       InputPlaceholder="Enter idle timeout:"
@@ -44,6 +44,7 @@
 
   private async void OnSave() {
     await JSRuntime.InvokeVoidAsync("updateIdletimeout", Value);
+    accountStorage.IdleTimeoutToLogout = Value;
     await JSRuntime.InvokeVoidAsync("showNotificationInWallet",
       $"Inactivity time to auto log out updated to {Value} seconds.");
   }
