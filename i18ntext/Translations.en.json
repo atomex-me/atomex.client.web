@@ -195,6 +195,7 @@
   "NetworkFeesTitle": "Network fees for atomic swap",
   "PaymentFee": "Payment fee",
   "RedeemFee": "Redeem fee",
+  "RewardForRedeem": "Reward for redeem",
   "MakerFee": "Maker fee",
   "TotalNetworkFees": "Total network fees",
   "DeleteWalletWarningFirst": "Deleting wallet may result in the loss of your funds.",

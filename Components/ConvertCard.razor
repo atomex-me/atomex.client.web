@@ -54,18 +54,33 @@
                                     ($@(Helper.DecimalToStr(swapStorage.EstimatedPaymentFeeInBase, "F2"))) 
                                 </span>
                             </div>
-                            <div>
-                                <span class="gray-text">
-                                    @(Translations.RedeemFee):
-                                </span> 
-                                <span class="strong">
-                                    @(Helper.DecimalToStr(swapStorage.EstimatedRedeemFee)) 
-                                    @swapStorage.TargetFeeCurrencyFormat
-                                </span> 
-                                <span class="gray-text">
-                                    ($@(Helper.DecimalToStr(swapStorage.EstimatedRedeemFeeInBase, "F2"))) 
-                                </span>
-                            </div>
+                            @if (swapStorage.HasRewardForRedeem) { // reward for redeem
+                                <div>
+                                    <span class="gray-text">
+                                        @(Translations.RewardForRedeem):
+                                    </span> 
+                                    <span class="strong">
+                                        @(Helper.DecimalToStr(swapStorage.RewardForRedeem)) 
+                                        @swapStorage.TargetCurrencyCode
+                                    </span> 
+                                    <span class="gray-text">
+                                        ($@(Helper.DecimalToStr(swapStorage.RewardForRedeemInBase, "F2"))) 
+                                    </span>
+                                </div>
+                            } else { // redeem fee
+                                <div>
+                                    <span class="gray-text">
+                                        @(Translations.RedeemFee):
+                                    </span> 
+                                    <span class="strong">
+                                        @(Helper.DecimalToStr(swapStorage.EstimatedRedeemFee)) 
+                                        @swapStorage.TargetFeeCurrencyFormat
+                                    </span> 
+                                    <span class="gray-text">
+                                        ($@(Helper.DecimalToStr(swapStorage.EstimatedRedeemFeeInBase, "F2"))) 
+                                    </span>
+                                </div>
+                            }
                             <p>
                                 <span class="gray-text">
                                     @(Translations.MakerFee):

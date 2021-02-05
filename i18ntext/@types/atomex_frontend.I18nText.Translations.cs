@@ -259,7 +259,7 @@ namespace atomex_frontend.I18nText
         /// <summary>"Gas price"</summary>
         public string GasPrice;
 
-        /// <summary>"I&apos;m understand"</summary>
+        /// <summary>"I understand"</summary>
         public string ImUnderstand;
 
         /// <summary>"Instantly sending of currency."</summary>
@@ -426,6 +426,9 @@ namespace atomex_frontend.I18nText
 
         /// <summary>"Step 5: Storage password"</summary>
         public string RestoreStep6Title;
+
+        /// <summary>"Reward for redeem"</summary>
+        public string RewardForRedeem;
 
         /// <summary>"We highly recommend to not copy Mnemonic Phrase, it&apos;s better to write on paper due to security risk."</summary>
         public string SeedCopyWarning;

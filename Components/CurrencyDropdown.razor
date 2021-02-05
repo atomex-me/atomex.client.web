@@ -62,7 +62,7 @@
 
   private bool GetCurrencyIsConverted(Currency currency)
   {
-    return accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(walletStorage.SelectedCurrency, currency) != null;
+    return accountStorage.Symbols.SymbolByCurrencies(walletStorage.SelectedCurrency, currency) != null;
   }
 
   private void OnCurrencyClick(Currency currency)

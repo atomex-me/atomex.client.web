@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
@@ -10,11 +8,9 @@ using Atomex;
 using Atomex.Common;
 using Atomex.Core;
 using Atomex.Wallet;
-using Atomex.Abstract;
 using Atomex.Blockchain;
 using Atomex.Blockchain.Abstract;
 using atomex_frontend.atomex_data_structures;
-using Atomex.MarketData.Abstract;
 using Atomex.Blockchain.Tezos;
 
 using Atomex.Blockchain.BitcoinBased;
@@ -26,7 +22,6 @@ using atomex_frontend.Common;
 using Microsoft.AspNetCore.Components;
 using System.Timers;
 using System.Globalization;
-using Serilog;
 
 
 namespace atomex_frontend.Storages
@@ -326,7 +321,9 @@ namespace atomex_frontend.Storages
           _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>(lastSwapFromCurrencyName);
           this.CheckForSimilarCurrencies();
           this.CallMarketRefresh();
-        } else {
+        }
+        else
+        {
           lastSwapFromCurrencyName = SelectedCurrency.Name;
         }
 
@@ -412,7 +409,7 @@ namespace atomex_frontend.Storages
           {
             accountStorage.IdleTimeoutToLogout = idleForWallet;
           }
-          
+
           await jSRuntime.InvokeVoidAsync("walletLoaded", accountStorage.IdleTimeoutToLogout);
         }
         catch { }
@@ -1855,11 +1852,11 @@ namespace atomex_frontend.Storages
 
     private void CheckForSimilarCurrencies()
     {
-      if (SelectedCurrency.Name == SelectedSecondCurrency.Name || accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(SelectedCurrency, SelectedSecondCurrency) == null)
+      if (SelectedCurrency.Name == SelectedSecondCurrency.Name || accountStorage.Symbols.SymbolByCurrencies(SelectedCurrency, SelectedSecondCurrency) == null)
       {
         foreach (Currency availableCurrency in AvailableCurrencies)
         {
-          if (accountStorage.AtomexApp.Account.Symbols.SymbolByCurrencies(SelectedCurrency, availableCurrency) != null)
+          if (accountStorage.Symbols.SymbolByCurrencies(SelectedCurrency, availableCurrency) != null)
           {
             SelectedSecondCurrency = availableCurrency;
             break;

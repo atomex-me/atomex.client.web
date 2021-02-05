@@ -62,6 +62,11 @@ namespace atomex_frontend.Storages
     public IAtomexApp AtomexApp { get; set; }
     public IAtomexClient Terminal { get; set; }
     public static ICurrencies Currencies { get; set; }
+
+    public ISymbols Symbols
+    {
+      get => AtomexApp.SymbolsProvider.GetSymbols(Account.Network);
+    }
     public BitfinexQuotesProvider QuotesProvider { get; set; }
 
     public event Action<bool> InitializeCallback;
@@ -158,7 +163,8 @@ namespace atomex_frontend.Storages
       return availableWalletsList;
     }
 
-    public async Task DeleteFromAvailableWallet(string walletName) {
+    public async Task DeleteFromAvailableWallet(string walletName)
+    {
       IList<string> availableWalletsList = await GetAvailableWallets();
       var listWithDeletedWallet = availableWalletsList.Where(wallet => !wallet.StartsWith(walletName));
       var newSerializedWalletNames = JsonConvert.SerializeObject(listWithDeletedWallet.ToArray<string>());
@@ -262,7 +268,7 @@ namespace atomex_frontend.Storages
           _password,
           ADR,
           currenciesProvider,
-          symbolsProvider
+          clientType: ClientType.Web
         );
       }
       catch (Exception)
@@ -274,10 +280,10 @@ namespace atomex_frontend.Storages
       }
       _password = null;
 
-      Terminal = new WebSocketAtomexClient(configuration, Account);
 
-      if (AtomexApp != null)
+      if (AtomexApp != null) // restarting flow
       {
+        Terminal = new WebSocketAtomexClient(configuration, Account, AtomexApp.SymbolsProvider, AtomexApp.QuotesProvider);
         AtomexApp.UseTerminal(Terminal);
 
         AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
@@ -300,8 +306,10 @@ namespace atomex_frontend.Storages
             .UseSymbolsUpdater(new SymbolsUpdater(symbolsProvider))
             .UseQuotesProvider(new BitfinexQuotesProvider(
                 currencies: currenciesProvider.GetCurrencies(CurrentNetwork),
-                baseCurrency: BitfinexQuotesProvider.Usd))
-            .UseTerminal(Terminal);
+                baseCurrency: BitfinexQuotesProvider.Usd));
+
+        Terminal = new WebSocketAtomexClient(configuration, Account, AtomexApp.SymbolsProvider, AtomexApp.QuotesProvider);
+        AtomexApp.UseTerminal(Terminal);
       }
 
       if (AtomexApp.HasQuotesProvider)

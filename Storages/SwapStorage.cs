@@ -11,7 +11,7 @@ using Atomex.Core;
 using Atomex.MarketData;
 using Atomex.MarketData.Abstract;
 using Atomex.Subsystems;
-using Atomex.Subsystems.Abstract;
+using Atomex.Swaps.Helpers;
 using Atomex.Swaps;
 using Serilog;
 using Microsoft.JSInterop;
@@ -70,7 +70,7 @@ namespace atomex_frontend.Storages
       get => FromCurrency.Name;
     }
 
-    private String TargetCurrencyCode
+    public String TargetCurrencyCode
     {
       get => ToCurrency.Name;
     }
@@ -78,7 +78,7 @@ namespace atomex_frontend.Storages
 
     private ISymbols Symbols
     {
-      get => App.Account.Symbols;
+      get => App.SymbolsProvider.GetSymbols(App.Account.Network);
     }
 
     private ICurrencies Currencies
@@ -103,7 +103,8 @@ namespace atomex_frontend.Storages
       set { _estimatedPaymentFee = value; }
     }
 
-    public string FromFeeCurrencyFormat {
+    public string FromFeeCurrencyFormat
+    {
       get => FromCurrency.FeeCurrencyName;
     }
 
@@ -160,7 +161,8 @@ namespace atomex_frontend.Storages
       set { _estimatedMaxAmount = value; }
     }
 
-    public string TargetFeeCurrencyFormat {
+    public string TargetFeeCurrencyFormat
+    {
       get => ToCurrency.FeeCurrencyName;
     }
 
@@ -191,7 +193,10 @@ namespace atomex_frontend.Storages
 
     public decimal EstimatedTotalNetworkFeeInBase
     {
-      get => EstimatedPaymentFeeInBase + EstimatedRedeemFeeInBase + EstimatedMakerNetworkFeeInBase;
+      get => EstimatedPaymentFeeInBase +
+                (!_hasRewardForRedeem ? EstimatedRedeemFeeInBase : 0) +
+                EstimatedMakerNetworkFeeInBase +
+                (_hasRewardForRedeem ? RewardForRedeemInBase : 0);
     }
 
     private decimal _rewardForRedeem;
@@ -201,7 +206,6 @@ namespace atomex_frontend.Storages
       set
       {
         _rewardForRedeem = value;
-        HasRewardForRedeem = _rewardForRedeem != 0;
       }
     }
 
@@ -340,7 +344,8 @@ namespace atomex_frontend.Storages
             fromCurrency: FromCurrency,
             toCurrency: ToCurrency,
             account: App.Account,
-            atomexClient: App.Terminal);
+            atomexClient: App.Terminal,
+            symbolsProvider: App.SymbolsProvider);
 
         if (swapPriceEstimation == null)
           return;
@@ -408,7 +413,8 @@ namespace atomex_frontend.Storages
 
       try
       {
-        if (value == 0) {
+        if (value == 0)
+        {
           _amount = value;
           this.CallUIRefresh();
         }
@@ -421,7 +427,8 @@ namespace atomex_frontend.Storages
                 fromCurrency: FromCurrency,
                 toCurrency: ToCurrency,
                 account: App.Account,
-                atomexClient: App.Terminal);
+                atomexClient: App.Terminal,
+                symbolsProvider: App.SymbolsProvider);
 
         IsCriticalWarning = false;
 
@@ -441,6 +448,7 @@ namespace atomex_frontend.Storages
 
         _amount = swapParams.Amount;
         _estimatedPaymentFee = swapParams.PaymentFee;
+        Console.WriteLine($"Maker fee is {swapParams.MakerNetworkFee}");
         _estimatedMakerNetworkFee = swapParams.MakerNetworkFee;
 
         await UpdateRedeemAndRewardFeesAsync();
@@ -456,14 +464,19 @@ namespace atomex_frontend.Storages
 
     private async Task UpdateRedeemAndRewardFeesAsync()
     {
-      var walletAddress = await App.Account
-          .GetRedeemAddressAsync(ToCurrency.FeeCurrencyName);
+      var walletAddress = await App.Account.GetRedeemAddressAsync(ToCurrency.Name);
 
-      EstimatedRedeemFee = await ToCurrency.GetRedeemFeeAsync(walletAddress);
+      _estimatedRedeemFee = await ToCurrency
+          .GetEstimatedRedeemFeeAsync(walletAddress, withRewardForRedeem: false);
 
-      RewardForRedeem = walletAddress.AvailableBalance() < EstimatedRedeemFee && !(ToCurrency is BitcoinBasedCurrency)
-          ? await ToCurrency.GetRewardForRedeemAsync()
-          : 0;
+      _rewardForRedeem = await RewardForRedeemHelper
+          .EstimateAsync(
+              account: App.Account,
+              quotesProvider: App.QuotesProvider,
+              feeCurrencyQuotesProvider: symbol => App.Terminal?.GetOrderBook(symbol)?.TopOfBook(),
+              walletAddress: walletAddress);
+
+      _hasRewardForRedeem = _rewardForRedeem != 0;
     }
 
     public async Task<string> Send()
@@ -511,7 +524,9 @@ namespace atomex_frontend.Storages
         if (Amount > 0 && !fromWallets.Any())
           return new Error(Errors.SwapError, Translations.CvInsufficientFunds);
 
-        var symbol = App.Account.Symbols.SymbolByCurrencies(FromCurrency, ToCurrency);
+        var symbol = App.SymbolsProvider
+            .GetSymbols(App.Account.Network)
+            .SymbolByCurrencies(FromCurrency, ToCurrency);
         var baseCurrency = App.Account.Currencies.GetByName(symbol.Base);
         var side = symbol.OrderSideForBuyCurrency(ToCurrency);
         var terminal = App.Terminal;
