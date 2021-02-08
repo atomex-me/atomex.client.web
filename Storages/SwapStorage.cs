@@ -448,7 +448,6 @@ namespace atomex_frontend.Storages
 
         _amount = swapParams.Amount;
         _estimatedPaymentFee = swapParams.PaymentFee;
-        Console.WriteLine($"Maker fee is {swapParams.MakerNetworkFee}");
         _estimatedMakerNetworkFee = swapParams.MakerNetworkFee;
 
         await UpdateRedeemAndRewardFeesAsync();
