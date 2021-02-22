@@ -202,5 +202,6 @@
   "DeleteWalletWarningSecond": "Are you sure you want to delete the wallet {0}?",
   "WalletDeletedMsg": "Wallet {0} deleted successfully",
   "ImUnderstand": "I understand",
-  "DeletingWallet": "Deleting Wallet"
+  "DeletingWallet": "Deleting Wallet",
+  "InfoMsg": "Info message"
 }

@@ -1,6 +1,8 @@
 @if (IsOpen) {
   <div class="modal-window light-background @(Big ? "big" : "")">
-    <i class="close-icon" @onclick="@OnClose"></i>
+    @if(!NoClose) {
+      <i class="close-icon" @onclick="@OnClose"></i> 
+    }
     @ChildContent
   </div>
 }
@@ -17,4 +19,7 @@
 
   [Parameter]
   public bool Big { get; set; }
+
+  [Parameter]
+  public bool NoClose { get; set; } = false;
 }

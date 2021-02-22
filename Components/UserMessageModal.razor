@@ -1,0 +1,35 @@
+@inject IJSRuntime JSRuntime;
+@inject RegisterStorage regStorage;
+@inject WalletStorage walletStorage;
+
+<div class="modal__container">
+  <div class="dark-background__no-grad modal-title">
+    @Translations.InfoMsg
+  </div>
+
+  <div class="modal-subtitle">
+    @walletStorage.userMessage.message
+  </div>
+
+  <div class="buttons-container">
+    <NavigateButton Variant="center" OnClick="OnOkClick">
+      @Translations.SvOk
+    </NavigateButton>
+  </div>
+</div>
+@code {
+  // [Parameter]
+  // public EventCallback OnCancelClick { get; set; }
+
+  private async void OnOkClick()
+  {
+    await walletStorage.MarkUserMsgReaded(walletStorage.userMessage.id);
+    // await OnCancelClick.InvokeAsync(null);
+  }
+
+  I18nText.Translations Translations = new I18nText.Translations();
+  protected override async Task OnInitializedAsync()
+  {
+    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+  }
+}

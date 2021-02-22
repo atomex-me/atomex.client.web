@@ -42,6 +42,11 @@
 
       </div>
       <div class="wallet-page__container">
+          <Modal IsOpen="@(WalletStorage.userMessage != null)" NoClose>
+              <UserMessageModal />
+          </Modal>
+
+
           @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio) {
             <DonutChart />
             <Modal IsOpen="@(WalletStorage.AllPortfolioUpdating)">

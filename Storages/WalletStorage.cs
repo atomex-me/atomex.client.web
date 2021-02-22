@@ -22,6 +22,8 @@ using atomex_frontend.Common;
 using Microsoft.AspNetCore.Components;
 using System.Timers;
 using System.Globalization;
+using Newtonsoft.Json;
+using Serilog;
 
 
 namespace atomex_frontend.Storages
@@ -347,6 +349,8 @@ namespace atomex_frontend.Storages
       }
     }
 
+    public UserMessage userMessage { get; set; } = null;
+
     public async void Initialize(bool IsRestarting)
     {
       if (accountStorage.AtomexApp != null)
@@ -411,14 +415,51 @@ namespace atomex_frontend.Storages
           }
 
           await jSRuntime.InvokeVoidAsync("walletLoaded", accountStorage.IdleTimeoutToLogout);
+
+          var userId = accountStorage.GetUserId();
+          var userMsg = await GetUserMessageFromServer(userId);
+          if (userMsg.Count > 0 && !userMsg[0].isReaded) {
+            userMessage = userMsg[0];
+            this.CallUIRefresh();
+          }
         }
-        catch { }
+        catch (Exception e)
+        {
+          Log.Error($"walletStorage Initialize error {e.ToString()}");
+        }
 
         if (accountStorage.LoadFromRestore)
         {
           await ScanAllCurrencies();
         }
       }
+    }
+
+
+    private async Task<List<UserMessage>> GetUserMessageFromServer(string userId)
+    {
+      var result = await HttpHelper.GetAsync(
+            baseUri: "https://test.atomex.me/",
+            requestUri: $"usermessages/get_user_messages/?uid={userId}&format=json",
+            responseHandler: response => JsonConvert.DeserializeObject<List<UserMessage>>(response.Content.ReadAsStringAsync().WaitForResult()),
+            cancellationToken: new CancellationTokenSource().Token)
+        .ConfigureAwait(false);
+
+      return result;
+    }
+
+    public async Task MarkUserMsgReaded(int id)
+    {
+      var result = await HttpHelper.PostAsync(
+            baseUri: "https://test.atomex.me/",
+            content: null,
+            requestUri: $"usermessages/get_user_messages/{id}/mark_read/",
+            responseHandler: response => response,
+            cancellationToken: new CancellationTokenSource().Token)
+        .ConfigureAwait(false);
+
+        userMessage = null;
+        this.CallUIRefresh();
     }
 
     private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)

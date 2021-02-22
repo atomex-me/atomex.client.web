@@ -262,6 +262,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"I understand"</summary>
         public string ImUnderstand;
 
+        /// <summary>"Info message"</summary>
+        public string InfoMsg;
+
         /// <summary>"Instantly sending of currency."</summary>
         public string InstantlySendingOfCurrency;
 
