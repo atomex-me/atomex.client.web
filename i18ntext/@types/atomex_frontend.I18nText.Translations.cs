@@ -76,6 +76,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Copying the private key to the clipboard may result in the loss of all your coins in the wallet. Are you sure you want to copy the private key for {0}?"</summary>
         public string CopyPrivateAddrWarning;
 
+        /// <summary>"Amount is greater than the available. Please use the Max button to get the maximum available value."</summary>
+        public string CvBigAmount;
+
         /// <summary>"Conversion error. Please contant technical support"</summary>
         public string CvConversionError;
 
@@ -121,8 +124,8 @@ namespace atomex_frontend.I18nText
         /// <summary>"Warning"</summary>
         public string CvWarning;
 
-        /// <summary>"Amount to convert must be greater than zero"</summary>
-        public string CvWrongAmount;
+        /// <summary>"Amount must be greater than zero."</summary>
+        public string CvZeroAmount;
 
         /// <summary>"Back"</summary>
         public string CwvBack;

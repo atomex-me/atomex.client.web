@@ -518,7 +518,7 @@ namespace atomex_frontend.Storages
             .ToList();
 
         if (Amount == 0)
-          return new Error(Errors.SwapError, Translations.CvWrongAmount);
+          return new Error(Errors.SwapError, Translations.CvZeroAmount);
 
         if (Amount > 0 && !fromWallets.Any())
           return new Error(Errors.SwapError, Translations.CvInsufficientFunds);
@@ -526,6 +526,7 @@ namespace atomex_frontend.Storages
         var symbol = App.SymbolsProvider
             .GetSymbols(App.Account.Network)
             .SymbolByCurrencies(FromCurrency, ToCurrency);
+            
         var baseCurrency = App.Account.Currencies.GetByName(symbol.Base);
         var side = symbol.OrderSideForBuyCurrency(ToCurrency);
         var terminal = App.Terminal;
