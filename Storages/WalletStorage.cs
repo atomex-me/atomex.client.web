@@ -262,7 +262,7 @@ namespace atomex_frontend.Storages
 
     public bool GetEthreumBasedCurrency
     {
-      get => this.SelectedCurrency is Ethereum || this.SelectedCurrency is Tether;
+      get => this.SelectedCurrency is Ethereum || this.SelectedCurrency is ERC20;
     }
 
     private bool _isUpdating = false;
@@ -790,9 +790,7 @@ namespace atomex_frontend.Storages
               BtcFee
             ), tx.Currency);
           break;
-        case TBTC _:
-        case WBTC _:
-        case Tether _:
+        case ERC20 _:
           EthereumTransaction usdtTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(usdtTrans);
           description = CurrHelper.GetTransDescription(tx, amount, 0);

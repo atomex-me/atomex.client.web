@@ -72,7 +72,7 @@ namespace atomex_frontend.Common
   {
     public static decimal GetTransAmount(EthereumTransaction tx)
     {
-      if (tx.Currency is Tether || tx.Currency is TBTC || tx.Currency is WBTC)
+      if (tx.Currency is ERC20)
       {
         var Erc20 = tx.Currency as ERC20;
         var usdtResult = 0m;
