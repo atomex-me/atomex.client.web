@@ -103,7 +103,9 @@ app {
     --orange: #FA9517;
     --atomex-yellow: #E4F463;
 
+    
     --btc-color: rgb(255, 148, 0);
+    --kusd-color: rgb(188, 212, 247);
     --eth-color: rgb(183, 208, 225);
     --fa12-color: rgb(188, 212, 247);
     --ltc-color: rgb(231, 231, 231);
@@ -1615,6 +1617,11 @@ table>thead>tr>th {
 .btc-brush {
     color: var(--btc-color);
 }
+
+.kusd-brush {
+    color: var(--kusd-color);
+}
+
 
 .eth-brush {
     color: var(--eth-color);
