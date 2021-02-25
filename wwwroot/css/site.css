@@ -1024,6 +1024,12 @@ table>thead>tr>th {
     margin-left: 15px;
 }
 
+@media (max-width: 1044px) { 
+    .tezos-card__container>*:last-child {
+        margin-left: 0;
+    }
+ }
+
 .currency-card__selected-currency {
     display: flex;
     align-items: center;
