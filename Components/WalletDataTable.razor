@@ -5,9 +5,9 @@
 @using atomex_frontend.Common;
 
 <div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant==AvailableVariants.Addresses ? "no-js" : "")">
-  @if (Variant == AvailableVariants.Transactions && OpenedTx?.Currency.Name == walletStorage.SelectedCurrency.Name)
+  @if (Variant == AvailableVariants.Transactions && walletStorage.OpenedTx?.Currency.Name == walletStorage.SelectedCurrency.Name)
   {
-    <DetailTxInfo OpenedTx="@OpenedTx" TransactionsData="@TransactionsData" TxHeight="@(GetTxHeight(OpenedTx))"
+    <DetailTxInfo OpenedTx="@walletStorage.OpenedTx" TransactionsData="@TransactionsData" TxHeight="@(GetTxHeight(walletStorage.OpenedTx))"
       TxInfoBlockHeight="@GetTxInfoBlockHeight" />
   }
   <table>
@@ -53,8 +53,8 @@
       <tbody class="transactions-body">
         @foreach (var transaction in TransactionsData)
         {
-          <tr class="tx-row" @onclick="@(() => OpenedTx = OpenedTx?.Id != transaction.Id ? transaction : null )"
-            style="height: @(OpenedTx?.Id == transaction.Id ? $"{GetTxInfoBlockHeight}px" : $"{GetTxHeight(transaction)}px");">
+          <tr class="tx-row" @onclick="@(() => walletStorage.OpenedTx = walletStorage.OpenedTx?.Id != transaction.Id ? transaction : null )"
+            style="height: @(walletStorage.OpenedTx?.Id == transaction.Id ? $"{GetTxInfoBlockHeight}px" : $"{GetTxHeight(transaction)}px");">
             <td valign="top">
               <div class="icon-vertical-text">
                 <i class="icon transaction-icon @GetTransactionType(transaction)" title="@transaction.Type.ToName()" />
@@ -196,8 +196,6 @@
     Addresses
   }
 
-  private Transaction OpenedTx = null;
-
   private int GetTxHeight(Transaction tx)
   {
     return tx.Currency is BitcoinBasedCurrency ? 45 : 57;
@@ -214,7 +212,7 @@
     get
     {
       int height = 160;
-      TX_INFO_BLOCK_HEIGHT.TryGetValue(OpenedTx?.Currency.Name.ToUpper(), out height);
+      TX_INFO_BLOCK_HEIGHT.TryGetValue(walletStorage.OpenedTx?.Currency.Name.ToUpper(), out height);
       return height;
     }
   }

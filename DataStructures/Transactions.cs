@@ -49,6 +49,11 @@ namespace atomex_frontend.atomex_data_structures
       IsInternal = isInternal;
       Alias = alias;
       IsRewardTx = isRewardTx;
+
+      CanBeRemoved = state == BlockchainTransactionState.Unknown ||
+                state == BlockchainTransactionState.Failed ||
+                state == BlockchainTransactionState.Pending ||
+                state == BlockchainTransactionState.Unconfirmed;
     }
 
     public Currency Currency { get; set; }
@@ -76,6 +81,8 @@ namespace atomex_frontend.atomex_data_structures
     public string Alias { get; set; }
 
     public bool IsRewardTx { get; set; }
+
+    public bool CanBeRemoved { get; set; }
 
     public BlockInfo BlockInfo => throw new NotImplementedException();
   }

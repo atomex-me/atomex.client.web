@@ -4,6 +4,9 @@
 @inject IJSRuntime JSRuntime;
 
 <div class="tx-info__container" style="top: @(GetTxInfoTop); height: @(GetTxInfoHeight)">
+  @if (OpenedTx.CanBeRemoved) {
+    <i class="delete-tx__icon" @onclick="@DeleteTx" />
+  }
   <div class="tx-info__row">
     <div>Transaction id:</div>
     <div>
@@ -151,6 +154,10 @@
   private async void OnCopyToClick()
   {
     await JSRuntime.InvokeAsync<string>("copyTextToClipboard", OpenedTx.To);
+  }
+
+  private void DeleteTx() {
+    walletStorage.RemoveTransacton(OpenedTx.Id, OpenedTx.Currency.Name);
   }
 
   private string GetTxInfoTop

@@ -2255,3 +2255,18 @@ margin-left: var(--text-divider-gap);
 .timeout-setting__container {
     display: flex;
 }
+
+.delete-tx__icon {
+    position: absolute;
+    right: 20px;
+    background-image: url('icons/trash.svg');
+    background-position: center;
+    width: 25px;
+    height: 25px;
+    background-size: 25px;
+    cursor: pointer;
+}
+
+.delete-tx__icon:hover {
+    background-image: url('icons/trash-light.svg');
+}

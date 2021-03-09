@@ -113,8 +113,26 @@ function deleteData(table,walletName)
   idbKeyval.del(dbKey);
 }
 
-function saveData(type,walletName,dbId,value)
+async function saveData(type,walletName,dbId,value)
 {
+  if (type === "RemoveTransaction") {
+    var txKey = `${walletName}/${dataTypes[1]}`;
+
+    var allTx = await idbKeyval.get(txKey);
+    delete allTx[dbId];
+
+    dataStore = {
+      ...dataStore,
+      [txKey]: allTx
+    };
+
+    await idbKeyval.del(txKey);
+
+    saveToStore(walletName);
+    setDataUnsync();
+    return;
+  }
+
   const dbKey=`${walletName}/${type}`;
   data=dataStore[ dbKey ];
 

@@ -349,6 +349,8 @@ namespace atomex_frontend.Storages
       }
     }
 
+    public Transaction OpenedTx = null;
+
     public UserMessage userMessage { get; set; } = null;
 
     public async void Initialize(bool IsRestarting)
@@ -763,6 +765,29 @@ namespace atomex_frontend.Storages
           jSRuntime.InvokeVoidAsync("showNotification", $"{tx.Currency.Description} {type}", tx.Description, $"/css/images/{tx.Currency.Description.ToLower()}_90x90.png");
         }
       }
+    }
+
+    public async void RemoveTransacton(string id, string currencyName)
+    {
+        if (accountStorage.AtomexApp.Account == null)
+            return;
+
+        try
+        {
+            var isRemoved = await accountStorage.AtomexApp.Account
+                .RemoveTransactionAsync($"{id}:{currencyName}");
+
+            if (isRemoved) {
+              Transactions.Remove($"{id}/{currencyName}");
+            }
+
+            OpenedTx = null;
+            this.CallUIRefresh();
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Transaction remove error");
+        }
     }
 
     private void handleTransaction(IBlockchainTransaction tx)
