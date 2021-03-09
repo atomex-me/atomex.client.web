@@ -120,6 +120,16 @@
                     Amount="@SwapStorage.Amount"
                     DollarAmount="@SwapStorage.AmountDollars"
                     TotalAmount="@SwapStorage.EstimatedMaxAmount" />
+
+                <div class="exchange-container">
+                  Available: @(Helper.DecimalToStr(SwapStorage.EstimatedMaxAmount)) 
+                  <span class="currency-abbr small">@WalletStorage.SelectedCurrency.Name</span>
+                    <i class="info-tooltip atomex-tooltip">
+                        <span class="atomex-tooltiptext fees">
+                          The limit applies to a single trade. In case you require more liquidity make multiple trades.
+                        </span>
+                    </i>
+                </div>
                 
                 <ConvertCard />
 
@@ -174,6 +184,7 @@
   {
     debounceInputAmount.Stop();
     debounceInputAmount.Start();
+  
     Amount = amount;
   }
 

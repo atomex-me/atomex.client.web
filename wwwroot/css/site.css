@@ -1345,6 +1345,11 @@ table>thead>tr>th {
     margin-left: -80px;
 }
 
+.exchange-container>span.currency-abbr {
+    margin: 0 5px;
+    width: auto;
+}
+
 .exchange-container .rounded-dark-container::after {
     position: absolute;
     right: 20px;
@@ -1428,6 +1433,10 @@ table>thead>tr>th {
     font-size: 12px;
 }
 
+.currency-abbr.error {
+    color: var(--error-color);
+}
+
 .exchange-amount__input {
     display: flex;
     justify-content: space-between;
@@ -1443,6 +1452,11 @@ table>thead>tr>th {
     border-radius: 20px;
     padding: 0px 20px;
 }
+
+.exchange-amount__input>input.error {
+    color: var(--error-color);
+}
+
 
 .exchange-amount__input>.exchexchange-amount__input-add-info {
     position: absolute;
@@ -1529,7 +1543,8 @@ table>thead>tr>th {
 .exchange-amount__available-container {
     position: absolute;
     right: -10px;
-    transform: translateX(100%)
+    top: 50%;
+    transform: translateX(100%) translateY(-50%);
 }
 
 .exchange-amount__available-container>*:hover {
@@ -1943,11 +1958,8 @@ table>thead>tr>th {
 
 .change-selected-currencies__button {
     position: absolute;
-    bottom: 25px;
-    right: -10px;
     transform: translate(100%, 100%);
     border: none;
-    height: 60px;
     background-color: var(--dark-input-dark-blue);
     padding: 10px 20px;
     border-radius: 20px;
@@ -1955,8 +1967,13 @@ table>thead>tr>th {
     background-image: url(icons/sort.svg);
     background-position: center;
     background-repeat: no-repeat;
-    background-size: 30px;
-    padding: 30px;
+    z-index: 1;
+    right: 105px;
+    border: 1px solid var(--dark-gradient-color);
+    background-size: 20px;
+    padding: 25px;
+    height: auto;
+    bottom: 20px;
 }
 
 .relative {

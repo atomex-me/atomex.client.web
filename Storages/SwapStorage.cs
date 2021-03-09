@@ -15,6 +15,7 @@ using Atomex.Swaps.Helpers;
 using Atomex.Swaps;
 using Serilog;
 using Microsoft.JSInterop;
+using atomex_frontend.Common;
 
 namespace atomex_frontend.Storages
 {
@@ -65,6 +66,11 @@ namespace atomex_frontend.Storages
       get => walletStorage.SelectedSecondCurrency;
     }
 
+    public string CurrencyFormat
+    {
+      get => walletStorage.SelectedCurrency.Format;
+    }
+
     private String CurrencyCode
     {
       get => FromCurrency.Name;
@@ -113,11 +119,27 @@ namespace atomex_frontend.Storages
       get => walletStorage.GetDollarValue(FromFeeCurrencyFormat, _estimatedPaymentFee);
     }
 
+    private bool _isAmountValid = true;
+    public bool IsAmountValid
+    {
+      get => _isAmountValid;
+      set { _isAmountValid = value; }
+    }
+
     private decimal _amount;
     public decimal Amount
     {
       get => _amount;
-      set { _ = UpdateAmountAsync(value); }
+      set
+      {
+        _amount = value;
+        _ = UpdateAmountAsync(_amount, updateUi: false);
+      }
+    }
+
+    public string FromAmountString
+    {
+      get => _amount.ToString(CurrencyFormat, CultureInfo.InvariantCulture);
     }
 
     public decimal AmountInBase
@@ -406,7 +428,29 @@ namespace atomex_frontend.Storages
       return AccountStorage.Currencies.GetByName(Currency);
     }
 
-    protected virtual async Task UpdateAmountAsync(decimal value)
+    public async void MaxAmountCommand()
+    {
+      try
+      {
+        var swapParams = await Atomex.ViewModels.Helpers
+            .EstimateSwapPaymentParamsAsync(
+                amount: EstimatedMaxAmount,
+                fromCurrency: FromCurrency,
+                toCurrency: ToCurrency,
+                account: App.Account,
+                atomexClient: App.Terminal,
+                symbolsProvider: App.SymbolsProvider);
+
+        _amount = Math.Min(swapParams.Amount, EstimatedMaxAmount);
+        _ = UpdateAmountAsync(_amount, updateUi: true);
+      }
+      catch (Exception e)
+      {
+        Log.Error(e, "Max amount command error.");
+      }
+    }
+
+    protected virtual async Task UpdateAmountAsync(decimal value, bool updateUi = false)
     {
       Warning = string.Empty;
       Console.WriteLine($"Updating amount with {value}");
@@ -446,9 +490,14 @@ namespace atomex_frontend.Storages
           Warning = string.Empty;
         }
 
-        _amount = swapParams.Amount;
+        // _amount = swapParams.Amount;
         _estimatedPaymentFee = swapParams.PaymentFee;
         _estimatedMakerNetworkFee = swapParams.MakerNetworkFee;
+
+        IsAmountValid = _amount <= Helper.TruncateByFormat(swapParams.Amount, CurrencyFormat);
+
+        // if (updateUi)
+        //     OnPropertyChanged(nameof(AmountString));
 
         await UpdateRedeemAndRewardFeesAsync();
 
@@ -491,12 +540,21 @@ namespace atomex_frontend.Storages
         }
 
         Console.WriteLine("Swap successfully created");
+        OnSuccessConvertion();
+
         return null;
       }
-      catch (Exception e)
+      catch (Exception)
       {
         return "An error has occurred while sending swap.";
       }
+    }
+
+    private void OnSuccessConvertion()
+    {
+      Console.WriteLine("Calling OnSuccessConvertion");
+      _amount = Math.Min(_amount, EstimatedMaxAmount); // recalculate amount
+      _ = UpdateAmountAsync(_amount, updateUi: true);
     }
 
     private async Task<Error> ConvertAsync()
@@ -526,7 +584,7 @@ namespace atomex_frontend.Storages
         var symbol = App.SymbolsProvider
             .GetSymbols(App.Account.Network)
             .SymbolByCurrencies(FromCurrency, ToCurrency);
-            
+
         var baseCurrency = App.Account.Currencies.GetByName(symbol.Base);
         var side = symbol.OrderSideForBuyCurrency(ToCurrency);
         var terminal = App.Terminal;
@@ -610,42 +668,41 @@ namespace atomex_frontend.Storages
     {
       get
       {
-        if (Amount == 0)
+        if (_amount == 0)
         {
-          var msg = "Amount to convert must be greater than zero.";
-          return msg;
+          return Translations.CvZeroAmount;
+        }
+
+        if (!IsAmountValid)
+        {
+          return Translations.CvBigAmount;
         }
 
         if (EstimatedPrice == 0)
         {
-          var msg = "Not enough liquidity to convert a specified amount.";
-          return msg;
+          return Translations.CvNoLiquidity;
         }
 
         if (!App.Terminal.IsServiceConnected(TerminalService.All))
         {
-          var msg = "Atomex services unavailable. Please check your network connection or contact technical support.";
-          return msg;
+          return Translations.CvServicesUnavailable;
         }
 
         var symbol = Symbols.SymbolByCurrencies(FromCurrency, ToCurrency);
         if (symbol == null)
         {
-          var msg = "This symbol does not support direct conversion.";
-          return msg;
+          return Translations.CvNotSupportedSymbol;
         }
 
         var side = symbol.OrderSideForBuyCurrency(ToCurrency);
         var price = EstimatedPrice;
         var baseCurrency = Currencies.GetByName(symbol.Base);
-        var qty = AmountHelper.AmountToQty(side, Amount, price, baseCurrency.DigitsMultiplier);
+        var qty = AmountHelper.AmountToQty(side, _amount, price, baseCurrency.DigitsMultiplier);
 
         if (qty < symbol.MinimumQty)
         {
           var minimumAmount = AmountHelper.QtyToAmount(side, symbol.MinimumQty, price, FromCurrency.DigitsMultiplier);
-
-          var msg = "The amount must be greater than or equal to the minimum allowed amount";
-          var message = string.Format(CultureInfo.InvariantCulture, "{0} {1} {2}", msg, minimumAmount, FromCurrency.Name);
+          var message = string.Format(CultureInfo.InvariantCulture, Translations.CvMinimumAllowedQtyWarning, minimumAmount, FromCurrency.Name);
 
           return message;
         }
