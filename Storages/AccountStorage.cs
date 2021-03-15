@@ -460,7 +460,7 @@ namespace atomex_frontend.Storages
       await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
-      ConnectToWallet(CurrentWalletName, _password).FireAndForget();
+      _ = ConnectToWallet(CurrentWalletName, _password);
     }
 
     private async Task migradeDB_0_OR_1_TO_2()
@@ -472,7 +472,7 @@ namespace atomex_frontend.Storages
       await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
-      ConnectToWallet(CurrentWalletName, _password).FireAndForget();
+      _ = ConnectToWallet(CurrentWalletName, _password);
     }
 
     private async Task migradeDB_TO_3()
@@ -485,7 +485,7 @@ namespace atomex_frontend.Storages
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
       LoadingUpdate = true;
-      ConnectToWallet(CurrentWalletName, _password).FireAndForget();
+      _ = ConnectToWallet(CurrentWalletName, _password);
     }
   }
 }

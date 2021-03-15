@@ -42,6 +42,6 @@
 
   public void Dispose()
   {
-    OnChange.InvokeAsync(String.Empty).FireAndForget();
+    _ = OnChange.InvokeAsync(String.Empty);
   }
 }

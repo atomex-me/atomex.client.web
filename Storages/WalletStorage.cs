@@ -331,7 +331,7 @@ namespace atomex_frontend.Storages
 
         if (_currentWalletSection == WalletSection.Wallets)
         {
-          bakerStorage.LoadDelegationInfoAsync().FireAndForget();
+          _ = bakerStorage.LoadDelegationInfoAsync();
         }
       }
     }
@@ -365,7 +365,7 @@ namespace atomex_frontend.Storages
         {
           if (args.Currency == "XTZ")
           {
-            bakerStorage.LoadDelegationInfoAsync().FireAndForget();
+            _ = bakerStorage.LoadDelegationInfoAsync();
           }
           await BalanceUpdatedHandler(args.Currency);
         };

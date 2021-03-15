@@ -168,6 +168,6 @@
     Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
     walletStorage.RefreshRequested += StateHasChanged;
 
-    Load().FireAndForget();
+    _ = Load();
   }
 }

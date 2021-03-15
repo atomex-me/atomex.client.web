@@ -15,6 +15,7 @@ using Atomex.Blockchain.Tezos.Internal;
 using Atomex.Common;
 using Newtonsoft.Json.Linq;
 using Serilog;
+using Atomex.Wallet.Tezos;
 
 namespace atomex_frontend.Storages
 {
@@ -50,7 +51,7 @@ namespace atomex_frontend.Storages
       _fee = 0m;
 
       PrepareWallet().WaitForResult();
-      LoadBakerList(firstLoad: true).FireAndForget();
+      _ = LoadBakerList(firstLoad: true);
     }
 
     public event Action RefreshUI;
@@ -65,7 +66,6 @@ namespace atomex_frontend.Storages
     public Tezos _tezos;
     public string CUSTOM_BAKER_NAME = "Custom baker";
     private WalletAddress _walletAddress;
-    private TezosTransaction _tx;
 
     public WalletAddress WalletAddress
     {
@@ -164,7 +164,7 @@ namespace atomex_frontend.Storages
 
             Warning = string.Empty;
 
-            CheckFee().FireAndForget();
+            _ = CheckFee();
           }
         }
       }
@@ -218,7 +218,7 @@ namespace atomex_frontend.Storages
         _useDefaultFee = value;
         if (_useDefaultFee)
         {
-          CheckFee().FireAndForget();
+          _ = CheckFee();
         }
       }
     }
@@ -480,10 +480,21 @@ namespace atomex_frontend.Storages
           Fee = Fee.ToMicroTez(),
           Currency = _tezos,
           CreationTime = DateTime.UtcNow,
+
+          UseRun = true,
+          UseOfflineCounter = false,
+          OperationType = OperationType.Delegation
         };
 
-        var calculatedFee = await tx.AutoFillAsync(keyStorage, _walletAddress, true);
-        if (!calculatedFee)
+        using var securePublicKey = App.Account.Wallet
+            .GetPublicKey(_tezos, _walletAddress.KeyIndex);
+
+        var isSuccess = await tx.FillOperationsAsync(
+            securePublicKey: securePublicKey,
+            headOffset: Tezos.HeadOffset,
+            cancellationToken: default);
+
+        if (!isSuccess)
         {
           var err = new Error(Errors.TransactionCreationError, Translations.AutofillTxFailed);
           Warning = err.Description;
@@ -523,13 +534,12 @@ namespace atomex_frontend.Storages
       if (_walletAddress == null)
         return new Error(Errors.InvalidWallets, Translations.NoEmptyAccounts);
 
-      var wallet = (HdWallet)App.Account.Wallet;
-      var keyStorage = wallet.KeyStorage;
-      var rpc = new Rpc(_tezos.RpcNodeUri);
-
       JObject delegateData;
+
       try
       {
+        var rpc = new Rpc(_tezos.RpcNodeUri);
+
         delegateData = await rpc
             .GetDelegate(_address)
             .ConfigureAwait(false);
@@ -540,7 +550,7 @@ namespace atomex_frontend.Storages
       }
 
       if (delegateData["deactivated"].Value<bool>())
-        return new Error(Errors.WrongDelegationAddress, $"{Translations.BakerDeactivated}");
+        return new Error(Errors.WrongDelegationAddress, Translations.BakerDeactivated);
 
       var delegators = delegateData["delegated_contracts"]?.Values<string>();
 
@@ -556,27 +566,48 @@ namespace atomex_frontend.Storages
         }
       }
 
-      var tx = new TezosTransaction
-      {
-        StorageLimit = _tezos.StorageLimit,
-        GasLimit = _tezos.GasLimit,
-        From = _walletAddress.Address,
-        To = _address,
-        Fee = Fee.ToMicroTez(),
-        Currency = _tezos,
-        CreationTime = DateTime.UtcNow,
-      };
-
       try
       {
-        var calculatedFee = await tx.AutoFillAsync(keyStorage, _walletAddress, UseDefaultFee);
-        if (!calculatedFee)
+
+        var tx = new TezosTransaction
+        {
+          StorageLimit = _tezos.StorageLimit,
+          GasLimit = _tezos.GasLimit,
+          From = _walletAddress.Address,
+          To = _address,
+          Fee = Fee.ToMicroTez(),
+          Currency = _tezos,
+          CreationTime = DateTime.UtcNow,
+
+          UseRun = true,
+          UseOfflineCounter = false,
+          OperationType = OperationType.Delegation
+        };
+
+        using var securePublicKey = App.Account.Wallet
+            .GetPublicKey(_tezos, _walletAddress.KeyIndex);
+
+        var isSuccess = await tx.FillOperationsAsync(
+            securePublicKey: securePublicKey,
+            headOffset: Tezos.HeadOffset,
+            cancellationToken: cancellationToken);
+
+        if (!isSuccess)
           return new Error(Errors.TransactionCreationError, Translations.AutofillTxFailed);
 
-        Fee = tx.Fee;
-        _tx = tx;
+        if (UseDefaultFee)
+        {
+          Fee = tx.Fee;
+        }
+        else
+        {
+          if (Fee < tx.Fee)
+          {
+            Fee = tx.Fee;
+          }
+        }
       }
-      catch (Exception e)
+      catch (Exception)
       {
         Console.WriteLine(Translations.AutofillDelegationError);
         return new Error(Errors.TransactionCreationError, Translations.AutofillDelegationError);
@@ -590,27 +621,56 @@ namespace atomex_frontend.Storages
     {
       var wallet = (HdWallet)App.Account.Wallet;
       var keyStorage = wallet.KeyStorage;
+      var Currency = _tezos;
       var tezos = _tezos;
+
+      var tezosAccount = App.Account
+          .GetCurrencyAccount<TezosAccount>("XTZ");
 
       try
       {
-        var signResult = await _tx
-            .SignDelegationOperationAsync(keyStorage, WalletAddress, default);
+        await tezosAccount.AddressLocker
+            .LockAsync(WalletAddress.Address);
+
+        var tx = new TezosTransaction
+        {
+          StorageLimit = Currency.StorageLimit,
+          GasLimit = Currency.GasLimit,
+          From = WalletAddress.Address,
+          To = _address,
+          Fee = Fee.ToMicroTez(),
+          Currency = Currency,
+          CreationTime = DateTime.UtcNow,
+
+          UseRun = true,
+          UseOfflineCounter = true,
+          OperationType = OperationType.Delegation
+        };
+
+        using var securePublicKey = App.Account.Wallet
+            .GetPublicKey(Currency, WalletAddress.KeyIndex);
+
+        await tx.FillOperationsAsync(
+            securePublicKey: securePublicKey,
+            headOffset: Tezos.HeadOffset);
+
+        var signResult = await tx
+            .SignAsync(keyStorage, WalletAddress, default);
 
         if (!signResult)
         {
           Log.Error(Translations.TxSigningError);
-          Warning = (Translations.TxSigningError);
-          return String.Empty;
+          Warning = Translations.TxSigningError;
+          return string.Empty;
         }
 
         var result = await tezos.BlockchainApi
-            .TryBroadcastAsync(_tx);
+            .TryBroadcastAsync(tx);
 
         if (result.Error != null)
         {
           Warning = result.Error?.Description;
-          return String.Empty;
+          return string.Empty;
         }
         else
         {
@@ -623,6 +683,11 @@ namespace atomex_frontend.Storages
         Warning = Translations.DelegationError;
         Log.Error(e, Translations.DelegationError);
       }
+      finally
+      {
+        tezosAccount.AddressLocker.Unlock(WalletAddress.Address);
+      }
+
       return string.Empty;
     }
 

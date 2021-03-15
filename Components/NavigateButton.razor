@@ -46,7 +46,7 @@ else
 
   private async void handleClick()
   {
-    OnClick.InvokeAsync(null).FireAndForget();
+    _ = OnClick.InvokeAsync(null);
     if (IsSubmit)
     {
       await JSRuntime.InvokeVoidAsync("submitPasswordForm");
