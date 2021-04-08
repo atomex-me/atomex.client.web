@@ -26,6 +26,13 @@
                 Variant="@WalletSection.Conversion"
                 OnClick="@WalletMenuButtonClick"
                 IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Conversion)" />
+
+            @if (WalletStorage.CanBuySelectedCurrency) {
+              <WalletMenuButton
+                  Variant="@WalletSection.BuyWithCard"
+                  OnClick="@WalletMenuButtonClick"
+                  IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.BuyWithCard)" />
+            }
           </div>
 
           <div>
@@ -156,6 +163,10 @@
           
           @if (WalletStorage.CurrentWalletSection == WalletSection.Settings) {
             <SettingsPage Value="@AccountStorage.IdleTimeoutToLogout" />
+          }
+
+          @if (WalletStorage.CurrentWalletSection == WalletSection.BuyWithCard) {
+            <BuyWithCard />
           }
       </div>
   </div>

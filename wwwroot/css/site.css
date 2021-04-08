@@ -621,7 +621,7 @@ button:hover {
 .wallet-page__left-nav {
     flex-basis: 15%;
     max-width: 200px;
-    min-width: 165px;
+    min-width: 184px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -914,6 +914,10 @@ table>thead>tr>th {
 
 .wallet-menu-icon.settings {
     background-image: url('icons/gear.svg');
+}
+
+.wallet-menu-icon.buywithcard {
+    background-image: url('icons/credit-card.svg');
 }
 
 .wallet-menu__button {
@@ -2286,4 +2290,14 @@ margin-left: var(--text-divider-gap);
 
 .delete-tx__icon:hover {
     background-image: url('icons/trash-light.svg');
+}
+
+iframe {
+    display: block;
+    margin: 0 auto;
+}
+
+#wert-widget {
+    height: 100%;
+    width: 100%;
 }

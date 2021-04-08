@@ -51,34 +51,13 @@
     {
       if (_currentValue == null)
       {
-        return GetDefaultAddress().Address;
+        return walletStorage.GetDefaultAddress().Address;
       }
       else
       {
         return _currentValue;
       }
     }
-  }
-
-  private WalletAddress GetDefaultAddress()
-  {
-    IEnumerable<WalletAddressView> FromAddressList = walletStorage.FromAddressList
-        .Where(wa => wa.WalletAddress.Currency == walletStorage.SelectedCurrency.Name);
-
-    if (walletStorage.SelectedCurrency is Tezos || walletStorage.SelectedCurrency is Ethereum)
-    {
-      var activeAddressViewModel = FromAddressList
-          .OrderByDescending(vm => vm.WalletAddress.AvailableBalance())
-          .ToList()
-          .FirstOrDefault(vm => vm.WalletAddress.HasActivity);
-
-      if (activeAddressViewModel != null)
-        return activeAddressViewModel.WalletAddress;
-
-      return FromAddressList.First(vm => vm.IsFreeAddress).WalletAddress;
-    }
-
-    return FromAddressList.First(vm => vm.IsFreeAddress).WalletAddress;
   }
 
   protected void OnChange(string value)

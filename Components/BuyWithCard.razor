@@ -1,0 +1,19 @@
+@inject IJSRuntime JSRuntime;
+@inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
+
+<div id="wert-widget"></div>
+
+@code {
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await JSRuntime.InvokeVoidAsync(
+        "renderWertWidget",
+        walletStorage.SelectedCurrency.Name,
+        walletStorage.GetDefaultAddress().Address, accountStorage.CurrentNetwork.ToString()
+      );
+    }
+  }
+}

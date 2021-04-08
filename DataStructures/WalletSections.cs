@@ -5,7 +5,8 @@ namespace atomex_frontend.atomex_data_structures
     Portfolio,
     Wallets,
     Conversion,
+    BuyWithCard,
     Signout,
-    Settings
+    Settings,
   }
 }

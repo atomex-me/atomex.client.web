@@ -43,6 +43,9 @@ namespace atomex_frontend.I18nText
         /// <summary>"Balance update in progress..."</summary>
         public string BalanceUpdateInProgress;
 
+        /// <summary>"Buy with card"</summary>
+        public string BuyWithCard;
+
         /// <summary>"Cancel"</summary>
         public string Cancel;
 

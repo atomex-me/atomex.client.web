@@ -153,6 +153,7 @@ namespace atomex_frontend.Storages
         }
 
         this._selectedCurrency = value;
+        this.CallUIRefresh();
       }
     }
 
@@ -333,6 +334,10 @@ namespace atomex_frontend.Storages
         {
           _ = bakerStorage.LoadDelegationInfoAsync();
         }
+
+        if (_currentWalletSection == WalletSection.BuyWithCard) {
+          this.CallUIRefresh();
+        }
       }
     }
 
@@ -347,6 +352,10 @@ namespace atomex_frontend.Storages
             .ToList();
         return res;
       }
+    }
+
+    public bool CanBuySelectedCurrency  {
+      get => SelectedCurrency?.Name == "XTZ" || SelectedCurrency?.Name == "ETH" || SelectedCurrency?.Name == "BTC";
     }
 
     public Transaction OpenedTx = null;
@@ -420,7 +429,8 @@ namespace atomex_frontend.Storages
 
           var userId = accountStorage.GetUserId();
           var userMsg = await GetUserMessageFromServer(userId);
-          if (userMsg.Count > 0 && !userMsg[0].isReaded) {
+          if (userMsg.Count > 0 && !userMsg[0].isReaded)
+          {
             userMessage = userMsg[0];
             this.CallUIRefresh();
           }
@@ -460,8 +470,8 @@ namespace atomex_frontend.Storages
             cancellationToken: new CancellationTokenSource().Token)
         .ConfigureAwait(false);
 
-        userMessage = null;
-        this.CallUIRefresh();
+      userMessage = null;
+      this.CallUIRefresh();
     }
 
     private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
@@ -689,6 +699,26 @@ namespace atomex_frontend.Storages
       }
     }
 
+    public WalletAddress GetDefaultAddress()
+    {      
+      IEnumerable<WalletAddressView> fromAddressList = FromAddressList
+          .Where(wa => wa.WalletAddress.Currency == SelectedCurrency.Name);
+
+      if (SelectedCurrency is Tezos || SelectedCurrency is Ethereum)
+      {
+        var activeAddressViewModel = fromAddressList
+            .OrderByDescending(vm => vm.WalletAddress.AvailableBalance())
+            .ToList()
+            .FirstOrDefault(vm => vm.WalletAddress.HasActivity);
+
+        if (activeAddressViewModel != null)
+          return activeAddressViewModel.WalletAddress;
+
+        return fromAddressList.First(vm => vm.IsFreeAddress).WalletAddress;
+      }
+
+      return fromAddressList.First(vm => vm.IsFreeAddress).WalletAddress;
+    }
     public async Task DrawDonutChart(bool updateData = false)
     {
       if (accountStorage.Account == null)
@@ -769,25 +799,26 @@ namespace atomex_frontend.Storages
 
     public async void RemoveTransacton(string id, string currencyName)
     {
-        if (accountStorage.AtomexApp.Account == null)
-            return;
+      if (accountStorage.AtomexApp.Account == null)
+        return;
 
-        try
+      try
+      {
+        var isRemoved = await accountStorage.AtomexApp.Account
+            .RemoveTransactionAsync($"{id}:{currencyName}");
+
+        if (isRemoved)
         {
-            var isRemoved = await accountStorage.AtomexApp.Account
-                .RemoveTransactionAsync($"{id}:{currencyName}");
-
-            if (isRemoved) {
-              Transactions.Remove($"{id}/{currencyName}");
-            }
-
-            OpenedTx = null;
-            this.CallUIRefresh();
+          Transactions.Remove($"{id}/{currencyName}");
         }
-        catch (Exception e)
-        {
-            Log.Error(e, "Transaction remove error");
-        }
+
+        OpenedTx = null;
+        this.CallUIRefresh();
+      }
+      catch (Exception e)
+      {
+        Log.Error(e, "Transaction remove error");
+      }
     }
 
     private void handleTransaction(IBlockchainTransaction tx)

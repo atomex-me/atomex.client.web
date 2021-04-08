@@ -92,7 +92,7 @@ namespace atomex_frontend.Storages
     public string CurrentWalletName;
     private SecureString _password;
 
-    private Network CurrentNetwork
+    public Network CurrentNetwork
     {
       get => !String.IsNullOrEmpty(CurrentWalletName) && !CurrentWalletName.Contains("[test]") ? Network.MainNet : Network.TestNet;
     }

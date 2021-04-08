@@ -25,6 +25,9 @@
         <NavigateButton OnClick="OnConvertClick" Variant="small">Convert</NavigateButton>
         <NavigateButton OnClick="OnUpdateClick" Variant="small">Update</NavigateButton>
         <NavigateButton OnClick="OnAddressesClick" Variant="small">Addresses</NavigateButton>
+        @* @if(walletStorage.CanBuySelectedCurrency) {
+          <NavigateButton OnClick="OnBuyClick" Variant="small">Buy</NavigateButton>
+        } *@
       </div>
     </div>
   </div>
@@ -53,6 +56,10 @@
 
   [Parameter]
   public bool IsTezos { get; set; }
+
+  private void OnBuyClick() {
+    walletStorage.CurrentWalletSection = WalletSection.BuyWithCard;
+  }
 
 
   protected override void OnInitialized()

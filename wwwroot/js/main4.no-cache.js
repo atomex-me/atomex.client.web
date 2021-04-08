@@ -505,3 +505,26 @@ async function deleteWalletData(walletName) {
 
   keys.forEach(key => idbKeyval.del(key));
 }
+
+function renderWertWidget(currency, address, network) {
+  let data = {
+    origin: "https://sandbox.wert.io",
+    partner_id: "01F298K3HP4DY326AH1NS3MM3M"
+  }
+
+  if (network.toLowerCase() === "mainnet") {
+    data.origin = "https://widget.wert.io"
+  }
+
+  console.info(`Connecting to wert with origin: ${data.origin}, partner id: ${data.partner_id}, currency: ${currency}, address: ${address}`);
+
+  new WertWidget({
+    containerId: "wert-widget",
+    partner_id: data.partner_id,
+    origin: data.origin,
+    theme: "dark",
+    autosize: true,
+    commodity: currency,
+    address
+  });
+}
