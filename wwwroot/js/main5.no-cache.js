@@ -514,6 +514,7 @@ function renderWertWidget(currency, address, network) {
 
   if (network.toLowerCase() === "mainnet") {
     data.origin = "https://widget.wert.io"
+    data.partner_id = "atomex"
   }
 
   console.info(`Connecting to wert with origin: ${data.origin}, partner id: ${data.partner_id}, currency: ${currency}, address: ${address}`);
