@@ -2298,6 +2298,9 @@ iframe {
 }
 
 #wert-widget {
-    height: 100%;
-    width: 100%;
+    max-height: 680px;
+    height: 90%;
+    max-width: 900px;
+    width: 90%;
+    margin: auto;
 }
