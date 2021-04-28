@@ -145,7 +145,7 @@ namespace atomex_frontend.Storages
         {
           this.ResetSendData();
 
-          if (CurrentWalletSection == WalletSection.Conversion)
+          if (CurrentWalletSection == WalletSection.DEX)
           {
             debounceFirstCurrencySelection.Stop();
             debounceFirstCurrencySelection.Start();
@@ -319,7 +319,7 @@ namespace atomex_frontend.Storages
       {
         _currentWalletSection = value;
 
-        if (_currentWalletSection == WalletSection.Conversion)
+        if (_currentWalletSection == WalletSection.DEX)
         {
           _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>(lastSwapFromCurrencyName);
           this.CheckForSimilarCurrencies();

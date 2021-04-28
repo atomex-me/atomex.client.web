@@ -904,7 +904,7 @@ table>thead>tr>th {
     background-image: url('icons/wallet-selected.svg');
 }
 
-.wallet-menu-icon.conversion {
+.wallet-menu-icon.dex {
     background-image: url('icons/conversion.svg');
 }
 

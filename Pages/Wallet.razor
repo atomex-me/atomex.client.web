@@ -23,9 +23,9 @@
                 IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Wallets)" />
 
             <WalletMenuButton
-                Variant="@WalletSection.Conversion"
+                Variant="@WalletSection.DEX"
                 OnClick="@WalletMenuButtonClick"
-                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Conversion)" />
+                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.DEX)" />
 
             @if (WalletStorage.CanBuySelectedCurrency) {
               <WalletMenuButton
@@ -104,7 +104,7 @@
                 Variant="@WalletDataTable.AvailableVariants.Transactions"
                 TransactionsData="@WalletStorage.SelectedCurrencyTransactions" />
           }
-          @if (WalletStorage.CurrentWalletSection == WalletSection.Conversion) {
+          @if (WalletStorage.CurrentWalletSection == WalletSection.DEX) {
             <div class="exchange">
                 <CurrencyDropdown
                   SelectedCurrency="WalletStorage.SelectedCurrency"
@@ -224,7 +224,7 @@
   private void OnConvertHandler()
   {
     WalletStorage.lastSwapFromCurrencyName = WalletStorage.SelectedCurrency.Name;
-    WalletStorage.CurrentWalletSection = WalletSection.Conversion;
+    WalletStorage.CurrentWalletSection = WalletSection.DEX;
   }
 
   private void ConvertOpenCloseHandler()
