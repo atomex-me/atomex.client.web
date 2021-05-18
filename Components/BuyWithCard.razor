@@ -13,7 +13,7 @@
         "renderWertWidget",
         walletStorage.SelectedCurrency.Name,
         walletStorage.GetDefaultAddress().Address, accountStorage.CurrentNetwork.ToString(),
-        $"user={accountStorage.GetUserId()}&network={accountStorage.CurrentNetwork}"
+        $"user:{accountStorage.GetUserId()}/network:{accountStorage.CurrentNetwork}"
       );
     }
   }
