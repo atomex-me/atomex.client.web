@@ -112,6 +112,11 @@ app {
     --usdt-color: rgb(183, 208, 225);
     --xtz-color: rgb(188, 212, 247);
     --tzbtc-color: rgb(188, 212, 247);
+
+    --currencies-row-mt: 15px;
+    --currencies-row-height: 100px;
+    --footer-height: 28px;
+    --tokens-contaier-mt: 20px;
 }
 
 @font-face {
@@ -607,7 +612,7 @@ button:hover {
 }
 
 .wallet-page {
-    height: calc(100vh - 28px);
+    height: calc(100vh - var(--footer-height));
     display: flex;
 }
 
@@ -637,7 +642,7 @@ button:hover {
 }
 
 .wallet-page__footer {
-    height: 28px;
+    height: var(--footer-height);
     background-color: var(--dark-gradient-color);
     display: flex;
     justify-content: space-between;
@@ -985,7 +990,7 @@ table>thead>tr>th {
 }
 
 .currencies-row {
-    margin-top: 15px;
+    margin-top: var(--currencies-row-mt);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -2300,4 +2305,81 @@ iframe {
 #wert-widget {
     height: 100%;
     width: 100%;
+}
+
+
+.tokens-container {
+    display: flex;
+    height: calc(100vh - var(--currencies-row-height) - var(--currencies-row-mt) - var(--footer-height) - var(--tokens-contaier-mt));
+    margin-top: var(--tokens-contaier-mt);
+}
+
+.token-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    
+}
+
+.wallet-page__left-nav.tokens {
+    max-width: 235px;
+    width: 235px;
+    min-width: 235px;
+    flex-basis: auto;
+    overflow-y: auto;
+}
+
+.wallet-page__left-nav.tokens>*:first-child {
+    margin-top: 0;
+}
+
+.token-container {
+    display: flex;
+}
+
+.token-desc-container {
+    display: flex;
+}
+
+.contract-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 16px;
+}
+
+.contract-tabs-container {
+    height: 40px;
+    width: 100%;
+    background: var(--dark-input-dark-blue);
+    display: flex;
+}
+
+.contract-tabs-btn {
+    border: none;
+    background: unset;
+    width: 50%;
+    height: 100%;
+    font-size: 14px;
+    text-transform: uppercase;
+    color: var(--light-gray);
+}
+
+.contract-tabs-btn.active {
+    color: white;
+}
+
+.contract-content-side {
+    flex-grow: 1;
+    margin: 0 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.contract-content-container {
+    flex-grow: 1;
+}
+
+button {
+    transition: background 400ms;
 }
