@@ -381,8 +381,15 @@ namespace atomex_frontend.Storages
 
         accountStorage.AtomexApp.CurrenciesProvider.Updated += (object sender, EventArgs args) =>
         {
-          SelectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>(SelectedCurrency.Name);
-          _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<Currency>(SelectedSecondCurrency.Name);
+          if (SelectedCurrency != null)
+          {
+            SelectedCurrency = accountStorage.Account.Currencies.Get<Currency>(SelectedCurrency.Name);
+          }
+
+          if (_selectedSecondCurrency != null)
+          {
+            _selectedSecondCurrency = accountStorage.Account.Currencies.Get<Currency>(SelectedSecondCurrency.Name);
+          }
         };
 
         accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
