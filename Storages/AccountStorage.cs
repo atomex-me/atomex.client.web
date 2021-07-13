@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
-using Atomex.Subsystems;
+using Atomex.Services;
 using Atomex.Wallet;
 using Microsoft.AspNetCore.Components;
 using Blazored.LocalStorage;
@@ -20,7 +20,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Atomex.Blockchain;
 using Atomex.Abstract;
-using Atomex.Subsystems.Abstract;
+using Atomex.Services.Abstract;
 using Atomex.MarketData;
 using Atomex.Common;
 using Atomex.Cryptography;
@@ -446,9 +446,20 @@ namespace atomex_frontend.Storages
         .AddEmbeddedJsonFile(coreAssembly, "symbols.json")
         .Build();
 
-      this.currenciesProvider = new CurrenciesProvider(this.currenciesConfiguration);
+      this.currenciesProvider = new CurrenciesProvider(CurrenciesConfigurationJson(coreAssembly));
 
       Currencies = currenciesProvider.GetCurrencies(CurrentNetwork);
+    }
+
+    private string CurrenciesConfigurationJson(Assembly coreAssembly)
+    {
+        var resourceName = "currencies.json";
+        var resourceNames = coreAssembly.GetManifestResourceNames();
+        var fullFileName = resourceNames.FirstOrDefault(n => n.EndsWith(resourceName));
+        var stream = coreAssembly.GetManifestResourceStream(fullFileName!);
+
+        using var reader = new StreamReader(stream!);
+        return reader.ReadToEnd();
     }
 
     private async Task migradeDB_0_TO_1()
