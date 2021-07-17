@@ -86,7 +86,7 @@
 
     private string GetNumberValidator
     {
-        get => InputType == "number" ? "return event.keyCode !== 69" : "";
+        get => InputType == "number" ? "return event.keyCode !== 69" : null;
     }
 
     private string GetStep {
