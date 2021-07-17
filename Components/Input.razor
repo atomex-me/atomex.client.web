@@ -16,13 +16,13 @@
         @if (!String.IsNullOrEmpty(SavedData))
         {
             <Form SaveData="@SavedData">
-                <input type="@InputType" value="@Value" placeholder="@InputPlaceholder" name="@InputName"
+                <input type="@InputType" step="@GetStep" value="@Value" placeholder="@InputPlaceholder" name="@InputName"
                     @oninput="HandleChange" onkeydown="@GetNumberValidator" disabled="@Disabled"
                     class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "") @(DefaultFocus ? "defaultFocus" : "")"
                     autocomplete="@(InputType == "password" ? "current-password" : "off")" />
             </Form>
         } else {
-            <input type="@InputType" value="@Value" placeholder="@InputPlaceholder" name="@InputName"
+            <input type="@InputType" step="@GetStep" value="@Value" placeholder="@InputPlaceholder" name="@InputName"
                 @oninput="HandleChange" onkeydown="@GetNumberValidator" disabled="@Disabled"
                 class="@(!String.IsNullOrEmpty(WithButton) ? $"input-{WithButton}-button" : "") @(DefaultFocus ? "defaultFocus" : "")"
                 autocomplete="@(InputType == "password" ? "current-password" : "off")" />
@@ -87,6 +87,10 @@
     private string GetNumberValidator
     {
         get => InputType == "number" ? "return event.keyCode !== 69" : "";
+    }
+
+    private string GetStep {
+        get => InputType == "number" ? "any" : null; 
     }
 
     protected async void HandleChange(ChangeEventArgs evt)

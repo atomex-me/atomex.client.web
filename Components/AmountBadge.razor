@@ -10,7 +10,7 @@
   }
   <div class="exchange-amount__input">
     <input type="number" class="@(GetAmountColor)" value="@(Helper.DecimalToStr(Amount))" @oninput="@HandleChange"
-      onkeydown="return event.keyCode !== 69" />
+      onkeydown="return event.keyCode !== 69" step="any" />
     <div class="exchexchange-amount__input-add-info">
       <span class="currency-abbr @(GetAmountColor)">@SelectedCurrency.Name</span>
       <div class="exchange-amount-container__usd-amount">($@Helper.DecimalToStr(DollarAmount, "F2") <span
