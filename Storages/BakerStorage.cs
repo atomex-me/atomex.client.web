@@ -42,8 +42,8 @@ namespace atomex_frontend.Storages
 
     public void Initialize()
     {
-      _tezos = App.Account.Currencies.Get<Tezos>("XTZ");
-      FeeCurrencyCode = _tezos.FeeCode;
+      _tezosConfig = App.Account.Currencies.Get<TezosConfig>("XTZ");
+      FeeCurrencyCode = _tezosConfig.FeeCode;
       BaseCurrencyCode = "USD";
       BaseCurrencyFormat = "$0.00";
       Warning = null;
@@ -63,7 +63,7 @@ namespace atomex_frontend.Storages
     private AccountStorage accountStorage;
     private IAtomexApp App { get => accountStorage.AtomexApp; }
 
-    public Tezos _tezos;
+    public TezosConfig _tezosConfig;
     public string CUSTOM_BAKER_NAME = "Custom baker";
     private WalletAddress _walletAddress;
 
@@ -133,13 +133,13 @@ namespace atomex_frontend.Storages
 
     public string FeeString
     {
-      get => Fee.ToString(_tezos.FeeFormat, CultureInfo.InvariantCulture);
+      get => Fee.ToString(_tezosConfig.FeeFormat, CultureInfo.InvariantCulture);
       set
       {
         if (!decimal.TryParse(value, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var fee))
           return;
 
-        Fee = Helper.TruncateByFormat(fee, _tezos.FeeFormat);
+        Fee = Helper.TruncateByFormat(fee, _tezosConfig.FeeFormat);
       }
     }
 
@@ -305,7 +305,7 @@ namespace atomex_frontend.Storages
           return;
         }
 
-        if (!_tezos.IsValidAddress(Address))
+        if (!_tezosConfig.IsValidAddress(Address))
         {
           Warning = Translations.SvInvalidAddressError;
           return;
@@ -403,7 +403,7 @@ namespace atomex_frontend.Storages
     private async Task PrepareWallet(CancellationToken cancellationToken = default)
     {
       FromAddressList = (await App.Account
-          .GetUnspentAddressesAsync(_tezos.Name, cancellationToken).ConfigureAwait(false))
+          .GetUnspentAddressesAsync(_tezosConfig.Name, cancellationToken).ConfigureAwait(false))
           .OrderByDescending(x => x.Balance)
           .ToList();
 
@@ -429,7 +429,7 @@ namespace atomex_frontend.Storages
           return err;
         }
 
-        if (!_tezos.IsValidAddress(Address))
+        if (!_tezosConfig.IsValidAddress(Address))
         {
           var err = new Error(Errors.WrongDelegationAddress, Translations.SvInvalidAddressError);
           Warning = err.Description;
@@ -439,7 +439,7 @@ namespace atomex_frontend.Storages
         var wallet = (HdWallet)App.Account.Wallet;
         var keyStorage = wallet.KeyStorage;
 
-        var rpc = new Rpc(_tezos.RpcNodeUri);
+        var rpc = new Rpc(_tezosConfig.RpcNodeUri);
 
         JObject delegateData;
         try
@@ -473,12 +473,12 @@ namespace atomex_frontend.Storages
 
         var tx = new TezosTransaction
         {
-          StorageLimit = _tezos.StorageLimit,
-          GasLimit = _tezos.GasLimit,
+          StorageLimit = _tezosConfig.StorageLimit,
+          GasLimit = _tezosConfig.GasLimit,
           From = _walletAddress.Address,
           To = _address,
           Fee = Fee.ToMicroTez(),
-          Currency = _tezos,
+          Currency = _tezosConfig.Name,
           CreationTime = DateTime.UtcNow,
 
           UseRun = true,
@@ -487,11 +487,12 @@ namespace atomex_frontend.Storages
         };
 
         using var securePublicKey = App.Account.Wallet
-            .GetPublicKey(_tezos, _walletAddress.KeyIndex);
+            .GetPublicKey(_tezosConfig, _walletAddress.KeyIndex);
 
         var isSuccess = await tx.FillOperationsAsync(
             securePublicKey: securePublicKey,
-            headOffset: Tezos.HeadOffset,
+            tezosConfig: _tezosConfig,
+            headOffset: TezosConfig.HeadOffset,
             cancellationToken: default);
 
         if (!isSuccess)
@@ -538,7 +539,7 @@ namespace atomex_frontend.Storages
 
       try
       {
-        var rpc = new Rpc(_tezos.RpcNodeUri);
+        var rpc = new Rpc(_tezosConfig.RpcNodeUri);
 
         delegateData = await rpc
             .GetDelegate(_address)
@@ -571,12 +572,12 @@ namespace atomex_frontend.Storages
 
         var tx = new TezosTransaction
         {
-          StorageLimit = _tezos.StorageLimit,
-          GasLimit = _tezos.GasLimit,
+          StorageLimit = _tezosConfig.StorageLimit,
+          GasLimit = _tezosConfig.GasLimit,
           From = _walletAddress.Address,
           To = _address,
           Fee = Fee.ToMicroTez(),
-          Currency = _tezos,
+          Currency = _tezosConfig.Name,
           CreationTime = DateTime.UtcNow,
 
           UseRun = true,
@@ -585,12 +586,13 @@ namespace atomex_frontend.Storages
         };
 
         using var securePublicKey = App.Account.Wallet
-            .GetPublicKey(_tezos, _walletAddress.KeyIndex);
+            .GetPublicKey(_tezosConfig, _walletAddress.KeyIndex);
 
         var isSuccess = await tx.FillOperationsAsync(
-            securePublicKey: securePublicKey,
-            headOffset: Tezos.HeadOffset,
-            cancellationToken: cancellationToken);
+          securePublicKey: securePublicKey,
+          tezosConfig: _tezosConfig,
+          headOffset: TezosConfig.HeadOffset,
+          cancellationToken: cancellationToken);
 
         if (!isSuccess)
           return new Error(Errors.TransactionCreationError, Translations.AutofillTxFailed);
@@ -621,8 +623,7 @@ namespace atomex_frontend.Storages
     {
       var wallet = (HdWallet)App.Account.Wallet;
       var keyStorage = wallet.KeyStorage;
-      var Currency = _tezos;
-      var tezos = _tezos;
+      var Currency = _tezosConfig;
 
       var tezosAccount = App.Account
           .GetCurrencyAccount<TezosAccount>("XTZ");
@@ -634,12 +635,12 @@ namespace atomex_frontend.Storages
 
         var tx = new TezosTransaction
         {
-          StorageLimit = Currency.StorageLimit,
-          GasLimit = Currency.GasLimit,
+          StorageLimit      = Currency.StorageLimit,
+          GasLimit          = Currency.GasLimit,
           From = WalletAddress.Address,
           To = _address,
           Fee = Fee.ToMicroTez(),
-          Currency = Currency,
+          Currency = _tezosConfig.Name,
           CreationTime = DateTime.UtcNow,
 
           UseRun = true,
@@ -648,14 +649,15 @@ namespace atomex_frontend.Storages
         };
 
         using var securePublicKey = App.Account.Wallet
-            .GetPublicKey(Currency, WalletAddress.KeyIndex);
+          .GetPublicKey(Currency, WalletAddress.KeyIndex);
 
         await tx.FillOperationsAsync(
-            securePublicKey: securePublicKey,
-            headOffset: Tezos.HeadOffset);
+          securePublicKey: securePublicKey,
+          tezosConfig: Currency,
+          headOffset: TezosConfig.HeadOffset);
 
         var signResult = await tx
-            .SignAsync(keyStorage, WalletAddress, default);
+          .SignAsync(keyStorage, WalletAddress, default);
 
         if (!signResult)
         {
@@ -664,7 +666,7 @@ namespace atomex_frontend.Storages
           return string.Empty;
         }
 
-        var result = await tezos.BlockchainApi
+        var result = await _tezosConfig.BlockchainApi
             .TryBroadcastAsync(tx);
 
         if (result.Error != null)
@@ -695,11 +697,11 @@ namespace atomex_frontend.Storages
     {
       try
       {
-        if (_tezos == null)
+        if (_tezosConfig == null)
         {
           try
           {
-            _tezos = App.Account.Currencies.Get<Tezos>("XTZ");
+            _tezosConfig = App.Account.Currencies.Get<TezosConfig>("XTZ");
           }
           catch
           {
@@ -707,10 +709,8 @@ namespace atomex_frontend.Storages
             return;
           }
         }
-
-        var tezos = _tezos;
-
-        var tzktApi = new TzktApi(_tezos);
+        
+        var tzktApi = new TzktApi(_tezosConfig);
 
         var head = await tzktApi.GetHeadLevelAsync();
 
@@ -721,14 +721,14 @@ namespace atomex_frontend.Storages
             Math.Floor((headLevel - 1) / 2048);
 
         var balance = await App.Account
-            .GetBalanceAsync(tezos.Name)
+            .GetBalanceAsync(_tezosConfig.Name)
             .ConfigureAwait(false);
 
         var addresses = await App.Account
-            .GetUnspentAddressesAsync(tezos.Name)
+            .GetUnspentAddressesAsync(_tezosConfig.Name)
             .ConfigureAwait(false);
 
-        var rpc = new Rpc(tezos.RpcNodeUri);
+        var rpc = new Rpc(_tezosConfig.RpcNodeUri);
 
         foreach (var wa in addresses.ToList())
         {
@@ -759,7 +759,7 @@ namespace atomex_frontend.Storages
             Baker = baker,
             Address = wa.Address,
             Balance = wa.Balance,
-            BbUri = _tezos.BbUri,
+            BbUri = _tezosConfig.BbUri,
             DelegationTime = account.Value.DelegationTime,
             Status = currentCycle - txCycle < 2 ?
                   DelegationStatus.Pending.ToName() :
@@ -787,6 +787,5 @@ namespace atomex_frontend.Storages
         CallRefreshUI();
       }
     }
-
   }
 }
