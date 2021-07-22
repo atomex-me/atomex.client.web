@@ -22,6 +22,7 @@ using atomex_frontend.Common;
 using Microsoft.AspNetCore.Components;
 using System.Timers;
 using System.Globalization;
+using Atomex.Wallet.Abstract;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -83,7 +84,7 @@ namespace atomex_frontend.Storages
 
     private AccountStorage accountStorage;
     private BakerStorage bakerStorage;
-    public List<Currency> AvailableCurrencies
+    public List<CurrencyConfig> AvailableCurrencies
     {
       get
       {
@@ -93,7 +94,7 @@ namespace atomex_frontend.Storages
         }
         catch (Exception e)
         {
-          return new List<Currency>();
+          return new List<CurrencyConfig>();
         }
       }
     }
@@ -135,8 +136,8 @@ namespace atomex_frontend.Storages
       });
     }
 
-    private Currency _selectedCurrency;
-    public Currency SelectedCurrency
+    private CurrencyConfig _selectedCurrency;
+    public CurrencyConfig SelectedCurrency
     {
       get => this._selectedCurrency;
       set
@@ -157,7 +158,7 @@ namespace atomex_frontend.Storages
       }
     }
 
-    private BitcoinBasedCurrency BtcBased => SelectedCurrency as BitcoinBasedCurrency;
+    private BitcoinBasedConfig BtcBased => SelectedCurrency as BitcoinBasedConfig;
 
     protected decimal _feeRate;
     public decimal FeeRate
@@ -176,8 +177,8 @@ namespace atomex_frontend.Storages
       });
     }
 
-    private Currency _selectedSecondCurrency;
-    public Currency SelectedSecondCurrency
+    private CurrencyConfig _selectedSecondCurrency;
+    public CurrencyConfig SelectedSecondCurrency
     {
       get => _selectedSecondCurrency;
       set
@@ -263,7 +264,7 @@ namespace atomex_frontend.Storages
 
     public bool GetEthreumBasedCurrency
     {
-      get => this.SelectedCurrency is Ethereum || this.SelectedCurrency is ERC20;
+      get => this.SelectedCurrency is EthereumConfig || this.SelectedCurrency is Erc20Config;
     }
 
     private bool _isUpdating = false;
@@ -321,7 +322,7 @@ namespace atomex_frontend.Storages
 
         if (_currentWalletSection == WalletSection.DEX)
         {
-          _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>(lastSwapFromCurrencyName);
+          _selectedCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>(lastSwapFromCurrencyName);
           this.CheckForSimilarCurrencies();
           this.CallMarketRefresh();
         }
@@ -383,35 +384,35 @@ namespace atomex_frontend.Storages
         {
           if (SelectedCurrency != null)
           {
-            SelectedCurrency = accountStorage.Account.Currencies.Get<Currency>(SelectedCurrency.Name);
+            SelectedCurrency = accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedCurrency.Name);
           }
 
           if (_selectedSecondCurrency != null)
           {
-            _selectedSecondCurrency = accountStorage.Account.Currencies.Get<Currency>(SelectedSecondCurrency.Name);
+            _selectedSecondCurrency = accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedSecondCurrency.Name);
           }
         };
 
         accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
 
-        List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
+        List<CurrencyConfig> currenciesList = accountStorage.Account.Currencies.ToList();
         Transactions = new Dictionary<string, Transaction>();
         PortfolioData = new Dictionary<string, CurrencyData>();
 
 
-        foreach (Currency currency in currenciesList)
+        foreach (CurrencyConfig currencyConfig in currenciesList)
         {
-          CurrencyData initialCurrencyData = new CurrencyData(currency, 0, 0, 0.0m);
-          PortfolioData.Add(currency.Name, initialCurrencyData);
+          CurrencyData initialCurrencyData = new CurrencyData(currencyConfig, 0, 0, 0.0m);
+          PortfolioData.Add(currencyConfig.Name, initialCurrencyData);
           Console.WriteLine("Getting free address on initialize");
-          GetFreeAddresses(initialCurrencyData.Currency);
+          GetFreeAddresses(initialCurrencyData.CurrencyConfig);
         }
 
         await bakerStorage.LoadBakerList();
         await UpdatePortfolioAtStart();
 
-        _selectedCurrency = this.accountStorage.Account.Currencies.Get<Currency>("BTC");
-        _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<Currency>("XTZ");
+        _selectedCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("BTC");
+        _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("XTZ");
 
         if (accountStorage.LoadingUpdate && !accountStorage.LoadFromRestore)
         {
@@ -483,14 +484,14 @@ namespace atomex_frontend.Storages
 
     private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
     {
-      Console.WriteLine($"New Transaction on {e.Transaction.Currency.Name}, HANDLING with id  {e.Transaction.Id}");
+      Console.WriteLine($"New Transaction on {e.Transaction.Currency}, HANDLING with id  {e.Transaction.Id}");
 
       handleTransaction(e.Transaction);
       CallUIRefresh();
       //await jSRuntime.InvokeVoidAsync("showNotification", "You have new transaction", $"ID: {e.Transaction.Id}");
     }
 
-    public decimal GetCurrencyData(Currency currency, string dataType)
+    public decimal GetCurrencyData(CurrencyConfig currency, string dataType)
     {
       if (dataType == "balance")
       {
@@ -507,7 +508,7 @@ namespace atomex_frontend.Storages
       return 0.0m;
     }
 
-    public async Task ScanCurrencyAsync(Currency currency, bool scanningAll = false)
+    public async Task ScanCurrencyAsync(CurrencyConfig currency, bool scanningAll = false)
     {
       if (!scanningAll)
       {
@@ -521,7 +522,7 @@ namespace atomex_frontend.Storages
       }
       catch (Exception e)
       {
-        Console.WriteLine($"Error update {currency.Name}: {e.ToString()}");
+        Console.WriteLine($"Error update {currency.Name}: {e}");
       }
       finally
       {
@@ -542,14 +543,14 @@ namespace atomex_frontend.Storages
 
     public async Task UpdatedQuotes()
     {
-      foreach (var currency in accountStorage.Account.Currencies)
+      foreach (var currencyConfig in accountStorage.Account.Currencies)
       {
-        await CountCurrencyPortfolio(currency);
+        await CountCurrencyPortfolio(currencyConfig);
       }
 
-      foreach (var currency in accountStorage.Account.Currencies)
+      foreach (var currencyConfig in accountStorage.Account.Currencies)
       {
-        RefreshCurrencyPercent(currency.Name);
+        RefreshCurrencyPercent(currencyConfig.Name);
       }
 
       this.CallUIRefresh();
@@ -581,19 +582,19 @@ namespace atomex_frontend.Storages
       }
     }
 
-    private async Task CountCurrencyPortfolio(Currency currency)
+    private async Task CountCurrencyPortfolio(CurrencyConfig currencyConfig)
     {
-      Balance balance = (await accountStorage.Account.GetBalanceAsync(currency.Name));
+      Balance balance = (await accountStorage.Account.GetBalanceAsync(currencyConfig.Name));
       var availableBalance = balance.Available;
 
-      if (!PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData))
+      if (!PortfolioData.TryGetValue(currencyConfig.Name, out CurrencyData currencyData))
       {
-        PortfolioData.Add(currency.Name, new CurrencyData(currency, availableBalance, this.GetDollarValue(currency.Name, availableBalance), 0.0m));
+        PortfolioData.Add(currencyConfig.Name, new CurrencyData(currencyConfig, availableBalance, this.GetDollarValue(currencyConfig.Name, availableBalance), 0.0m));
       }
       else
       {
         currencyData.Balance = availableBalance;
-        currencyData.DollarValue = this.GetDollarValue(currency.Name, availableBalance);
+        currencyData.DollarValue = this.GetDollarValue(currencyConfig.Name, availableBalance);
       }
     }
 
@@ -602,7 +603,7 @@ namespace atomex_frontend.Storages
       CurrencyData currData;
       if (PortfolioData.TryGetValue(currencyName, out currData))
       {
-        GetFreeAddresses(currData.Currency);
+        GetFreeAddresses(currData.CurrencyConfig);
       }
     }
 
@@ -618,19 +619,19 @@ namespace atomex_frontend.Storages
 
     public async Task UpdatePortfolioAtStart()
     {
-      List<Currency> currenciesList = accountStorage.Account.Currencies.ToList();
+      List<CurrencyConfig> currenciesList = accountStorage.Account.Currencies.ToList();
 
-      foreach (Currency currency in currenciesList)
+      foreach (var currencyConfig in currenciesList)
       {
-        await CountCurrencyPortfolio(currency);
-        await LoadTransactions(currency);
+        await CountCurrencyPortfolio(currencyConfig);
+        await LoadTransactions(currencyConfig);
       }
 
       // FromAddressList = new List<WalletAddressView>();
       foreach (CurrencyData currencyData in PortfolioData.Values)
       {
-        RefreshCurrencyPercent(currencyData.Currency.Name);
-        RefreshCurrencyAddresses(currencyData.Currency.Name);
+        RefreshCurrencyPercent(currencyData.CurrencyConfig.Name);
+        RefreshCurrencyAddresses(currencyData.CurrencyConfig.Name);
       }
 
       this.CallUIRefresh();
@@ -641,43 +642,44 @@ namespace atomex_frontend.Storages
       }
     }
 
-    private void GetFreeAddresses(Currency Currency)
+    private void GetFreeAddresses(CurrencyConfig currencyConfig)
     {
       FromAddressList = FromAddressList
-                          .Where(wa => wa.WalletAddress.Currency != Currency.Name)
+                          .Where(wa => wa.WalletAddress.Currency != currencyConfig.Name)
                           .ToList(); // removing old addresses for this currency;
 
-      if (Currency is BitcoinBasedCurrency || Currency is FA12 || Currency is ERC20)
+      if (currencyConfig is BitcoinBasedConfig || currencyConfig is Fa12Config || currencyConfig is Erc20Config)
       {
         var activeAddresses = accountStorage.Account
-            .GetUnspentAddressesAsync(Currency.Name)
+            .GetUnspentAddressesAsync(currencyConfig.Name)
             .WaitForResult();
 
         var freeAddress = accountStorage.Account
-            .GetFreeExternalAddressAsync(Currency.Name)
+            .GetFreeExternalAddressAsync(currencyConfig.Name)
             .WaitForResult();
 
         var receiveAddresses = activeAddresses
-            .Select(wa => new WalletAddressView(wa, Currency.Format))
+            .Select(wa => new WalletAddressView(wa, currencyConfig.Format))
             .ToList();
 
         if (activeAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
-          receiveAddresses.AddEx(new WalletAddressView(freeAddress, Currency.Format, isFreeAddress: true));
+          receiveAddresses.AddEx(new WalletAddressView(freeAddress, currencyConfig.Format, isFreeAddress: true));
 
         FromAddressList.AddRange(receiveAddresses);
       }
 
-      else if (Currency is Ethereum || Currency is Tezos)
+      else if (currencyConfig is EthereumConfig || currencyConfig is TezosConfig)
       {
         var activeTokenAddresses = accountStorage.Account
-            .GetUnspentTokenAddressesAsync(Currency.Name)
-            .WaitForResult()
-            .ToList();
+          .GetCurrencyAccount<ILegacyCurrencyAccount>(currencyConfig.Name)
+          .GetUnspentTokenAddressesAsync()
+          .WaitForResult()
+          .ToList();
 
         var activeAddresses = accountStorage.Account
-            .GetUnspentAddressesAsync(Currency.Name)
-            .WaitForResult()
-            .ToList();
+          .GetUnspentAddressesAsync(currencyConfig.Name)
+          .WaitForResult()
+          .ToList();
 
         activeTokenAddresses.ForEach(a => a.Balance = activeAddresses.Find(b => b.Address == a.Address)?.Balance ?? 0m);
 
@@ -686,19 +688,20 @@ namespace atomex_frontend.Storages
             .ToList();
 
         var freeAddress = accountStorage.Account
-            .GetFreeExternalAddressAsync(Currency.Name)
-            .WaitForResult();
+          .GetFreeExternalAddressAsync(currencyConfig.Name)
+          .WaitForResult();
 
-        var receiveAddresses = activeTokenAddresses.Select(w => new WalletAddressView(w, Currency.Format))
-            .Concat(activeAddresses.Select(w => new WalletAddressView(w, Currency.Format)))
+        var receiveAddresses = activeTokenAddresses
+            .Select(w => new WalletAddressView(w, currencyConfig.Format))
+            .Concat(activeAddresses.Select(w => new WalletAddressView(w, currencyConfig.Format)))
             .ToList();
 
         if (receiveAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
-          receiveAddresses.AddEx(new WalletAddressView(freeAddress, Currency.Format, isFreeAddress: true));
+          receiveAddresses.AddEx(new WalletAddressView(freeAddress, currencyConfig.Format, isFreeAddress: true));
 
         receiveAddresses = receiveAddresses.Select(wa =>
         {
-          wa.WalletAddress.Currency = Currency.Name;
+          wa.WalletAddress.Currency = currencyConfig.Name;
           return wa;
         }).ToList();
 
@@ -711,7 +714,7 @@ namespace atomex_frontend.Storages
       IEnumerable<WalletAddressView> fromAddressList = FromAddressList
           .Where(wa => wa.WalletAddress.Currency == SelectedCurrency.Name);
 
-      if (SelectedCurrency is Tezos || SelectedCurrency is Ethereum)
+      if (SelectedCurrency is TezosConfig || SelectedCurrency is EthereumConfig)
       {
         var activeAddressViewModel = fromAddressList
             .OrderByDescending(vm => vm.WalletAddress.AvailableBalance())
@@ -735,17 +738,17 @@ namespace atomex_frontend.Storages
       List<decimal> currenciesDollar = new List<decimal>();
       List<string> currenciesLabels = new List<string>();
 
-      foreach (Currency currency in accountStorage.Account.Currencies)
+      foreach (CurrencyConfig currencyConfig in accountStorage.Account.Currencies)
       {
-        if (PortfolioData.TryGetValue(currency.Name, out CurrencyData currencyData))
+        if (PortfolioData.TryGetValue(currencyConfig.Name, out CurrencyData currencyData))
         {
           currenciesDollar.Add(currencyData.DollarValue);
-          currenciesLabels.Add(currencyData.Currency.Description);
+          currenciesLabels.Add(currencyData.CurrencyConfig.Description);
         }
         else
         {
           currenciesDollar.Add(0);
-          currenciesLabels.Add(currency.Description);
+          currenciesLabels.Add(currencyConfig.Description);
         }
       }
 
@@ -758,7 +761,7 @@ namespace atomex_frontend.Storages
       foreach (var tx in transactions)
       {
         var txAge = DateTime.Now - tx.CreationTime;
-        if (Transactions.ContainsKey($"{tx.Id}/{tx.Currency.Name}") && tx.State == BlockchainTransactionState.Confirmed && txAge.Value.TotalDays > 1)
+        if (Transactions.ContainsKey($"{tx.Id}/{tx.Currency}") && tx.State == BlockchainTransactionState.Confirmed && txAge.Value.TotalDays > 1)
         {
           continue;
         }
@@ -769,9 +772,9 @@ namespace atomex_frontend.Storages
       }
     }
 
-    public async Task LoadTransactions(Currency currency)
+    public async Task LoadTransactions(CurrencyConfig currencyConfig)
     {
-      var transactions = await accountStorage.Account.GetTransactionsAsync(currency.Name);
+      var transactions = await accountStorage.Account.GetTransactionsAsync(currencyConfig.Name);
       foreach (var tx in transactions)
       {
         handleTransaction(tx);
@@ -779,27 +782,30 @@ namespace atomex_frontend.Storages
     }
 
 
-    private void AddTransaction(Transaction tx, Currency currency)
+    private void AddTransaction(Transaction tx)
     {
       Transaction oldTx;
-      string TxKeyInDict = $"{tx.Id}/{tx.Currency.Name}";
+      string TxKeyInDict = $"{tx.Id}/{tx.Currency}";
+      var currencyConfig = accountStorage.Account.Currencies.GetByName(tx.Currency);
+
       var type = tx.Type.HasFlag(BlockchainTransactionType.Input) || tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem) ? "income" : tx.Type.HasFlag(BlockchainTransactionType.Output) ? "outcome" : "";
-
-
+      
       if (Transactions.TryGetValue(TxKeyInDict, out oldTx))
       {
         Transactions[TxKeyInDict] = tx;
+        
         if (oldTx.State != BlockchainTransactionState.Confirmed && tx.State == BlockchainTransactionState.Confirmed && tx.Amount != 0 && !AllPortfolioUpdating && !IsUpdating)
         {
-          jSRuntime.InvokeVoidAsync("showNotification", $"{tx.Currency.Description} {type}", tx.Description, $"/css/images/{tx.Currency.Description.ToLower()}_90x90.png");
+          jSRuntime.InvokeVoidAsync("showNotification", $"{currencyConfig.Description} {type}", tx.Description, $"/css/images/{currencyConfig.Description.ToLower()}_90x90.png");
         }
       }
       else
       {
         Transactions.Add(TxKeyInDict, tx);
+        
         if (tx.State == BlockchainTransactionState.Confirmed && tx.Amount != 0 && !AllPortfolioUpdating && !IsUpdating)
         {
-          jSRuntime.InvokeVoidAsync("showNotification", $"{tx.Currency.Description} {type}", tx.Description, $"/css/images/{tx.Currency.Description.ToLower()}_90x90.png");
+          jSRuntime.InvokeVoidAsync("showNotification", $"{currencyConfig.Description} {type}", tx.Description, $"/css/images/{currencyConfig.Description.ToLower()}_90x90.png");
         }
       }
     }
@@ -832,125 +838,125 @@ namespace atomex_frontend.Storages
     {
       decimal amount = 0;
       string description = "";
-      switch (tx.Currency)
+      var currencyConfig = accountStorage.Account.Currencies.GetByName(tx.Currency);
+      
+      switch (currencyConfig)
       {
-        case BitcoinBasedCurrency _:
+        case BitcoinBasedConfig _:
           IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
           amount = CurrHelper.GetTransAmount(btcBasedTrans);
           description = CurrHelper.GetTransDescription(tx, amount, CurrHelper.GetFee(btcBasedTrans));
           var BtcFee = btcBasedTrans.Fees != null
-            ? btcBasedTrans.Fees.Value / (decimal)tx.Currency.DigitsMultiplier
+            ? btcBasedTrans.Fees.Value / currencyConfig.DigitsMultiplier
             : 0;
-
           AddTransaction(
             new Transaction(
-              tx.Currency,
-              btcBasedTrans.Id,
-              btcBasedTrans.State,
-              btcBasedTrans.Type,
-              btcBasedTrans.CreationTime,
-              btcBasedTrans.IsConfirmed,
-              amount,
-              description,
-              BtcFee
-            ), tx.Currency);
+                tx.Currency,
+                btcBasedTrans.Id,
+                btcBasedTrans.State,
+                btcBasedTrans.Type,
+                btcBasedTrans.CreationTime,
+                btcBasedTrans.IsConfirmed,
+                amount,
+                description,
+                BtcFee
+              )
+            );
           break;
-        case ERC20 _:
+        
+        case Erc20Config _:
           EthereumTransaction usdtTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(usdtTrans);
           description = CurrHelper.GetTransDescription(tx, amount, 0);
           string FromUsdt = usdtTrans.From;
           string ToUsdt = usdtTrans.To;
-          decimal GasPriceUsdt = Ethereum.WeiToGwei((decimal)usdtTrans.GasPrice);
+          decimal GasPriceUsdt = EthereumConfig.WeiToGwei((decimal)usdtTrans.GasPrice);
           decimal GasLimitUsdt = (decimal)usdtTrans.GasLimit;
           decimal GasUsedUsdt = (decimal)usdtTrans.GasUsed;
           bool IsInternalUsdt = usdtTrans.IsInternal;
-
           AddTransaction(
             new Transaction(
-              tx.Currency,
-              usdtTrans.Id,
-              usdtTrans.State,
-              usdtTrans.Type,
-              usdtTrans.CreationTime,
-              usdtTrans.IsConfirmed,
-              amount,
-              description,
-              from: FromUsdt,
-              to: ToUsdt,
-              gasPrice: GasPriceUsdt,
-              gasLimit: GasLimitUsdt,
-              gasUsed: GasUsedUsdt,
-              isInternal: IsInternalUsdt
-            ), tx.Currency);
+                tx.Currency,
+                usdtTrans.Id,
+                usdtTrans.State,
+                usdtTrans.Type,
+                usdtTrans.CreationTime,
+                usdtTrans.IsConfirmed,
+                amount,
+                description,
+                from: FromUsdt,
+                to: ToUsdt,
+                gasPrice: GasPriceUsdt,
+                gasLimit: GasLimitUsdt,
+                gasUsed: GasUsedUsdt,
+                isInternal: IsInternalUsdt
+              )
+            );
           break;
-        case Ethereum _:
+        
+        case EthereumConfig _:
           EthereumTransaction ethTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(ethTrans);
           description = CurrHelper.GetTransDescription(ethTrans, amount, CurrHelper.GetFee(ethTrans));
           string FromEth = ethTrans.From;
           string ToEth = ethTrans.To;
-          decimal GasPriceEth = Ethereum.WeiToGwei((decimal)ethTrans.GasPrice);
+          decimal GasPriceEth = EthereumConfig.WeiToGwei((decimal)ethTrans.GasPrice);
           decimal GasLimitEth = (decimal)ethTrans.GasLimit;
           decimal GasUsedEth = (decimal)ethTrans.GasUsed;
-
-          decimal FeeEth = Ethereum.WeiToEth(ethTrans.GasUsed * ethTrans.GasPrice);
-
+          decimal FeeEth = EthereumConfig.WeiToEth(ethTrans.GasUsed * ethTrans.GasPrice);
           bool IsInternalEth = ethTrans.IsInternal;
-
           AddTransaction(
             new Transaction(
-              tx.Currency,
-              ethTrans.Id,
-              ethTrans.State,
-              ethTrans.Type,
-              ethTrans.CreationTime,
-              ethTrans.IsConfirmed,
-              amount,
-              description,
-              fee: FeeEth,
-              from: FromEth,
-              to: ToEth,
-              gasPrice: GasPriceEth,
-              gasLimit: GasLimitEth,
-              gasUsed: GasUsedEth,
-              isInternal: IsInternalEth
-            ), tx.Currency);
+                tx.Currency,
+                ethTrans.Id,
+                ethTrans.State,
+                ethTrans.Type,
+                ethTrans.CreationTime,
+                ethTrans.IsConfirmed,
+                amount,
+                description,
+                fee: FeeEth,
+                from: FromEth,
+                to: ToEth,
+                gasPrice: GasPriceEth,
+                gasLimit: GasLimitEth,
+                gasUsed: GasUsedEth,
+                isInternal: IsInternalEth
+              )
+            );
           break;
 
-        case FA12 _:
+        case Fa12Config _:
           TezosTransaction fa12Trans = (TezosTransaction)tx;
-
           amount = CurrHelper.GetTransAmount(fa12Trans);
           description = CurrHelper.GetTransDescription(fa12Trans, amount, 0);
           string FromFa12 = fa12Trans.From;
           string ToFa12 = fa12Trans.To;
           decimal GasLimitFa12 = fa12Trans.GasLimit;
-          decimal FeeFa12 = Tezos.MtzToTz(fa12Trans.Fee);
+          decimal FeeFa12 = TezosConfig.MtzToTz(fa12Trans.Fee);
           bool IsInternalFa12 = fa12Trans.IsInternal;
-
           AddTransaction(
             new Transaction(
-              tx.Currency,
-              fa12Trans.Id,
-              fa12Trans.State,
-              fa12Trans.Type,
-              fa12Trans.CreationTime,
-              fa12Trans.IsConfirmed,
-              amount,
-              description,
-              fa12Trans.Fee,
-              from: FromFa12,
-              to: ToFa12,
-              gasLimit: GasLimitFa12,
-              isInternal: IsInternalFa12,
-              alias: fa12Trans.Alias
-            ), tx.Currency);
+                tx.Currency,
+                fa12Trans.Id,
+                fa12Trans.State,
+                fa12Trans.Type,
+                fa12Trans.CreationTime,
+                fa12Trans.IsConfirmed,
+                amount,
+                description,
+                fa12Trans.Fee,
+                from: FromFa12,
+                to: ToFa12,
+                gasLimit: GasLimitFa12,
+                isInternal: IsInternalFa12,
+                alias: fa12Trans.Alias
+              )
+            );
           break;
 
-        case Tezos _:
+        case TezosConfig _:
           TezosTransaction xtzTrans = (TezosTransaction)tx;
-
           amount = CurrHelper.GetTransAmount(xtzTrans);
           decimal FeeXtz = CurrHelper.GetFee(xtzTrans);
           description = CurrHelper.GetTransDescription(xtzTrans, amount, FeeXtz);
@@ -959,25 +965,25 @@ namespace atomex_frontend.Storages
           decimal GasLimitXtz = xtzTrans.GasLimit;
           bool IsInternalXtz = xtzTrans.IsInternal;
           bool IsRewardTx = GetTezosTxIsReward(xtzTrans);
-
           AddTransaction(
             new Transaction(
-              tx.Currency,
-              xtzTrans.Id,
-              xtzTrans.State,
-              xtzTrans.Type,
-              xtzTrans.CreationTime,
-              xtzTrans.IsConfirmed,
-              amount,
-              description,
-              xtzTrans.Fee,
-              from: FromXtz,
-              to: ToXtz,
-              gasLimit: GasLimitXtz,
-              isInternal: IsInternalXtz,
-              alias: xtzTrans.Alias,
-              isRewardTx: IsRewardTx
-            ), tx.Currency);
+                tx.Currency,
+                xtzTrans.Id,
+                xtzTrans.State,
+                xtzTrans.Type,
+                xtzTrans.CreationTime,
+                xtzTrans.IsConfirmed,
+                amount,
+                description,
+                xtzTrans.Fee,
+                from: FromXtz,
+                to: ToXtz,
+                gasLimit: GasLimitXtz,
+                isInternal: IsInternalXtz,
+                alias: xtzTrans.Alias,
+                isRewardTx: IsRewardTx
+              )
+            );
           break;
       }
     }
@@ -995,13 +1001,15 @@ namespace atomex_frontend.Storages
     {
       if (IsAmountUpdating)
         return;
-
-
-      if ((SelectedCurrency is FA12 || SelectedCurrency is Tezos) && !SelectedCurrency.IsValidAddress(SendingToAddress))
+      
+      if ((SelectedCurrency is Fa12Config || SelectedCurrency is TezosConfig) && !SelectedCurrency.IsValidAddress(SendingToAddress))
       {
         CallUIRefresh();
         return;
       }
+      
+      var account = accountStorage.Account
+        .GetCurrencyAccount<ILegacyCurrencyAccount>(SelectedCurrency.Name);
 
       Warning = string.Empty;
       var previousAmount = _sendingAmount;
@@ -1010,14 +1018,14 @@ namespace atomex_frontend.Storages
       // this.CallUIRefresh();
       IsAmountUpdating = true;
 
-      if (SelectedCurrency is BitcoinBasedCurrency)
+      if (SelectedCurrency is BitcoinBasedConfig)
       {
         try
         {
           if (UseDefaultFee)
           {
-            var (maxAmount, _, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output);
+            var (maxAmount, _, _) = await account
+              .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1027,7 +1035,7 @@ namespace atomex_frontend.Storages
             }
 
             var estimatedFeeAmount = _sendingAmount != 0
-                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                ? await account.EstimateFeeAsync(SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
             _sendingFee = estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee();
@@ -1054,14 +1062,14 @@ namespace atomex_frontend.Storages
       }
       else
 
-      if (SelectedCurrency is Ethereum)
+      if (SelectedCurrency is EthereumConfig)
       {
         try
         {
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
             _sendingFee = SelectedCurrency.GetDefaultFee();
 
@@ -1077,8 +1085,8 @@ namespace atomex_frontend.Storages
           }
           else
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1097,7 +1105,7 @@ namespace atomex_frontend.Storages
       }
       else
 
-      if (SelectedCurrency is ERC20)
+      if (SelectedCurrency is Erc20Config)
       {
         try
         {
@@ -1105,8 +1113,8 @@ namespace atomex_frontend.Storages
 
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
             _sendingFee = SelectedCurrency.GetDefaultFee();
 
@@ -1126,8 +1134,8 @@ namespace atomex_frontend.Storages
           }
           else
           {
-            var (maxAmount, _, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, _, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1149,15 +1157,15 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is FA12)
+      else if (SelectedCurrency is Fa12Config)
       {
         try
         {
           var availableAmount = SelectedCurrencyData.Balance;
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1170,7 +1178,7 @@ namespace atomex_frontend.Storages
             }
 
             var estimatedFeeAmount = _sendingAmount != 0
-                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                ? await account.EstimateFeeAsync(SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
             var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
@@ -1178,8 +1186,8 @@ namespace atomex_frontend.Storages
           }
           else
           {
-            var (maxAmount, _, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, _, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1208,8 +1216,8 @@ namespace atomex_frontend.Storages
 
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1218,17 +1226,17 @@ namespace atomex_frontend.Storages
             }
 
             var estimatedFeeAmount = _sendingAmount != 0
-                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                ? await account.EstimateFeeAsync(SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
             _sendingFee = SelectedCurrency.GetFeeFromFeeAmount(estimatedFeeAmount ?? SelectedCurrency.GetDefaultFee(), defaultFeePrice);
           }
           else
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
-            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+            var availableAmount = SelectedCurrency is BitcoinBasedConfig
                 ? SelectedCurrencyData.Balance
                 : maxAmount + maxFeeAmount;
 
@@ -1254,10 +1262,13 @@ namespace atomex_frontend.Storages
     {
       try
       {
+        var account = accountStorage.Account
+          .GetCurrencyAccount<ILegacyCurrencyAccount>(SelectedCurrency.Name);
+        
         var feeAmount = totalFeeAmount > 0
             ? totalFeeAmount
             : SelectedCurrency.GetFeeAmount(_sendingFee, _sendingFeePrice) > 0
-                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice)
+                ? await account.EstimateFeeAsync(SendingToAddress, _sendingAmount, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice)
                 : 0;
 
         if (feeAmount != null)
@@ -1284,13 +1295,16 @@ namespace atomex_frontend.Storages
         this.CallUIRefresh();
         return;
       }
+      
+      var account = accountStorage.Account
+        .GetCurrencyAccount<ILegacyCurrencyAccount>(SelectedCurrency.Name);
 
       IsFeeUpdating = true;
 
       _sendingFee = Math.Min(fee, SelectedCurrency.GetMaximumFee());
       Warning = string.Empty;
 
-      if (SelectedCurrency is BitcoinBasedCurrency)
+      if (SelectedCurrency is BitcoinBasedConfig)
       {
         try
         {
@@ -1339,7 +1353,7 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is ERC20)
+      else if (SelectedCurrency is Erc20Config)
       {
         try
         {
@@ -1363,8 +1377,8 @@ namespace atomex_frontend.Storages
 
           if (!UseDefaultFee)
           {
-            var (maxAmount, maxFee, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, maxFee, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1386,7 +1400,7 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is Ethereum)
+      else if (SelectedCurrency is EthereumConfig)
       {
         try
         {
@@ -1411,8 +1425,8 @@ namespace atomex_frontend.Storages
 
           if (!UseDefaultFee)
           {
-            var (maxAmount, maxFee, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, maxFee, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1430,7 +1444,7 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is FA12)
+      else if (SelectedCurrency is Fa12Config)
       {
         try
         {
@@ -1448,14 +1462,14 @@ namespace atomex_frontend.Storages
           {
             var availableAmount = SelectedCurrencyData.Balance;
 
-            var (maxAmount, maxAvailableFee, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, decimal.MaxValue, 0, false);
+            var (maxAmount, maxAvailableFee, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, decimal.MaxValue, 0, false);
 
             var defaultFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
             var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice);
 
             var estimatedFeeAmount = _sendingAmount != 0
-                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                ? await account.EstimateFeeAsync(SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
             if (_sendingAmount > maxAmount)
@@ -1499,13 +1513,13 @@ namespace atomex_frontend.Storages
           if (!UseDefaultFee)
           {
             var estimatedFeeAmount = _sendingAmount != 0
-                ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                ? await account.EstimateFeeAsync(SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                 : 0;
 
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
-            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+            var availableAmount = SelectedCurrency is BitcoinBasedConfig
                 ? SelectedCurrencyData.Balance
                 : maxAmount + maxFeeAmount;
 
@@ -1534,6 +1548,9 @@ namespace atomex_frontend.Storages
     {
       if (IsFeeUpdating)
         return;
+      
+      var account = accountStorage.Account
+        .GetCurrencyAccount<ILegacyCurrencyAccount>(SelectedCurrency.Name);
 
       IsFeeUpdating = true;
 
@@ -1541,7 +1558,7 @@ namespace atomex_frontend.Storages
 
       Warning = string.Empty;
 
-      if (SelectedCurrency is Ethereum)
+      if (SelectedCurrency is EthereumConfig)
       {
         try
         {
@@ -1561,8 +1578,8 @@ namespace atomex_frontend.Storages
 
           if (!UseDefaultFee)
           {
-            var (maxAmount, maxFee, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, maxFee, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1579,7 +1596,7 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is ERC20)
+      else if (SelectedCurrency is Erc20Config)
       {
         try
         {
@@ -1599,8 +1616,8 @@ namespace atomex_frontend.Storages
 
           if (!UseDefaultFee)
           {
-            var (maxAmount, maxFee, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, maxFee, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             if (_sendingAmount > maxAmount)
             {
@@ -1651,7 +1668,7 @@ namespace atomex_frontend.Storages
 
       var isToken = SelectedCurrency.FeeCurrencyName != SelectedCurrency.Name;
 
-      var feeAmount = !isToken ? SelectedCurrency is Ethereum ? SelectedCurrency.GetFeeAmount(SendingFee, SendingFeePrice) : SendingFee : 0;
+      var feeAmount = !isToken ? SelectedCurrency is EthereumConfig ? SelectedCurrency.GetFeeAmount(SendingFee, SendingFeePrice) : SendingFee : 0;
 
       if (SendingAmount + feeAmount > SelectedCurrencyData.Balance)
       {
@@ -1666,12 +1683,15 @@ namespace atomex_frontend.Storages
     {
       if (IsAmountUpdating)
         return;
+      
+      var account = accountStorage.Account
+        .GetCurrencyAccount<ILegacyCurrencyAccount>(SelectedCurrency.Name);
 
       IsAmountUpdating = true;
 
       Warning = string.Empty;
 
-      if (SelectedCurrency is BitcoinBasedCurrency)
+      if (SelectedCurrency is BitcoinBasedConfig)
       {
         try
         {
@@ -1680,8 +1700,8 @@ namespace atomex_frontend.Storages
 
           if (UseDefaultFee) // auto fee
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output);
 
             if (maxAmount > 0)
               _sendingAmount = maxAmount;
@@ -1725,7 +1745,7 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is ERC20)
+      else if (SelectedCurrency is Erc20Config)
       {
         try
         {
@@ -1736,8 +1756,8 @@ namespace atomex_frontend.Storages
 
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
             if (maxAmount > 0)
               _sendingAmount = maxAmount;
@@ -1759,8 +1779,8 @@ namespace atomex_frontend.Storages
               }
             }
 
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             _sendingAmount = maxAmount;
 
@@ -1776,7 +1796,7 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is Ethereum)
+      else if (SelectedCurrency is EthereumConfig)
       {
         try
         {
@@ -1787,8 +1807,8 @@ namespace atomex_frontend.Storages
 
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
             if (maxAmount > 0)
               _sendingAmount = maxAmount;
@@ -1809,8 +1829,8 @@ namespace atomex_frontend.Storages
               }
             }
 
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, _sendingFee, _sendingFeePrice, false);
 
             _sendingAmount = maxAmount;
 
@@ -1826,7 +1846,7 @@ namespace atomex_frontend.Storages
         }
       }
 
-      else if (SelectedCurrency is FA12)
+      else if (SelectedCurrency is Fa12Config)
       {
         try
         {
@@ -1839,8 +1859,8 @@ namespace atomex_frontend.Storages
 
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
 
             if (maxAmount > 0)
               _sendingAmount = maxAmount;
@@ -1851,8 +1871,8 @@ namespace atomex_frontend.Storages
           }
           else
           {
-            var (maxAmount, maxFee, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFee, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
             var feeAmount = SelectedCurrency.GetFeeAmount(_sendingFee, defaultFeePrice);
 
@@ -1868,8 +1888,8 @@ namespace atomex_frontend.Storages
 
             _sendingAmount = maxAmount;
 
-            var (_, maxAvailableFee, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, decimal.MaxValue, 0, false);
+            var (_, maxAvailableFee, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, decimal.MaxValue, 0, false);
 
             if (maxAmount < availableAmount || feeAmount > maxAvailableFee)
               Warning = string.Format(CultureInfo.InvariantCulture, Translations.CvInsufficientChainFunds, SelectedCurrency.FeeCurrencyName);
@@ -1892,8 +1912,8 @@ namespace atomex_frontend.Storages
 
           if (UseDefaultFee)
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, true);
 
             if (maxAmount > 0)
               _sendingAmount = maxAmount;
@@ -1902,10 +1922,10 @@ namespace atomex_frontend.Storages
           }
           else
           {
-            var (maxAmount, maxFeeAmount, _) = await accountStorage.Account
-                .EstimateMaxAmountToSendAsync(SelectedCurrency.Name, SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
+            var (maxAmount, maxFeeAmount, _) = await account
+                .EstimateMaxAmountToSendAsync(SendingToAddress, BlockchainTransactionType.Output, 0, 0, false);
 
-            var availableAmount = SelectedCurrency is BitcoinBasedCurrency
+            var availableAmount = SelectedCurrency is BitcoinBasedConfig
                 ? SelectedCurrencyData.Balance
                 : maxAmount + maxFeeAmount;
 
@@ -1916,7 +1936,7 @@ namespace atomex_frontend.Storages
               _sendingAmount = availableAmount - feeAmount;
 
               var estimatedFeeAmount = _sendingAmount != 0
-                  ? await accountStorage.Account.EstimateFeeAsync(SelectedCurrency.Name, SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
+                  ? await account.EstimateFeeAsync(SendingToAddress, _sendingAmount, BlockchainTransactionType.Output)
                   : 0;
 
               if (estimatedFeeAmount == null || feeAmount < estimatedFeeAmount.Value)
@@ -1958,7 +1978,7 @@ namespace atomex_frontend.Storages
     {
       if (SelectedCurrency.Name == SelectedSecondCurrency.Name || accountStorage.Symbols.SymbolByCurrencies(SelectedCurrency, SelectedSecondCurrency) == null)
       {
-        foreach (Currency availableCurrency in AvailableCurrencies)
+        foreach (var availableCurrency in AvailableCurrencies)
         {
           if (accountStorage.Symbols.SymbolByCurrencies(SelectedCurrency, availableCurrency) != null)
           {
@@ -1980,7 +2000,7 @@ namespace atomex_frontend.Storages
 
       this.CallCloseModals();
 
-      if (_selectedCurrency is BitcoinBasedCurrency)
+      if (_selectedCurrency is BitcoinBasedConfig)
       {
         this._feeRate = await BtcBased.GetFeeRateAsync();
       }

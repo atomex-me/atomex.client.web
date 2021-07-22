@@ -8,7 +8,7 @@ namespace atomex_frontend.atomex_data_structures
   public class Transaction : IBlockchainTransaction
   {
     public Transaction(
-      Currency currency,
+      string currency,
       string id,
       BlockchainTransactionState state,
       BlockchainTransactionType type,
@@ -56,7 +56,7 @@ namespace atomex_frontend.atomex_data_structures
                 state == BlockchainTransactionState.Unconfirmed;
     }
 
-    public Currency Currency { get; set; }
+    public string Currency { get; set; }
     public string Id { get; set; }
     public BlockchainTransactionState State { get; set; }
     public BlockchainTransactionType Type { get; set; }

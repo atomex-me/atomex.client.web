@@ -16,6 +16,7 @@ using Atomex.Swaps;
 using Serilog;
 using Microsoft.JSInterop;
 using atomex_frontend.Common;
+using Atomex.Wallet.Abstract;
 
 namespace atomex_frontend.Storages
 {
@@ -56,12 +57,12 @@ namespace atomex_frontend.Storages
       get => accountStorage.AtomexApp;
     }
 
-    public Currency FromCurrency
+    public CurrencyConfig FromCurrency
     {
       get => walletStorage.SelectedCurrency;
     }
 
-    public Currency ToCurrency
+    public CurrencyConfig ToCurrency
     {
       get => walletStorage.SelectedSecondCurrency;
     }
@@ -423,7 +424,7 @@ namespace atomex_frontend.Storages
       }
     }
 
-    private Currency getCurrency(string Currency)
+    private CurrencyConfig getCurrency(string Currency)
     {
       return AccountStorage.Currencies.GetByName(Currency);
     }
@@ -512,8 +513,9 @@ namespace atomex_frontend.Storages
 
     private async Task UpdateRedeemAndRewardFeesAsync()
     {
-      var walletAddress = await App.Account.GetRedeemAddressAsync(ToCurrency.Name);
-
+      var walletAddress = await App.Account
+        .GetCurrencyAccount<ILegacyCurrencyAccount>(ToCurrency.Name)
+        .GetRedeemAddressAsync();
       _estimatedRedeemFee = await ToCurrency
           .GetEstimatedRedeemFeeAsync(walletAddress, withRewardForRedeem: false);
 
@@ -562,11 +564,12 @@ namespace atomex_frontend.Storages
       try
       {
         var account = App.Account;
+        var currencyAccount = account
+          .GetCurrencyAccount<ILegacyCurrencyAccount>(FromCurrency.Name);
 
-        var fromWallets = (await account
+        var fromWallets = (await currencyAccount
             .GetUnspentAddressesAsync(
                 toAddress: null,
-                currency: FromCurrency.Name,
                 amount: Amount,
                 fee: 0,
                 feePrice: await FromCurrency.GetDefaultFeePriceAsync(),
@@ -710,6 +713,5 @@ namespace atomex_frontend.Storages
         return null;
       }
     }
-
   }
 }
