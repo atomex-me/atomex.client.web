@@ -845,7 +845,7 @@ namespace atomex_frontend.Storages
         case BitcoinBasedConfig _:
           IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction)tx;
           amount = CurrHelper.GetTransAmount(btcBasedTrans);
-          description = CurrHelper.GetTransDescription(tx, amount, CurrHelper.GetFee(btcBasedTrans));
+          description = CurrHelper.GetTransDescription(tx, currencyConfig, amount, CurrHelper.GetFee(btcBasedTrans));
           var BtcFee = btcBasedTrans.Fees != null
             ? btcBasedTrans.Fees.Value / currencyConfig.DigitsMultiplier
             : 0;
@@ -867,7 +867,7 @@ namespace atomex_frontend.Storages
         case Erc20Config _:
           EthereumTransaction usdtTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(usdtTrans);
-          description = CurrHelper.GetTransDescription(tx, amount, 0);
+          description = CurrHelper.GetTransDescription(tx, currencyConfig, amount, 0);
           string FromUsdt = usdtTrans.From;
           string ToUsdt = usdtTrans.To;
           decimal GasPriceUsdt = EthereumConfig.WeiToGwei((decimal)usdtTrans.GasPrice);
@@ -897,7 +897,7 @@ namespace atomex_frontend.Storages
         case EthereumConfig _:
           EthereumTransaction ethTrans = (EthereumTransaction)tx;
           amount = CurrHelper.GetTransAmount(ethTrans);
-          description = CurrHelper.GetTransDescription(ethTrans, amount, CurrHelper.GetFee(ethTrans));
+          description = CurrHelper.GetTransDescription(ethTrans, currencyConfig, amount, CurrHelper.GetFee(ethTrans));
           string FromEth = ethTrans.From;
           string ToEth = ethTrans.To;
           decimal GasPriceEth = EthereumConfig.WeiToGwei((decimal)ethTrans.GasPrice);
@@ -929,7 +929,7 @@ namespace atomex_frontend.Storages
         case Fa12Config _:
           TezosTransaction fa12Trans = (TezosTransaction)tx;
           amount = CurrHelper.GetTransAmount(fa12Trans);
-          description = CurrHelper.GetTransDescription(fa12Trans, amount, 0);
+          description = CurrHelper.GetTransDescription(fa12Trans, currencyConfig, amount, 0);
           string FromFa12 = fa12Trans.From;
           string ToFa12 = fa12Trans.To;
           decimal GasLimitFa12 = fa12Trans.GasLimit;
@@ -959,7 +959,7 @@ namespace atomex_frontend.Storages
           TezosTransaction xtzTrans = (TezosTransaction)tx;
           amount = CurrHelper.GetTransAmount(xtzTrans);
           decimal FeeXtz = CurrHelper.GetFee(xtzTrans);
-          description = CurrHelper.GetTransDescription(xtzTrans, amount, FeeXtz);
+          description = CurrHelper.GetTransDescription(xtzTrans, currencyConfig, amount, FeeXtz);
           string FromXtz = xtzTrans.From;
           string ToXtz = xtzTrans.To;
           decimal GasLimitXtz = xtzTrans.GasLimit;
