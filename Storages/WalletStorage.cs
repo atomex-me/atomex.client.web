@@ -102,6 +102,42 @@ namespace atomex_frontend.Storages
             }
         }
 
+        public List<KeyValuePair<string, string>> AvailableCurrenciesNames
+        {
+            get
+            {
+                try
+                {
+                    var result = accountStorage.Account.Currencies
+                        .Select(c => new KeyValuePair<string, string>(c.Name, c.Description))
+                        .ToList();
+                    result.Add(new KeyValuePair<string, string>(TezosTokensCaption, TezosTokensCaption));
+                    return result;
+                }
+                catch (Exception)
+                {
+                    return new List<KeyValuePair<string, string>>();
+                }
+            }
+        }
+
+        public string TezosTokensCaption => "Tezos Tokens";
+        
+
+        private bool _isTezosTokensSelected;
+        public bool IsTezosTokensSelected
+        {
+            get => _isTezosTokensSelected;
+            set
+            {
+                if (value != _isTezosTokensSelected)
+                {
+                    _isTezosTokensSelected = value;
+                    CallUIRefresh();
+                }
+            }
+        }
+
         public Dictionary<string, CurrencyData> PortfolioData { get; set; } = new Dictionary<string, CurrencyData>();
 
         public Dictionary<string, Transaction> Transactions { get; set; } = new Dictionary<string, Transaction>();
@@ -150,12 +186,13 @@ namespace atomex_frontend.Storages
 
         public CurrencyConfig SelectedCurrency
         {
-            get => this._selectedCurrency;
+            get => _selectedCurrency;
             set
             {
-                if (value.Name != this._selectedCurrency.Name)
+                IsTezosTokensSelected = false;
+                if (value.Name != _selectedCurrency.Name)
                 {
-                    this.ResetSendData();
+                    ResetSendData();
 
                     if (CurrentWalletSection == WalletSection.DEX)
                     {
@@ -164,8 +201,8 @@ namespace atomex_frontend.Storages
                     }
                 }
 
-                this._selectedCurrency = value;
-                this.CallUIRefresh();
+                _selectedCurrency = value;
+                CallUIRefresh();
             }
         }
 
@@ -2128,22 +2165,22 @@ namespace atomex_frontend.Storages
 
         public async void ResetSendData()
         {
-            this.SendingToAddress = "";
-            this.Warning = string.Empty;
-            this._sendingAmount = 0;
-            this._sendingFee = 0;
-            this._ethTotalFee = 0;
-            this._useDefaultFee = true;
+            SendingToAddress = "";
+            Warning = string.Empty;
+            _sendingAmount = 0;
+            _sendingFee = 0;
+            _ethTotalFee = 0;
+            _useDefaultFee = true;
 
-            this.CallCloseModals();
+            CallCloseModals();
 
             if (_selectedCurrency is BitcoinBasedConfig)
             {
-                this._feeRate = await BtcBased.GetFeeRateAsync();
+                _feeRate = await BtcBased.GetFeeRateAsync();
             }
 
-            this._sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
-            this.CallUIRefresh();
+            _sendingFeePrice = await SelectedCurrency.GetDefaultFeePriceAsync();
+            CallUIRefresh();
         }
 
         public void SwapCurrencies()

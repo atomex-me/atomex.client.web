@@ -9,279 +9,297 @@
 @using Serilog;
 
 <div>
-  <div class="wallet-page dark-background">
-      <div class="wallet-page__left-nav dark-background @(WalletStorage.IsUpdating || WalletStorage.AllPortfolioUpdating ? "disabled" : "")">
-          <div>
-            <WalletMenuButton
-                Variant="@WalletSection.Portfolio"
-                OnClick="@WalletMenuButtonClick"
-                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Portfolio)" />
-
-            <WalletMenuButton
-                Variant="@WalletSection.Wallets"
-                OnClick="@WalletMenuButtonClick"
-                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Wallets)" />
-
-            <WalletMenuButton
-                Variant="@WalletSection.DEX"
-                OnClick="@WalletMenuButtonClick"
-                IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.DEX)" />
-
-            @if (WalletStorage.CanBuySelectedCurrency) {
-              <WalletMenuButton
-                  Variant="@WalletSection.BuyWithCard"
-                  OnClick="@WalletMenuButtonClick"
-                  IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.BuyWithCard)" />
-            }
-          </div>
-
-          <div>
-          <WalletMenuButton
-              Variant="@WalletSection.Settings"
-              OnClick="@WalletMenuButtonClick"
-              IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Settings)" />
-
-            <WalletMenuButton
-                Variant="@WalletSection.Signout"
-                OnClick="@(() => AccountStorage.SignOut())"
-                IsActive="@false" />            
-          </div>
-
-      </div>
-      <div class="wallet-page__container">
-          <Modal IsOpen="@(WalletStorage.userMessage != null)" NoClose>
-              <UserMessageModal />
-          </Modal>
-
-
-          @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio) {
-            <DonutChart />
-            <Modal IsOpen="@(WalletStorage.AllPortfolioUpdating)">
-              <AllCurrenciesUpdatingModal />
-            </Modal>
-            <WalletDataTable
-                Variant="@WalletDataTable.AvailableVariants.Currencies"
-                CurrenciesData="@WalletStorage.PortfolioData" />
-          }
-
-          @if (WalletStorage.CurrentWalletSection == WalletSection.Wallets) {
+    <div class="wallet-page dark-background">
+        <div class="wallet-page__left-nav dark-background @(WalletStorage.IsUpdating || WalletStorage.AllPortfolioUpdating ? "disabled" : "")">
             <div>
-                <CurrenciesRow />
-                @if (WalletStorage.SelectedCurrency.Name == "XTZ") {
-                  <div class="tezos-card__container">
-                    <CurrencyCard
-                        OnSendClick="@SendOpenCloseHandler"
-                        OnReceiveClick="@ReceiveOpenCloseHandler"
-                        OnUpdateClick="@OnUpdateHandler"
-                        OnConvertClick="@OnConvertHandler" 
-                        OnAddressesClick="@OnAddressesOpenCloseHandler"
-                        CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
-                        IsLoading="@WalletStorage.IsUpdating" 
-                        IsTezos="@true" />
-                    <DelegationCard />
-                  </div>
-                } else {
-                  <CurrencyCard
-                      OnSendClick="@SendOpenCloseHandler"
-                      OnReceiveClick="@ReceiveOpenCloseHandler"
-                      OnUpdateClick="@OnUpdateHandler"
-                      OnConvertClick="@OnConvertHandler" 
-                      OnAddressesClick="@OnAddressesOpenCloseHandler"
-                      CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
-                      IsLoading="@WalletStorage.IsUpdating" />
+                <WalletMenuButton
+                    Variant="@WalletSection.Portfolio"
+                    OnClick="@WalletMenuButtonClick"
+                    IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Portfolio)"/>
+
+                <WalletMenuButton
+                    Variant="@WalletSection.Wallets"
+                    OnClick="@WalletMenuButtonClick"
+                    IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Wallets)"/>
+
+                <WalletMenuButton
+                    Variant="@WalletSection.DEX"
+                    OnClick="@WalletMenuButtonClick"
+                    IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.DEX)"/>
+
+                @if (WalletStorage.CanBuySelectedCurrency)
+                {
+                    <WalletMenuButton
+                        Variant="@WalletSection.BuyWithCard"
+                        OnClick="@WalletMenuButtonClick"
+                        IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.BuyWithCard)"/>
                 }
-                <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
-                    <SendModal OnCancelClick="@SendOpenCloseHandler" />
-                </Modal>
-                <Modal IsOpen="@ReceiveModalOpened" OnClose="@ReceiveOpenCloseHandler">
-                    <ReceiveModal OnCancelClick="@ReceiveOpenCloseHandler" />
-                </Modal>
-                <Modal Big IsOpen="@AddressesModalOpened" OnClose="@OnAddressesOpenCloseHandler">
-                  <AddressesModal OnCancelClick="@OnAddressesOpenCloseHandler" />
-                </Modal>
             </div>
-            <WalletDataTable
-                Variant="@WalletDataTable.AvailableVariants.Transactions"
-                TransactionsData="@WalletStorage.SelectedCurrencyTransactions" />
-          }
-          @if (WalletStorage.CurrentWalletSection == WalletSection.DEX) {
-            <div class="exchange">
-                <CurrencyDropdown
-                  SelectedCurrency="WalletStorage.SelectedCurrency"
-                  Label="@Translations.From"
-                  IsOpened="@(OpenedDropdown == 1)"
-                  HandleOpen="@OnOpenDropdownClick"
-                  WithExchange />
 
-                <CurrencyDropdown
-                  SelectedCurrency="WalletStorage.SelectedSecondCurrency"
-                  Label="@Translations.To"
-                  IsSecondCurrency="@true"
-                  IsOpened="@(OpenedDropdown == 2)"
-                  HandleOpen="@OnOpenDropdownClick" />
+            <div>
+                <WalletMenuButton
+                    Variant="@WalletSection.Settings"
+                    OnClick="@WalletMenuButtonClick"
+                    IsActive="@(WalletStorage.CurrentWalletSection == WalletSection.Settings)"/>
 
-                <AmountBadge
-                    Label="@Translations.Amount"
-                    OnChange="@OnAmountChange"
-                    SelectedCurrency="@WalletStorage.SelectedCurrency" 
-                    Amount="@SwapStorage.Amount"
-                    DollarAmount="@SwapStorage.AmountDollars"
-                    TotalAmount="@SwapStorage.EstimatedMaxAmount" />
-
-                <div class="exchange-container">
-                  Available: @(Helper.DecimalToStr(SwapStorage.EstimatedMaxAmount)) 
-                  <span class="currency-abbr small">@WalletStorage.SelectedCurrency.Name</span>
-                    <i class="info-tooltip atomex-tooltip">
-                        <span class="atomex-tooltiptext fees">
-                          The limit applies to a single trade. In case you require more liquidity make multiple trades.
-                        </span>
-                    </i>
-                </div>
-                
-                <ConvertCard />
-
-                @* <Chart /> *@
-
-                <Modal IsOpen="@ConvertModalOpened" OnClose="@ConvertOpenCloseHandler">
-                    <ConvertModal OnCancelClick="@ConvertOpenCloseHandler" />
-                </Modal>
-
-                <div class="exchange-button__container">
-                    <NavigateButton
-                      Variant="center"
-                      OnClick="@ConvertOpenCloseHandler"
-                      Disabled="@(!SwapStorage.CanConvert)">
-                      @Translations.Convert
-                    </NavigateButton>
-                </div>
+                <WalletMenuButton
+                    Variant="@WalletSection.Signout"
+                    OnClick="@(() => AccountStorage.SignOut())"
+                    IsActive="@false"/>
             </div>
-            <WalletDataTable
-                Variant="@WalletDataTable.AvailableVariants.Swaps"
-                TransactionsData="@WalletStorage.SelectedCurrencyTransactions"
-                SwapsData="@SwapStorage.Swaps" />
-          }
-          
-          @if (WalletStorage.CurrentWalletSection == WalletSection.Settings) {
-            <SettingsPage Value="@AccountStorage.IdleTimeoutToLogout" />
-          }
 
-          @if (WalletStorage.CurrentWalletSection == WalletSection.BuyWithCard) {
-            <BuyWithCard />
-          }
-      </div>
-  </div>
-  <Footer />
+        </div>
+        <div class="wallet-page__container">
+            <Modal IsOpen="@(WalletStorage.userMessage != null)" NoClose>
+                <UserMessageModal/>
+            </Modal>
+
+
+            @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio)
+            {
+                <DonutChart/>
+                <Modal IsOpen="@(WalletStorage.AllPortfolioUpdating)">
+                    <AllCurrenciesUpdatingModal/>
+                </Modal>
+                <WalletDataTable
+                    Variant="@WalletDataTable.AvailableVariants.Currencies"
+                    CurrenciesData="@WalletStorage.PortfolioData"/>
+            }
+
+            @if (WalletStorage.CurrentWalletSection == WalletSection.Wallets)
+            {
+                <div>
+                    <CurrenciesRow/>
+                    @if (WalletStorage.IsTezosTokensSelected)
+                    {
+                        <div>Tezos tokens view;</div>
+                    }
+                    else
+                    {
+                        @if (WalletStorage.SelectedCurrency.Name == "XTZ")
+                        {
+                            <div class="tezos-card__container">
+                                <CurrencyCard
+                                    OnSendClick="@SendOpenCloseHandler"
+                                    OnReceiveClick="@ReceiveOpenCloseHandler"
+                                    OnUpdateClick="@OnUpdateHandler"
+                                    OnConvertClick="@OnConvertHandler"
+                                    OnAddressesClick="@OnAddressesOpenCloseHandler"
+                                    CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
+                                    IsLoading="@WalletStorage.IsUpdating"
+                                    IsTezos="@true"/>
+                                <DelegationCard/>
+                            </div>
+                        }
+                        else
+                        {
+                            <CurrencyCard
+                                OnSendClick="@SendOpenCloseHandler"
+                                OnReceiveClick="@ReceiveOpenCloseHandler"
+                                OnUpdateClick="@OnUpdateHandler"
+                                OnConvertClick="@OnConvertHandler"
+                                OnAddressesClick="@OnAddressesOpenCloseHandler"
+                                CurrencyAmount="@(WalletStorage.SelectedCurrencyData.Balance)"
+                                IsLoading="@WalletStorage.IsUpdating"/>
+                        }
+                    }
+                    <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
+                        <SendModal OnCancelClick="@SendOpenCloseHandler"/>
+                    </Modal>
+                    <Modal IsOpen="@ReceiveModalOpened" OnClose="@ReceiveOpenCloseHandler">
+                        <ReceiveModal OnCancelClick="@ReceiveOpenCloseHandler"/>
+                    </Modal>
+                    <Modal Big IsOpen="@AddressesModalOpened" OnClose="@OnAddressesOpenCloseHandler">
+                        <AddressesModal OnCancelClick="@OnAddressesOpenCloseHandler"/>
+                    </Modal>
+                </div>
+                @if (!WalletStorage.IsTezosTokensSelected)
+                {
+                    <WalletDataTable
+                        Variant="@WalletDataTable.AvailableVariants.Transactions"
+                        TransactionsData="@WalletStorage.SelectedCurrencyTransactions"/>
+                }
+            }
+            @if (WalletStorage.CurrentWalletSection == WalletSection.DEX)
+            {
+                <div class="exchange">
+                    <CurrencyDropdown
+                        SelectedCurrency="WalletStorage.SelectedCurrency"
+                        Label="@Translations.From"
+                        IsOpened="@(OpenedDropdown == 1)"
+                        HandleOpen="@OnOpenDropdownClick"
+                        WithExchange/>
+
+                    <CurrencyDropdown
+                        SelectedCurrency="WalletStorage.SelectedSecondCurrency"
+                        Label="@Translations.To"
+                        IsSecondCurrency="@true"
+                        IsOpened="@(OpenedDropdown == 2)"
+                        HandleOpen="@OnOpenDropdownClick"/>
+
+                    <AmountBadge
+                        Label="@Translations.Amount"
+                        OnChange="@OnAmountChange"
+                        SelectedCurrency="@WalletStorage.SelectedCurrency"
+                        Amount="@SwapStorage.Amount"
+                        DollarAmount="@SwapStorage.AmountDollars"
+                        TotalAmount="@SwapStorage.EstimatedMaxAmount"/>
+
+                    <div class="exchange-container">
+                        Available: @(Helper.DecimalToStr(SwapStorage.EstimatedMaxAmount))
+                        <span class="currency-abbr small">@WalletStorage.SelectedCurrency.Name</span>
+                        <i class="info-tooltip atomex-tooltip">
+                            <span class="atomex-tooltiptext fees">
+                                The limit applies to a single trade. In case you require more liquidity make multiple trades.
+                            </span>
+                        </i>
+                    </div>
+
+                    <ConvertCard/>
+
+                    @* <Chart /> *@
+
+                    <Modal IsOpen="@ConvertModalOpened" OnClose="@ConvertOpenCloseHandler">
+                        <ConvertModal OnCancelClick="@ConvertOpenCloseHandler"/>
+                    </Modal>
+
+                    <div class="exchange-button__container">
+                        <NavigateButton
+                            Variant="center"
+                            OnClick="@ConvertOpenCloseHandler"
+                            Disabled="@(!SwapStorage.CanConvert)">
+                            @Translations.Convert
+                        </NavigateButton>
+                    </div>
+                </div>
+                <WalletDataTable
+                    Variant="@WalletDataTable.AvailableVariants.Swaps"
+                    TransactionsData="@WalletStorage.SelectedCurrencyTransactions"
+                    SwapsData="@SwapStorage.Swaps"/>
+            }
+
+            @if (WalletStorage.CurrentWalletSection == WalletSection.Settings)
+            {
+                <SettingsPage Value="@AccountStorage.IdleTimeoutToLogout"/>
+            }
+
+            @if (WalletStorage.CurrentWalletSection == WalletSection.BuyWithCard)
+            {
+                <BuyWithCard/>
+            }
+        </div>
+    </div>
+    <Footer/>
 </div>
 
 @code {
-  private int OpenedDropdown = 0;
+    private int OpenedDropdown = 0;
 
-  private void OnOpenDropdownClick(int dropdown)
-  {
-    if (OpenedDropdown > 0)
+    private void OnOpenDropdownClick(int dropdown)
     {
-      OpenedDropdown = 0;
-    }
-    else
-    {
-      OpenedDropdown = dropdown;
-    }
-  }
-
-  private System.Timers.Timer debounceInputAmount;
-  private decimal Amount = 0m;
-
-  protected void OnAmountChange(decimal amount)
-  {
-    debounceInputAmount.Stop();
-    debounceInputAmount.Start();
-  
-    Amount = amount;
-  }
-
-  private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
-  {
-    InvokeAsync(() =>
-     {
-       SwapStorage.Amount = Amount;
-     });
-  }
-
-  protected List<Transaction> Transactions { get; set; } = new List<Transaction>();
-
-  protected void WalletMenuButtonClick(WalletSection Variant)
-  {
-    WalletStorage.CurrentWalletSection = Variant;
-  }
-
-  private async void OnUpdateHandler()
-  {
-    Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} starting to scan");
-    await WalletStorage.ScanCurrencyAsync(WalletStorage.SelectedCurrency);
-    Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} scanned");
-  }
-
-  private void OnConvertHandler()
-  {
-    WalletStorage.lastSwapFromCurrencyName = WalletStorage.SelectedCurrency.Name;
-    WalletStorage.CurrentWalletSection = WalletSection.DEX;
-  }
-
-  private void ConvertOpenCloseHandler()
-  {
-    if (!ConvertModalOpened) CloseModals();
-    ConvertModalOpened = !ConvertModalOpened;
-  }
-
-  private void SendOpenCloseHandler()
-  {
-    if (!SendModalOpened) WalletStorage.ResetSendData();
-    SendModalOpened = !SendModalOpened;
-  }
-
-  private void ReceiveOpenCloseHandler()
-  {
-    if (!ReceiveModalOpened) CloseModals();
-    ReceiveModalOpened = !ReceiveModalOpened;
-  }
-
-  private void OnAddressesOpenCloseHandler()
-  {
-    if (!AddressesModalOpened) CloseModals();
-    AddressesModalOpened = !AddressesModalOpened;
-  }
-
-  private bool SendModalOpened { get; set; } = false;
-  private bool ReceiveModalOpened { get; set; } = false;
-  private bool ConvertModalOpened { get; set; } = false;
-  private bool AddressesModalOpened { get; set; } = false;
-
-  private void CloseModals()
-  {
-    if (SendModalOpened) SendModalOpened = false;
-    if (ReceiveModalOpened) ReceiveModalOpened = false;
-    if (AddressesModalOpened) AddressesModalOpened = false;
-    if (ConvertModalOpened) ConvertModalOpened = false;
-  }
-
-  I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync()
-  {
-    if (AccountStorage.AtomexApp?.Terminal == null)
-    {
-      UriHelper.NavigateTo("/");
+        if (OpenedDropdown > 0)
+        {
+            OpenedDropdown = 0;
+        }
+        else
+        {
+            OpenedDropdown = dropdown;
+        }
     }
 
-    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    private Timer debounceInputAmount;
+    private decimal Amount = 0m;
 
-    WalletStorage.CloseModals += CloseModals;
-    WalletStorage.RefreshRequested += StateHasChanged;
-    SwapStorage.RefreshRequested += StateHasChanged;
+    protected void OnAmountChange(decimal amount)
+    {
+        debounceInputAmount.Stop();
+        debounceInputAmount.Start();
 
-    debounceInputAmount = new System.Timers.Timer(850);
-    debounceInputAmount.Elapsed += OnUserFinishAmount;
-    debounceInputAmount.AutoReset = false;
+        Amount = amount;
+    }
 
-    await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
-  }
+    private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { SwapStorage.Amount = Amount; });
+    }
+
+    protected List<Transaction> Transactions { get; set; } = new List<Transaction>();
+
+    protected void WalletMenuButtonClick(WalletSection Variant)
+    {
+        WalletStorage.CurrentWalletSection = Variant;
+    }
+
+    private async void OnUpdateHandler()
+    {
+        Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} starting to scan");
+        await WalletStorage.ScanCurrencyAsync(WalletStorage.SelectedCurrency);
+        Console.WriteLine($"{WalletStorage.SelectedCurrency.Name} scanned");
+    }
+
+    private void OnConvertHandler()
+    {
+        WalletStorage.lastSwapFromCurrencyName = WalletStorage.SelectedCurrency.Name;
+        WalletStorage.CurrentWalletSection = WalletSection.DEX;
+    }
+
+    private void ConvertOpenCloseHandler()
+    {
+        if (!ConvertModalOpened) CloseModals();
+        ConvertModalOpened = !ConvertModalOpened;
+    }
+
+    private void SendOpenCloseHandler()
+    {
+        if (!SendModalOpened) WalletStorage.ResetSendData();
+        SendModalOpened = !SendModalOpened;
+    }
+
+    private void ReceiveOpenCloseHandler()
+    {
+        if (!ReceiveModalOpened) CloseModals();
+        ReceiveModalOpened = !ReceiveModalOpened;
+    }
+
+    private void OnAddressesOpenCloseHandler()
+    {
+        if (!AddressesModalOpened) CloseModals();
+        AddressesModalOpened = !AddressesModalOpened;
+    }
+
+    private bool SendModalOpened { get; set; } = false;
+    private bool ReceiveModalOpened { get; set; } = false;
+    private bool ConvertModalOpened { get; set; } = false;
+    private bool AddressesModalOpened { get; set; } = false;
+
+    private void CloseModals()
+    {
+        if (SendModalOpened) SendModalOpened = false;
+        if (ReceiveModalOpened) ReceiveModalOpened = false;
+        if (AddressesModalOpened) AddressesModalOpened = false;
+        if (ConvertModalOpened) ConvertModalOpened = false;
+    }
+
+    I18nText.Translations Translations = new I18nText.Translations();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AccountStorage.AtomexApp?.Terminal == null)
+        {
+            UriHelper.NavigateTo("/");
+        }
+
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+
+        WalletStorage.CloseModals += CloseModals;
+        WalletStorage.RefreshRequested += StateHasChanged;
+        SwapStorage.RefreshRequested += StateHasChanged;
+
+        debounceInputAmount = new System.Timers.Timer(850);
+        debounceInputAmount.Elapsed += OnUserFinishAmount;
+        debounceInputAmount.AutoReset = false;
+
+        await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
+    }
+
 }

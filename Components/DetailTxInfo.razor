@@ -177,7 +177,7 @@
         }
     }
 
-    private CurrencyConfig _currencyConfig => CurrHelper.GetCurrencyConfig(OpenedTx.Currency, accountStorage.Account);
+    private CurrencyConfig _currencyConfig => accountStorage.Account.Currencies.GetByName(OpenedTx.Currency);
 
     private string GetTxInfoHeight => $"{TxInfoBlockHeight - TxHeight}px";
 

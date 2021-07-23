@@ -268,10 +268,5 @@ namespace atomex_frontend.Common
 
             return String.Empty;
         }
-
-        public static CurrencyConfig GetCurrencyConfig(string currencyName, IAccount account)
-        {
-            return account.Currencies.GetByName(currencyName);
-        }
     }
 }
