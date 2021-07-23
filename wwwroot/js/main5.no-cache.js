@@ -59,7 +59,17 @@ function showNotificationInWallet(text)
   }
 }
 
-var dataTypes=[ "WalletAddress","Transaction","Output","Swap","Order" ];
+var dataTypes=[
+    "WalletAddress",
+    "Transaction",
+    "Output",
+    "Swap",
+    "Order",
+    "TezosTokenAddress",
+    "TezosTokenTransfer",
+    "TezosTokenContract"
+];
+
 var dataStore={};
 var currentWalletName = "";
 

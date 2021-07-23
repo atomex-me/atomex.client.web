@@ -5,169 +5,175 @@
 @inject AccountStorage accountStorage;
 
 <div class="modal__container">
-  <div class="dark-background__no-grad modal-title">
-    @Translations.Addresses
-  </div>
-
-  @if (Addresses != null && Addresses.Count() > 0 && String.IsNullOrEmpty(ExportPrivKeyAddress)) {
-    <WalletDataTable
-      Variant="@WalletDataTable.AvailableVariants.Addresses"
-      Addresses="@Addresses"
-      OnCopyPrivateKey="@OnCopyPrivateKey"
-      OnUpdateAddress="@OnUpdateAddress"
-      UpdatingAddress="@UpdatingAddress" />
-  }
-
-  @if(!String.IsNullOrEmpty(Warning)) {
-    <p class="modal-subtitle">@Translations.PrivKeyCopied.Replace("{0}", ExportPrivKeyAddress)</p>
-    <div class="modal-buttons-container">
-      <NavigateButton Variant="center" OnClick="() => OnCancelClick.InvokeAsync(null)">
-        @Translations.SvOk
-      </NavigateButton>
+    <div class="dark-background__no-grad modal-title">
+        @Translations.Addresses
     </div>
-  } else if(!String.IsNullOrEmpty(ExportPrivKeyAddress)) {
-    <p class="modal-subtitle">
-      @Translations.CopyPrivateAddrWarning.Replace("{0}", ExportPrivKeyAddress)
-    </p>
-    <div class="modal-buttons-container">
-      <div>
-        <NavigateButton Variant="left" OnClick="handleCancel">
-          @Translations.Cancel
-        </NavigateButton>
-        <NavigateButton Variant="right" OnClick="ExportKey">
-          @Translations.Copy
-        </NavigateButton>
-      </div>
-    </div>
-  }
+
+    @if (Addresses != null && Addresses.Count() > 0 && String.IsNullOrEmpty(ExportPrivKeyAddress))
+    {
+        <WalletDataTable
+            Variant="@WalletDataTable.AvailableVariants.Addresses"
+            Addresses="@Addresses"
+            OnCopyPrivateKey="@OnCopyPrivateKey"
+            OnUpdateAddress="@OnUpdateAddress"
+            UpdatingAddress="@UpdatingAddress"/>
+    }
+
+    @if (!String.IsNullOrEmpty(Warning))
+    {
+        <p class="modal-subtitle">@Translations.PrivKeyCopied.Replace("{0}", ExportPrivKeyAddress)</p>
+        <div class="modal-buttons-container">
+            <NavigateButton Variant="center" OnClick="() => OnCancelClick.InvokeAsync(null)">
+                @Translations.SvOk
+            </NavigateButton>
+        </div>
+    }
+    else if (!String.IsNullOrEmpty(ExportPrivKeyAddress))
+    {
+        <p class="modal-subtitle">
+            @Translations.CopyPrivateAddrWarning.Replace("{0}", ExportPrivKeyAddress)
+        </p>
+        <div class="modal-buttons-container">
+            <div>
+                <NavigateButton Variant="left" OnClick="handleCancel">
+                    @Translations.Cancel
+                </NavigateButton>
+                <NavigateButton Variant="right" OnClick="ExportKey">
+                    @Translations.Copy
+                </NavigateButton>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
-  [Parameter]
-  public EventCallback OnCancelClick { get; set; }
 
-  private void handleCancel()
-  {
-    ExportPrivKeyAddress = String.Empty;
-    Warning = String.Empty;
-  }
+    [Parameter]
+    public EventCallback OnCancelClick { get; set; }
 
-  private string ExportPrivKeyAddress = String.Empty;
-
-  private void OnCopyPrivateKey(string address)
-  {
-    ExportPrivKeyAddress = address;
-  }
-
-  private Currency _currency => walletStorage.SelectedCurrency;
-
-  private IEnumerable<AddressInfo> Addresses { get; set; }
-
-  private string _warning;
-  public string Warning
-  {
-    get => _warning;
-    set
+    private void handleCancel()
     {
-      _warning = value;
+        ExportPrivKeyAddress = String.Empty;
+        Warning = String.Empty;
     }
-  }
-  public bool HasWarning => !string.IsNullOrEmpty(Warning);
 
-  private string UpdatingAddress = String.Empty;
-  private async void OnUpdateAddress(string address)
-  {
-    Console.WriteLine($"Started updating {address}");
-    UpdatingAddress = address;
-    await new HdWalletScanner(accountStorage.Account)
-         .ScanAddressAsync(_currency.Name, address)
-         .ConfigureAwait(false);
+    private string ExportPrivKeyAddress = String.Empty;
 
-    var balance = await accountStorage.Account
-             .GetAddressBalanceAsync(_currency.Name, address)
-             .ConfigureAwait(false);
-
-    await Load();
-
-    Console.WriteLine($"Ended updating {address}");
-
-    await JSRuntime.InvokeVoidAsync("showNotificationInWallet", Translations.AddressUpdated.Replace("{0}", UpdatingAddress));
-    UpdatingAddress = String.Empty;
-    StateHasChanged();
-  }
-
-  public async Task Load()
-  {
-    try
+    private void OnCopyPrivateKey(string address)
     {
-      var account = accountStorage.Account.GetCurrencyAccount(_currency.Name);
+        ExportPrivKeyAddress = address;
+    }
 
-      var addresses = (await account.GetAddressesAsync())
-          .ToList();
+    private CurrencyConfig _currency => walletStorage.SelectedCurrency;
 
-      addresses.Sort((a1, a2) =>
-      {
-        var chainResult = a1.KeyIndex.Chain.CompareTo(a2.KeyIndex.Chain);
+    private IEnumerable<AddressInfo> Addresses { get; set; }
 
-        return chainResult == 0
+    private string _warning;
+
+    public string Warning
+    {
+        get => _warning;
+        set { _warning = value; }
+    }
+
+    public bool HasWarning => !string.IsNullOrEmpty(Warning);
+
+    private string UpdatingAddress = String.Empty;
+
+    private async void OnUpdateAddress(string address)
+    {
+        Console.WriteLine($"Started updating {address}");
+        UpdatingAddress = address;
+        await new HdWalletScanner(accountStorage.Account)
+            .ScanAddressAsync(_currency.Name, address)
+            .ConfigureAwait(false);
+
+        var balance = await accountStorage.Account
+            .GetAddressBalanceAsync(_currency.Name, address)
+            .ConfigureAwait(false);
+
+        await Load();
+
+        Console.WriteLine($"Ended updating {address}");
+
+        await JSRuntime.InvokeVoidAsync("showNotificationInWallet", Translations.AddressUpdated.Replace("{0}", UpdatingAddress));
+        UpdatingAddress = String.Empty;
+        StateHasChanged();
+    }
+
+    public async Task Load()
+    {
+        try
+        {
+            var account = accountStorage.Account.GetCurrencyAccount(_currency.Name);
+
+            var addresses = (await account.GetAddressesAsync())
+                .ToList();
+
+            addresses.Sort((a1, a2) =>
+            {
+                var chainResult = a1.KeyIndex.Chain.CompareTo(a2.KeyIndex.Chain);
+
+                return chainResult == 0
                     ? a1.KeyIndex.Index.CompareTo(a2.KeyIndex.Index)
                     : chainResult;
-      });
+            });
 
-      Addresses = addresses.Select(a => new AddressInfo
-      {
-        Address = a.Address,
-        Path = $"m/44'/{_currency.Bip44Code}/0'/{a.KeyIndex.Chain}/{a.KeyIndex.Index}",
-        Balance = a.Balance.ToString(CultureInfo.InvariantCulture),
-      });
+            Addresses = addresses.Select(a => new AddressInfo
+            {
+                Address = a.Address,
+                Path = $"m/44'/{_currency.Bip44Code}/0'/{a.KeyIndex.Chain}/{a.KeyIndex.Index}",
+                Balance = a.Balance.ToString(CultureInfo.InvariantCulture),
+            });
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Error while load addresses.");
+        }
     }
-    catch (Exception e)
+
+    private async void ExportKey()
     {
-      Log.Error(e, "Error while load addresses.");
-    }
-  }
+        try
+        {
+            var walletAddress = await accountStorage.Account
+                .GetAddressAsync(_currency.Name, ExportPrivKeyAddress);
 
-  private async void ExportKey()
-  {
-    try
+            var hdWallet = accountStorage.Account.Wallet as HdWallet;
+
+            using var privateKey = hdWallet.KeyStorage
+                .GetPrivateKey(_currency, walletAddress.KeyIndex);
+
+            using var unsecuredPrivateKey = privateKey.ToUnsecuredBytes();
+
+            var pk = _currency is BitcoinBasedConfig btcBased
+                ? new NBitcoin.Key(unsecuredPrivateKey)
+                    .GetWif(btcBased.Network)
+                    .ToWif()
+                : Hex.ToHexString(unsecuredPrivateKey);
+
+            await JSRuntime.InvokeAsync<string>("copyTextToClipboard", pk);
+
+            Warning = Translations.PrivKeyCopied;
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Private key export error");
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    I18nText.Translations Translations = new I18nText.Translations();
+
+    protected override async Task OnInitializedAsync()
     {
-      var walletAddress = await accountStorage.Account
-        .GetAddressAsync(_currency.Name, ExportPrivKeyAddress);
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+        walletStorage.RefreshRequested += StateHasChanged;
 
-      var hdWallet = accountStorage.Account.Wallet as HdWallet;
-
-      using var privateKey = hdWallet.KeyStorage
-          .GetPrivateKey(_currency, walletAddress.KeyIndex);
-
-      using var unsecuredPrivateKey = privateKey.ToUnsecuredBytes();
-
-      var pk = _currency is BitcoinBasedCurrency btcBased
-               ? new NBitcoin.Key(unsecuredPrivateKey)
-                        .GetWif(btcBased.Network)
-                        .ToWif()
-               : Hex.ToHexString(unsecuredPrivateKey);
-
-      await JSRuntime.InvokeAsync<string>("copyTextToClipboard", pk);
-
-      Warning = Translations.PrivKeyCopied;
-
+        _ = Load();
     }
-    catch (Exception e)
-    {
-      Log.Error(e, "Private key export error");
-    }
-    finally
-    {
-      StateHasChanged();
-    }
-  }
 
-  I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync()
-  {
-    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-    walletStorage.RefreshRequested += StateHasChanged;
-
-    _ = Load();
-  }
 }

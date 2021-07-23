@@ -24,6 +24,7 @@ using Atomex.Services.Abstract;
 using Atomex.MarketData;
 using Atomex.Common;
 using Atomex.Cryptography;
+using Atomex.Wallet.Abstract;
 
 namespace atomex_frontend.Storages
 {
@@ -59,7 +60,7 @@ namespace atomex_frontend.Storages
     private int CURRENT_DB_VERSION = 3;
     public AccountDataRepository ADR;
     private NavigationManager URIHelper;
-    public Account Account { get; set; }
+    public IAccount Account { get; set; }
     public IAtomexApp AtomexApp { get; set; }
     public IAtomexClient Terminal { get; set; }
     public static ICurrencies Currencies { get; set; }
@@ -279,10 +280,10 @@ namespace atomex_frontend.Storages
           clientType: ClientType.Web
         );
       }
-      catch (Exception)
+      catch (Exception e)
       {
         PasswordIncorrect = true;
-        Console.WriteLine("Incorrect password");
+        Console.WriteLine($"Incorrect password {e}");
         _password = null;
         return;
       }

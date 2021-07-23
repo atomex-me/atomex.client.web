@@ -11,6 +11,7 @@ using Atomex.EthereumTokens;
 using atomex_frontend.atomex_data_structures;
 using Atomex.Core;
 using Atomex.TezosTokens;
+using Atomex.Wallet.Abstract;
 
 namespace atomex_frontend.Common
 {
@@ -266,6 +267,11 @@ namespace atomex_frontend.Common
             }
 
             return String.Empty;
+        }
+
+        public static CurrencyConfig GetCurrencyConfig(string currencyName, IAccount account)
+        {
+            return account.Currencies.GetByName(currencyName);
         }
     }
 }

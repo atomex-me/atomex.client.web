@@ -1,27 +1,29 @@
 @inject WalletStorage walletStorage;
 
 <div class="currencies-row @(walletStorage.IsUpdating ? "loading" : "")">
-  @foreach (var currency in walletStorage.AvailableCurrencies)
-  {
-    <div>
-      <div @onclick="@(() => OnClick(currency))">
-          <i class="icon currency-icon @(currency.Description.ToLower())" />
-      </div>
-      <div>
-        @currency.Description
-      </div>
-    </div>
-  }
+    @foreach (var currency in walletStorage.AvailableCurrencies)
+    {
+        <div>
+            <div @onclick="@(() => OnClick(currency))">
+                <i class="icon currency-icon @(currency.Description.ToLower())"/>
+            </div>
+            <div>
+                @currency.Description
+            </div>
+        </div>
+    }
 </div>
 
-@code { 
-  private void OnClick(Currency currency)
-  {
-    walletStorage.SelectedCurrency = currency;
-  }
+@code {
 
-  protected override void OnInitialized()
-  {
-    walletStorage.RefreshRequested += StateHasChanged;
-  }
+    private void OnClick(CurrencyConfig currency)
+    {
+        walletStorage.SelectedCurrency = currency;
+    }
+
+    protected override void OnInitialized()
+    {
+        walletStorage.RefreshRequested += StateHasChanged;
+    }
+
 }

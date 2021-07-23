@@ -4,388 +4,406 @@
 @using atomex_frontend.Common;
 @using Atomex;
 @using Atomex.EthereumTokens;
+@using Atomex.Wallet.Abstract
 @using Serilog;
 
 <div class="modal__container loading-container">
-  <div class="dark-background__no-grad modal-title">
-    @if (State == States.SendingData){
-      @Translations.Send
-    }
-    @if (State == States.Confirmation) {
-      @Translations.SendConfirmation
-    }
-    @if (State == States.Sending) {
-      @Translations.Sending
-    }
-    @if (State == States.Success) {
-      @Translations.Success
-    }
-    @if (State == States.Error) {
-      @Translations.Error
-    }
-  </div>
-
-  <div class="modal-subtitle">
-    @if (State == States.SendingData){
-      @Translations.InstantlySendingOfCurrency
-    }
-    @if (State == States.Confirmation) {
-      @String.Concat(Translations.DoYouReallyWant, ":")
-    }
-    @if (State == States.Success) {
-      @Translations.SendingWasSuccessfull
-    }
-    @if (State == States.Error) {
-      @Translations.Error
-    }
-  </div>
-  @if (State == States.Sending) {
-    <Loader ClassName="sending" />
-  }
-
-  @if (State == States.SendingData) {
-    <RoundedContainer>
-      <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@walletStorage.SelectedCurrencyData.Balance" />
-    </RoundedContainer>
-
-    <Input
-      Description="@Translations.ToAddress"
-      InputType="text"
-      InputName="sendToAddress"
-      Value="@walletStorage.SendingToAddress"
-      OnChange="@SendAddressChange"
-      Theme="dark"
-      Error="@(GetAddressError)" 
-      ErrorDescription="@(GetAddressError ? Translations.SvInvalidAddressError : "")" />
-
-    <div class="flex">
-      <Input
-        Description="@Translations.Amount" 
-        InputType="number" 
-        InputName="sendAmount" 
-        Value="@Helper.DecimalToStr(walletStorage.SendingAmount)" 
-        OnChange="@SendAmountChange"
-        Theme="dark"
-        AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")"
-        WithButton="right" />
-        <NavigateButton Variant="right" OnClick="@walletStorage.OnMaxClick">MAX</NavigateButton>
-    </div>
-
-    @if(walletStorage.GetEthreumBasedCurrency) {
-      <Input
-        Description="@Translations.GasPrice"
-        InputType="text"
-        InputName="gasPrice"
-        Value="@walletStorage.GasPriceString"
-        OnChange="@SendGasPriceChange"
-        Disabled="@walletStorage.UseDefaultFee"
-        AdditionalRightInfo="GWEI"
-        Theme="dark" />
-
-      <Input
-        Description="@Translations.GasLimit"
-        InputType="text"
-        InputName="gasLimit"
-        Value="@walletStorage.GasLimitString"
-        OnChange="@SendGasLimitChange"
-        Disabled="@true"
-        AdditionalRightInfo="GAS"
-        Theme="dark" />
-    }
-
-    <Input 
-      Description="@($"{Translations.MinersFee}, {walletStorage.SelectedCurrency.FeeCode}")" 
-      InputType="number" 
-      InputName="minersFee" 
-      Value="@Helper.DecimalToStr(walletStorage.TotalFee)" 
-      OnChange="@SendFeeChange"
-      Theme="dark"
-      AdditionalRightInfo="@String.Concat("$", GetFeeDollars, " USD")"
-      Disabled="@(FeeInputDisabled)" />
-
-    @if (walletStorage.SelectedCurrency is BitcoinBasedCurrency) {
-      <Input 
-        Description="@Translations.FeeRate" 
-        InputType="number" 
-        InputName="feeRate" 
-        Value="@Helper.DecimalToStr(walletStorage.FeeRate)" 
-        Theme="dark"
-        AdditionalRightInfo="sat/byte"
-        Disabled="@(true)" />
-    }
-
-      <Checkbox
-        Checked="@walletStorage.UseDefaultFee"
-        Description="@Translations.UseDefaultFee"
-        OnChange="@OnUseDefaultFeeChange"
-        Disabled="@GetDefaultFeeDisabled" />
-
-      @if(!String.IsNullOrEmpty(walletStorage.Warning)) {
-        <div class="send-warning">@walletStorage.Warning</div>
-      }
-  }
-
-  @if(State == States.Confirmation) {
-    <div class="send-confirmation__container">
-      <div>
-        <span class="send-confirmation__label">to send:</span>
-        <span class="send-confirmation__coin">@walletStorage.SendingAmount <span class="currency-code">@walletStorage.SelectedCurrency.Name</span></span>
-        <span class="send-confirmation__usd">($@walletStorage.SendingAmountDollars <span class="currency-code">USD</span>)</span>
-      </div>
-      <div>
-        <span class="send-confirmation__label">to address:</span>
-        <span class="send-confirmation__address">@walletStorage.SendingToAddress</span>
-      </div>
-      <div>
-        <span class="send-confirmation__label">with comission:</span>
-        <span class="send-confirmation__coin">@walletStorage.TotalFee <span class="currency-code">@walletStorage.SelectedCurrency.FeeCurrencyName</span></span>
-        <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency.FeeCode, walletStorage.TotalFee) <span class="currency-code">USD</span>)</span>
-      </div>
-    </div>
-  }
-
-  <div class="modal-buttons-container">
-    <div>
-      @if (State == States.SendingData || State == States.Confirmation) {
-        <NavigateButton Variant="left" OnClick="handleCancel">
-          @if (State == States.SendingData) {
-            @Translations.Cancel
-          }
-          @if (State == States.Confirmation) {
-            @Translations.No
-          }
-        </NavigateButton>
-        <NavigateButton Variant="right" OnClick="OnNextClick" Disabled="@(!GetFormValid)">
-          @if (State == States.SendingData) {
+    <div class="dark-background__no-grad modal-title">
+        @if (State == States.SendingData)
+        {
             @Translations.Send
-          }
-          @if (State == States.Confirmation) {
-            @Translations.Yes
-          }
-        </NavigateButton>
-      }
-      @if (State == States.Success) {
-        <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
-      }
-      @if (State == States.Error) {
-        <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
-      }
+        }
+        @if (State == States.Confirmation)
+        {
+            @Translations.SendConfirmation
+        }
+        @if (State == States.Sending)
+        {
+            @Translations.Sending
+        }
+        @if (State == States.Success)
+        {
+            @Translations.Success
+        }
+        @if (State == States.Error)
+        {
+            @Translations.Error
+        }
     </div>
-  </div>
+
+    <div class="modal-subtitle">
+        @if (State == States.SendingData)
+        {
+            @Translations.InstantlySendingOfCurrency
+        }
+        @if (State == States.Confirmation)
+        {
+            @String.Concat(Translations.DoYouReallyWant, ":")
+        }
+        @if (State == States.Success)
+        {
+            @Translations.SendingWasSuccessfull
+        }
+        @if (State == States.Error)
+        {
+            @Translations.Error
+        }
+    </div>
+    @if (State == States.Sending)
+    {
+        <Loader ClassName="sending"/>
+    }
+
+    @if (State == States.SendingData)
+    {
+        <RoundedContainer>
+            <CurrencyModalCard SelectedCurrency="walletStorage.SelectedCurrency" Amount="@walletStorage.SelectedCurrencyData.Balance"/>
+        </RoundedContainer>
+
+        <Input
+            Description="@Translations.ToAddress"
+            InputType="text"
+            InputName="sendToAddress"
+            Value="@walletStorage.SendingToAddress"
+            OnChange="@SendAddressChange"
+            Theme="dark"
+            Error="@(GetAddressError)"
+            ErrorDescription="@(GetAddressError ? Translations.SvInvalidAddressError : "")"/>
+
+        <div class="flex">
+            <Input
+                Description="@Translations.Amount"
+                InputType="number"
+                InputName="sendAmount"
+                Value="@Helper.DecimalToStr(walletStorage.SendingAmount)"
+                OnChange="@SendAmountChange"
+                Theme="dark"
+                AdditionalRightInfo="@String.Concat("$", walletStorage.SendingAmountDollars, " USD")"
+                WithButton="right"/>
+            <NavigateButton Variant="right" OnClick="@walletStorage.OnMaxClick">MAX</NavigateButton>
+        </div>
+
+        @if (walletStorage.GetEthreumBasedCurrency)
+        {
+            <Input
+                Description="@Translations.GasPrice"
+                InputType="text"
+                InputName="gasPrice"
+                Value="@walletStorage.GasPriceString"
+                OnChange="@SendGasPriceChange"
+                Disabled="@walletStorage.UseDefaultFee"
+                AdditionalRightInfo="GWEI"
+                Theme="dark"/>
+
+            <Input
+                Description="@Translations.GasLimit"
+                InputType="text"
+                InputName="gasLimit"
+                Value="@walletStorage.GasLimitString"
+                OnChange="@SendGasLimitChange"
+                Disabled="@true"
+                AdditionalRightInfo="GAS"
+                Theme="dark"/>
+        }
+
+        <Input
+            Description="@($"{Translations.MinersFee}, {walletStorage.SelectedCurrency.FeeCode}")"
+            InputType="number"
+            InputName="minersFee"
+            Value="@Helper.DecimalToStr(walletStorage.TotalFee)"
+            OnChange="@SendFeeChange"
+            Theme="dark"
+            AdditionalRightInfo="@String.Concat("$", GetFeeDollars, " USD")"
+            Disabled="@(FeeInputDisabled)"/>
+
+        @if (walletStorage.SelectedCurrency is BitcoinBasedConfig)
+        {
+            <Input
+                Description="@Translations.FeeRate"
+                InputType="number"
+                InputName="feeRate"
+                Value="@Helper.DecimalToStr(walletStorage.FeeRate)"
+                Theme="dark"
+                AdditionalRightInfo="sat/byte"
+                Disabled="@(true)"/>
+        }
+
+        <Checkbox
+            Checked="@walletStorage.UseDefaultFee"
+            Description="@Translations.UseDefaultFee"
+            OnChange="@OnUseDefaultFeeChange"
+            Disabled="@GetDefaultFeeDisabled"/>
+
+        @if (!String.IsNullOrEmpty(walletStorage.Warning))
+        {
+            <div class="send-warning">@walletStorage.Warning</div>
+        }
+    }
+
+    @if (State == States.Confirmation)
+    {
+        <div class="send-confirmation__container">
+            <div>
+                <span class="send-confirmation__label">to send:</span>
+                <span class="send-confirmation__coin">
+                    @walletStorage.SendingAmount <span class="currency-code">@walletStorage.SelectedCurrency.Name</span>
+                </span>
+                <span class="send-confirmation__usd">($@walletStorage.SendingAmountDollars <span class="currency-code">USD</span>)</span>
+            </div>
+            <div>
+                <span class="send-confirmation__label">to address:</span>
+                <span class="send-confirmation__address">@walletStorage.SendingToAddress</span>
+            </div>
+            <div>
+                <span class="send-confirmation__label">with comission:</span>
+                <span class="send-confirmation__coin">
+                    @walletStorage.TotalFee <span class="currency-code">@walletStorage.SelectedCurrency.FeeCurrencyName</span>
+                </span>
+                <span class="send-confirmation__usd">($@walletStorage.GetDollarValue(walletStorage.SelectedCurrency.FeeCode, walletStorage.TotalFee) <span class="currency-code">USD</span>)</span>
+            </div>
+        </div>
+    }
+
+    <div class="modal-buttons-container">
+        <div>
+            @if (State == States.SendingData || State == States.Confirmation)
+            {
+                <NavigateButton Variant="left" OnClick="handleCancel">
+                    @if (State == States.SendingData)
+                    {
+                        @Translations.Cancel
+                    }
+                    @if (State == States.Confirmation)
+                    {
+                        @Translations.No
+                    }
+                </NavigateButton>
+                <NavigateButton Variant="right" OnClick="OnNextClick" Disabled="@(!GetFormValid)">
+                    @if (State == States.SendingData)
+                    {
+                        @Translations.Send
+                    }
+                    @if (State == States.Confirmation)
+                    {
+                        @Translations.Yes
+                    }
+                </NavigateButton>
+            }
+            @if (State == States.Success)
+            {
+                <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
+            }
+            @if (State == States.Error)
+            {
+                <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
+            }
+        </div>
+    </div>
 </div>
 
 @code {
-  [Parameter]
-  public EventCallback OnCancelClick { get; set; }
 
-  private bool GetDefaultFeeDisabled
-  {
-    get => false;
-  }
+    [Parameter]
+    public EventCallback OnCancelClick { get; set; }
 
-  private bool GetFormValid
-  {
-    @* get => walletStorage.SendingAmount > 0 && walletStorage.SendingFee > 0; *@
-    get => true;
-  }
+    private bool GetDefaultFeeDisabled
+    {
+        get => false;
+    }
 
-  private bool GetAddressError
-  {
-    @* get => (walletStorage.SendingToAddress.Length > 0 && !walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) ||
+    private bool GetFormValid
+    {
+        @* get => walletStorage.SendingAmount > 0 && walletStorage.SendingFee > 0; *@
+        get => true;
+    }
+
+    private bool GetAddressError
+    {
+        @* get => (walletStorage.SendingToAddress.Length > 0 && !walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) ||
       ((!walletStorage.SelectedCurrency.IsValidAddress(walletStorage.SendingToAddress)) && (walletStorage.SendingAmount > 0 || walletStorage.SendingFee > 0)); *@
-      get => false;
-  }
-
-  private States State { get; set; } = States.SendingData;
-
-  private async void handleCancel()
-  {
-    if (State == States.Confirmation)
-    {
-      State = States.SendingData;
+        get => false;
     }
-    else
+
+    private States State { get; set; } = States.SendingData;
+
+    private async void handleCancel()
     {
-      await OnCancelClick.InvokeAsync(null);
+        if (State == States.Confirmation)
+        {
+            State = States.SendingData;
+        }
+        else
+        {
+            await OnCancelClick.InvokeAsync(null);
+        }
     }
-  }
 
-  private bool FeeInputDisabled
-  {
-    get => walletStorage.GetEthreumBasedCurrency ? true : walletStorage.UseDefaultFee;
-  }
-
-  private decimal GetFeeDollars
-  {
-    get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency.FeeCode, walletStorage.TotalFee);
-  }
-
-  private System.Timers.Timer debounceInputAmount;
-  private System.Timers.Timer debounceInputFee;
-  private System.Timers.Timer debounceInputAddress;
-  private System.Timers.Timer debounceInputGasPrice;
-  private System.Timers.Timer debounceInputGasLimit;
-
-  private string SendingAmountString = "0";
-  private string SendingFeeString = "0";
-  private string SendingAddress = "";
-  private string GasPrice = "1";
-  private string GasLimit = "0";
-
-  private void SendAddressChange(string address)
-  {
-    debounceInputAddress.Stop();
-    debounceInputAddress.Start();
-    SendingAddress = address;
-  }
-
-  private void SendAmountChange(string amount)
-  {
-    debounceInputAmount.Stop();
-    debounceInputAmount.Start();
-    SendingAmountString = amount;
-  }
-
-  private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
-  {
-    InvokeAsync(() =>
-     {
-       walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString);
-     });
-  }
-
-  private void OnUserFinishAddress(Object source, ElapsedEventArgs e)
-  {
-    InvokeAsync(() =>
-     {
-       walletStorage.SendingToAddress = SendingAddress;
-       walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString);
-     });
-  }
-
-  private void SendFeeChange(string fee)
-  {
-    debounceInputFee.Stop();
-    debounceInputFee.Start();
-    SendingFeeString = fee;
-  }
-
-  private void OnUserFinishFee(Object source, ElapsedEventArgs e)
-  {
-    InvokeAsync(() =>
+    private bool FeeInputDisabled
     {
-      walletStorage.SendingFee = Helper.StrToDecimal(SendingFeeString);
-    });
-  }
-
-  private void SendGasPriceChange(string gasPrice)
-  {
-    debounceInputGasPrice.Stop();
-    debounceInputGasPrice.Start();
-    GasPrice = gasPrice;
-  }
-
-  private void OnUserFinishGasPrice(Object source, ElapsedEventArgs e)
-  {
-    InvokeAsync(() =>
-    {
-      walletStorage.SendingFeePrice = Helper.StrToDecimal(GasPrice);
-    });
-  }
-
-  private void SendGasLimitChange(string gasLimit)
-  {
-    debounceInputGasLimit.Stop();
-    debounceInputGasLimit.Start();
-    GasLimit = gasLimit;
-  }
-
-  private void OnUserFinishGasLimit(Object source, ElapsedEventArgs e)
-  {
-    InvokeAsync(() =>
-    {
-      walletStorage.SendingFee = Helper.StrToDecimal(GasLimit);
-    });
-  }
-
-  private void OnUseDefaultFeeChange(bool value)
-  {
-    walletStorage.UseDefaultFee = value;
-  }
-
-  private async void OnNextClick()
-  {
-    if (State == States.SendingData)
-    {
-      walletStorage.OnNextCommand();
-      if (String.IsNullOrEmpty(walletStorage.Warning))
-      {
-        State = States.Confirmation;
-      }
-      return;
+        get => walletStorage.GetEthreumBasedCurrency ? true : walletStorage.UseDefaultFee;
     }
-    if (State == States.Confirmation)
+
+    private decimal GetFeeDollars
     {
-      State = States.Sending;
-
-      var error = await accountStorage.Account
-        .SendAsync(walletStorage.SelectedCurrency.Name,
-                  walletStorage.SendingToAddress,
-                  walletStorage.SendingAmount,
-                  walletStorage.SendingFee,
-                  walletStorage.SendingFeePrice,
-                  walletStorage.UseDefaultFee);
-      if (error == null)
-      {
-        State = States.Success;
-      }
-      else
-      {
-
-        Log.Error($"Blazor Sending error, Code {error.Code}, Description: {error.Description}");
-        State = States.Error;
-      }
-
-      StateHasChanged();
+        get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency.FeeCode, walletStorage.TotalFee);
     }
-  }
 
-  I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync()
-  {
-    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-    await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
-    walletStorage.UseDefaultFee = true;
+    private System.Timers.Timer debounceInputAmount;
+    private System.Timers.Timer debounceInputFee;
+    private System.Timers.Timer debounceInputAddress;
+    private System.Timers.Timer debounceInputGasPrice;
+    private System.Timers.Timer debounceInputGasLimit;
 
-    walletStorage.RefreshRequested += StateHasChanged;
+    private string SendingAmountString = "0";
+    private string SendingFeeString = "0";
+    private string SendingAddress = "";
+    private string GasPrice = "1";
+    private string GasLimit = "0";
 
-    debounceInputAmount = new System.Timers.Timer(850);
-    debounceInputAmount.Elapsed += OnUserFinishAmount;
-    debounceInputAmount.AutoReset = false;
+    private void SendAddressChange(string address)
+    {
+        debounceInputAddress.Stop();
+        debounceInputAddress.Start();
+        SendingAddress = address;
+    }
 
-    debounceInputFee = new System.Timers.Timer(850);
-    debounceInputFee.Elapsed += OnUserFinishFee;
-    debounceInputFee.AutoReset = false;
+    private void SendAmountChange(string amount)
+    {
+        debounceInputAmount.Stop();
+        debounceInputAmount.Start();
+        SendingAmountString = amount;
+    }
 
-    debounceInputAddress = new System.Timers.Timer(850);
-    debounceInputAddress.Elapsed += OnUserFinishAddress;
-    debounceInputAddress.AutoReset = false;
+    private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString); });
+    }
 
-    debounceInputGasPrice = new System.Timers.Timer(850);
-    debounceInputGasPrice.Elapsed += OnUserFinishGasPrice;
-    debounceInputGasPrice.AutoReset = false;
+    private void OnUserFinishAddress(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            walletStorage.SendingToAddress = SendingAddress;
+            walletStorage.SendingAmount = Helper.StrToDecimal(SendingAmountString);
+        });
+    }
 
-    debounceInputGasLimit = new System.Timers.Timer(850);
-    debounceInputGasLimit.Elapsed += OnUserFinishGasLimit;
-    debounceInputGasLimit.AutoReset = false;
-  }
+    private void SendFeeChange(string fee)
+    {
+        debounceInputFee.Stop();
+        debounceInputFee.Start();
+        SendingFeeString = fee;
+    }
 
-  private enum States
-  {
-    SendingData,
-    Confirmation,
-    Sending,
-    Success,
-    Error
-  }
+    private void OnUserFinishFee(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { walletStorage.SendingFee = Helper.StrToDecimal(SendingFeeString); });
+    }
+
+    private void SendGasPriceChange(string gasPrice)
+    {
+        debounceInputGasPrice.Stop();
+        debounceInputGasPrice.Start();
+        GasPrice = gasPrice;
+    }
+
+    private void OnUserFinishGasPrice(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { walletStorage.SendingFeePrice = Helper.StrToDecimal(GasPrice); });
+    }
+
+    private void SendGasLimitChange(string gasLimit)
+    {
+        debounceInputGasLimit.Stop();
+        debounceInputGasLimit.Start();
+        GasLimit = gasLimit;
+    }
+
+    private void OnUserFinishGasLimit(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { walletStorage.SendingFee = Helper.StrToDecimal(GasLimit); });
+    }
+
+    private void OnUseDefaultFeeChange(bool value)
+    {
+        walletStorage.UseDefaultFee = value;
+    }
+
+    private async void OnNextClick()
+    {
+        if (State == States.SendingData)
+        {
+            walletStorage.OnNextCommand();
+            if (String.IsNullOrEmpty(walletStorage.Warning))
+            {
+                State = States.Confirmation;
+            }
+            return;
+        }
+        if (State == States.Confirmation)
+        {
+            State = States.Sending;
+
+            var account = accountStorage.Account
+                .GetCurrencyAccount<ILegacyCurrencyAccount>(walletStorage.SelectedCurrency.Name);
+
+            var error = await account
+                .SendAsync(walletStorage.SendingToAddress,
+                    walletStorage.SendingAmount,
+                    walletStorage.SendingFee,
+                    walletStorage.SendingFeePrice,
+                    walletStorage.UseDefaultFee);
+            if (error == null)
+            {
+                State = States.Success;
+            }
+            else
+            {
+                Log.Error($"Blazor Sending error, Code {error.Code}, Description: {error.Description}");
+                State = States.Error;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    I18nText.Translations Translations = new I18nText.Translations();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+        await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+        walletStorage.UseDefaultFee = true;
+
+        walletStorage.RefreshRequested += StateHasChanged;
+
+        debounceInputAmount = new System.Timers.Timer(850);
+        debounceInputAmount.Elapsed += OnUserFinishAmount;
+        debounceInputAmount.AutoReset = false;
+
+        debounceInputFee = new System.Timers.Timer(850);
+        debounceInputFee.Elapsed += OnUserFinishFee;
+        debounceInputFee.AutoReset = false;
+
+        debounceInputAddress = new System.Timers.Timer(850);
+        debounceInputAddress.Elapsed += OnUserFinishAddress;
+        debounceInputAddress.AutoReset = false;
+
+        debounceInputGasPrice = new System.Timers.Timer(850);
+        debounceInputGasPrice.Elapsed += OnUserFinishGasPrice;
+        debounceInputGasPrice.AutoReset = false;
+
+        debounceInputGasLimit = new System.Timers.Timer(850);
+        debounceInputGasLimit.Elapsed += OnUserFinishGasLimit;
+        debounceInputGasLimit.AutoReset = false;
+    }
+
+    private enum States
+    {
+        SendingData,
+        Confirmation,
+        Sending,
+        Success,
+        Error
+    }
 }

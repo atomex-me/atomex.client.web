@@ -1,61 +1,75 @@
-
 @inject WalletStorage walletStorage;
 
 <div class="@($"modal-currency-title__container {Fade}")" @onclick="@OnClick">
-  <div>
-    @if (SelectedBaker != null) {
-      <img src="@(!String.IsNullOrEmpty(SelectedBaker.Logo) ? SelectedBaker.Logo : "/css/images/atomex_logo_small.png")" class="baker-logo">
-    } else {
-      <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
-    }
-    <div class="@($"modal-currency-title__text-container {Fade}")">
-      @if (SelectedBaker != null) {
-        <div class="baker-name">@SelectedBaker.Name</div>
-        @if(SelectedBaker.Name.ToLower() != "custom baker") {
-          <div>
-            @(Helper.SetPrecision((SelectedBaker.EstimatedRoi * 100), 3).ToString("G29"))%
-            @if(SelectedBaker.IsMinDelegation) {
-              <span class="min-delegation">(min @SelectedBaker.MinDelegation XTZ)</span>
-            }
-          </div>
+    <div>
+        @if (SelectedBaker != null)
+        {
+            <img src="@(!String.IsNullOrEmpty(SelectedBaker.Logo) ? SelectedBaker.Logo : "/css/images/atomex_logo_small.png")" class="baker-logo">
         }
-      } else {
-        <div>@SelectedCurrency.Description.ToUpper()</div>
-        <div>@(Helper.DecimalToStr(Amount, SelectedCurrency.Format)) <span>@SelectedCurrency.Name</span></div>
-      }
+        else
+        {
+            <i class="icon currency-icon @SelectedCurrency.Description.ToLower()"></i>
+        }
+        <div class="@($"modal-currency-title__text-container {Fade}")">
+            @if (SelectedBaker != null)
+            {
+                <div class="baker-name">@SelectedBaker.Name</div>
+                @if (SelectedBaker.Name.ToLower() != "custom baker")
+                {
+                    <div>
+                        @(Helper.SetPrecision((SelectedBaker.EstimatedRoi * 100), 3).ToString("G29"))%
+                        @if (SelectedBaker.IsMinDelegation)
+                        {
+                            <span class="min-delegation">(min @SelectedBaker.MinDelegation XTZ)</span>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div>@SelectedCurrency.Description.ToUpper()</div>
+                <div>
+                    @(Helper.DecimalToStr(Amount, SelectedCurrency.Format)) <span>@SelectedCurrency.Name</span>
+                </div>
+            }
+        </div>
     </div>
-  </div>
-  @if (SelectedBaker != null && SelectedBaker.Name.ToLower() != "custom baker") {
-    <div class="baker-available-amount">
-      @if (SelectedBaker.StakingAvailable > 0) {
-        <span>@Translations.Available</span>
-      }
-      <span class="@(SelectedBaker.StakingAvailable <= 0 ? "error-description" : "")">@(SelectedBaker.StakingAvailable > 0 ? Decimal.ToInt32(SelectedBaker.StakingAvailable).ToString() : Translations.Full)</span>
-    </div>
-  }
+    @if (SelectedBaker != null && SelectedBaker.Name.ToLower() != "custom baker")
+    {
+        <div class="baker-available-amount">
+            @if (SelectedBaker.StakingAvailable > 0)
+            {
+                <span>@Translations.Available</span>
+            }
+            <span class="@(SelectedBaker.StakingAvailable <= 0 ? "error-description" : "")">@(SelectedBaker.StakingAvailable > 0 ? Decimal.ToInt32(SelectedBaker.StakingAvailable).ToString() : Translations.Full)</span>
+        </div>
+    }
 </div>
 
 @code {
-  [Parameter]
-  public Currency SelectedCurrency { get; set; }
 
-  [Parameter]
-  public Baker SelectedBaker { get; set; }
+    [Parameter]
+    public CurrencyConfig SelectedCurrency { get; set; }
 
-  [Parameter]
-  public decimal Amount { get; set; }
+    [Parameter]
+    public Baker SelectedBaker { get; set; }
 
-  [Parameter]
-  public EventCallback OnClick { get; set; }
+    [Parameter]
+    public decimal Amount { get; set; }
 
-  [Parameter]
-  public string Fade { get; set; } = String.Empty;
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    [Parameter]
+    public string Fade { get; set; } = String.Empty;
 
 
-  I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync()
-  {
-    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-    walletStorage.RefreshRequested += StateHasChanged;
-  }
+    I18nText.Translations Translations = new I18nText.Translations();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+        walletStorage.RefreshRequested += StateHasChanged;
+    }
+
 }
