@@ -1,7 +1,7 @@
 @inject WalletStorage walletStorage;
 @inject SwapStorage swapStorage;
 
-<div class="@(NoInfo ? "dark-background__no-grad inside-modal" : "dark-background__no-grad")">
+<div class="@(NoInfo ? "dark-background__no-grad inside-modal" : "dark-background__no-grad hor-margin")">
     <div class="currencies-exchange-row">
         <div class="currencies-exchange__currency-usd">
             <span>@Helper.DecimalToStr(swapStorage.Amount) <span class="currency-abbr">@(swapStorage.FromCurrency.Name.ToUpper())</span></span>

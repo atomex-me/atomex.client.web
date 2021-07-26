@@ -1,16 +1,16 @@
 ﻿@page "/wallet"
-@using System;
+
 @using System.Timers;
 @inject AccountStorage AccountStorage;
 @inject WalletStorage WalletStorage;
 @inject SwapStorage SwapStorage;
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager UriHelper;
-@using Serilog;
+
 
 <div>
     <div class="wallet-page dark-background">
-        <div class="wallet-page__left-nav dark-background @(WalletStorage.IsUpdating || WalletStorage.AllPortfolioUpdating ? "disabled" : "")">
+        <div class="wallet-page__left-nav opacity-dark-background  @(WalletStorage.IsUpdating || WalletStorage.AllPortfolioUpdating ? "disabled" : "")">
             <div>
                 <WalletMenuButton
                     Variant="@WalletSection.Portfolio"
@@ -72,7 +72,7 @@
                     <CurrenciesRow/>
                     @if (WalletStorage.IsTezosTokensSelected)
                     {
-                        <div>Tezos tokens view;</div>
+                        <TokensPage/>
                     }
                     else
                     {

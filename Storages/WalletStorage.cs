@@ -469,7 +469,7 @@ namespace atomex_frontend.Storages
                 {
                     if (SelectedCurrency != null)
                     {
-                        SelectedCurrency = accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedCurrency.Name);
+                        _selectedCurrency = accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedCurrency.Name);
                     }
 
                     if (_selectedSecondCurrency != null)
