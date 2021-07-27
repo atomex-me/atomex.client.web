@@ -2420,6 +2420,7 @@ iframe {
     background-color: var(--dark-gradient-color__opacity);
     border-bottom-right-radius: 20px;
     border-bottom-left-radius: 20px;
+    overflow-y: scroll;
 }
 
 button {
@@ -2432,4 +2433,44 @@ button {
 
 .hor-margin {
     margin: 0 20px;
+}
+
+.token-preview-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+}
+
+.token-row-container {
+    display: flex;
+    padding: 8px;
+}
+
+.icon.asset-icon {
+    background-image: url("icons/asset.svg");
+    background-size: 28px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.token-row-container__description {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 10px;
+}
+
+.token-description {
+    font-size: 14px;
+    color: var(--medium-gray);
+}
+
+.trunc-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    padding-right: 10px;
 }
