@@ -2385,9 +2385,8 @@ iframe {
     height: 30px;
     width: 400px;
     display: flex;
-    /*border-top-left-radius: 20px;*/
-    /*border-top-right-radius: 20px;*/
-    border-radius: 20px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
 }
 
 .contract-tabs-btn {
@@ -2402,12 +2401,6 @@ iframe {
 
 .contract-tabs-btn.left {
     border-top-left-radius: 20px;
-    border-bottom-left-radius: 20px;
-}
-
-.contract-tabs-btn.right {
-    border-top-right-radius: 20px;
-    border-bottom-right-radius: 20px;
 }
 
 .contract-tabs-btn.active {
@@ -2424,6 +2417,9 @@ iframe {
 
 .contract-content-container {
     flex-grow: 1;
+    background-color: var(--dark-gradient-color__opacity);
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px;
 }
 
 button {
