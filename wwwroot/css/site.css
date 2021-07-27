@@ -101,7 +101,7 @@ app {
     --light-gray: #B8B8BA;
     --medium-gray: #80817D;
     --dark-input-dark-blue: #192E50;
-    --dark-input-dark-blue__opacity: #rgb(25,46,80,0.5);
+    --dark-input-dark-blue__opacity: rgb(25,46,80, 0.5);
     --dark-input-light-blue: #273F73;
     --orange: #FA9517;
     --atomex-yellow: #E4F463;
@@ -631,12 +631,10 @@ button:hover {
     flex-basis: 15%;
     max-width: 200px;
     min-width: 184px;
-    /*height: 100%;*/
     height: calc(100vh - var(--footer-height));
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    /*background: var(--light-gradient-color);*/
 }
 
 .wallet-page__left-nav>*:first-child {
@@ -723,6 +721,12 @@ table {
     font-family: RobotoRegular;
     font-size: 16px;
     width: calc(100% - 40px);
+    background-color: var(--dark-gradient-color);
+}
+
+table.tokens {
+    width: 100%;
+    margin: 0;
 }
 
 th,
@@ -738,13 +742,7 @@ td[attribute*="value"] table>thead>tr>th:last-child {
     border-right: none;
 }
 
-table>tbody>tr:nth-child(2n) {
-    /* background: linear-gradient(to top left, var(--light-gradient-color), var(--dark-gradient-color)); */
-    background-color: var(--dark-gradient-color);
-}
-
 table>tbody>tr:nth-child(2n + 1) {
-    /* background: linear-gradient(to bottom left, var(--ligth-splashscreen-gradient-color), var(--dark-splashscreen-gradinet-color)); */
     background-color: var(--dark-input-dark-blue);
 }
 
@@ -767,6 +765,10 @@ table>thead>tr>th {
     background-color: var(--dark-gradient-color);
     border-bottom: 3px solid var(--light-gray);
     border-right: 1px solid var(--light-gray);
+}
+
+table>thead>tr>th:last-child {
+    border-right: none;
 }
 
 .transactions-body>tr {
@@ -954,6 +956,10 @@ table>thead>tr>th {
     outline: none !important;
 }
 
+.wallet-menu__button.contact {
+    padding: 6px 15px;
+}
+
 .wallet-menu__button.active {
     background-color: var(--light-blue);
 }
@@ -1039,7 +1045,7 @@ table>thead>tr>th {
     margin: 0 auto 20px;
     max-width: unset;
     width: 100%;
-    background-color: var(--dark-gradient-color__opacity);
+    background-color: var(--dark-gradient-color);
 }
 
 .currency-card .token {
@@ -2393,7 +2399,7 @@ iframe {
     border: none;
     background: unset;
     width: 50%;
-    height: 100%;
+    height: 30px;
     font-size: 14px;
     text-transform: uppercase;
     color: var(--light-gray);
@@ -2417,11 +2423,19 @@ iframe {
 
 .contract-content-container {
     flex-grow: 1;
-    background-color: var(--dark-gradient-color__opacity);
+    background-color: var(--dark-gradient-color);
     border-bottom-right-radius: 20px;
     border-bottom-left-radius: 20px;
     border-top-right-radius: 20px;
     overflow-y: scroll;
+}
+
+.contract-transfers-container {
+    flex-grow: 1;
+}
+
+.contract-content-container .token-row-container:nth-child(2n) {
+    background-color: var(--dark-input-dark-blue);
 }
 
 button {
@@ -2430,6 +2444,10 @@ button {
 
 .opacity-dark-background {
     background: var(--dark-gradient-color__opacity)
+}
+
+.solid-dark-background {
+    background: var(--dark-gradient-color)
 }
 
 .hor-margin {
@@ -2475,3 +2493,4 @@ button {
     -webkit-box-orient: vertical;
     padding-right: 10px;
 }
+

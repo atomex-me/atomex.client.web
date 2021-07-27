@@ -339,11 +339,15 @@ function showNotification(title,data,icon)
 var notificationsReady=false;
 
 
-function dragTable()
+function dragTable(dontResize=false)
 {
   var p=document.querySelector('.tableFixHead');
   if (!p||p.classList.contains('no-js'))
   {
+    return;
+  }
+  if (dontResize) {
+    p.style.height = `${p.parentElement.clientHeight}px`
     return;
   }
   var section=p.classList[ 1 ];

@@ -10,7 +10,7 @@
 
 <div>
     <div class="wallet-page dark-background">
-        <div class="wallet-page__left-nav opacity-dark-background  @(WalletStorage.IsUpdating || WalletStorage.AllPortfolioUpdating ? "disabled" : "")">
+        <div class="wallet-page__left-nav solid-dark-background @(WalletStorage.IsUpdating || WalletStorage.AllPortfolioUpdating ? "disabled" : "")">
             <div>
                 <WalletMenuButton
                     Variant="@WalletSection.Portfolio"

@@ -10,7 +10,7 @@
         <DetailTxInfo OpenedTx="@walletStorage.OpenedTx" TransactionsData="@TransactionsData" TxHeight="@(GetTxHeight(walletStorage.OpenedTx))"
                       TxInfoBlockHeight="@GetTxInfoBlockHeight"/>
     }
-    <table>
+    <table class="@(ForTokens ? "tokens": "")">
         @if (Variant == AvailableVariants.Currencies)
         {
             <thead class="js-resize-height">
@@ -179,6 +179,9 @@
 
     [Parameter]
     public AvailableVariants Variant { get; set; }
+    
+    [Parameter]
+    public bool ForTokens { get; set; }
 
     [Parameter]
     public Dictionary<string, CurrencyData> CurrenciesData { get; set; }
@@ -318,8 +321,7 @@
     {
         if (firstRender)
         {
-            await JSRuntime.InvokeVoidAsync("dragTable");
+            await JSRuntime.InvokeVoidAsync("dragTable", ForTokens);
         }
     }
-
 }
