@@ -179,59 +179,7 @@ namespace atomex_frontend.Common
                     : 0
                 : 0;
         }
-
-        public static string GetTransDescription(
-            IBlockchainTransaction tx, CurrencyConfig currencyConfig, decimal amount, decimal fee)
-        {
-            var netAmount = amount + fee;
-            string Description = "Unknown transaction";
-            if (tx.Type.HasFlag(BlockchainTransactionType.SwapPayment))
-            {
-                Description =
-                    $"Swap payment {Math.Abs(netAmount).ToString("0." + new String('#', currencyConfig.Digits))} {tx.Currency}";
-                return Description;
-            }
-            else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRefund))
-            {
-                Description =
-                    $"Swap refund {Math.Abs(netAmount).ToString("0." + new String('#', currencyConfig.Digits))} {tx.Currency}";
-                return Description;
-            }
-            else if (tx.Type.HasFlag(BlockchainTransactionType.SwapRedeem))
-            {
-                Description =
-                    $"Swap redeem {Math.Abs(netAmount).ToString("0." + new String('#', currencyConfig.Digits))} {tx.Currency}";
-                return Description;
-            }
-            else if (tx.Type.HasFlag(BlockchainTransactionType.TokenApprove))
-            {
-                Description = $"Token approve";
-                return Description;
-            }
-            else if (tx.Type.HasFlag(BlockchainTransactionType.TokenCall))
-            {
-                Description = $"Token call";
-            }
-            else if (tx.Type.HasFlag(BlockchainTransactionType.SwapCall))
-            {
-                Description = $"Token swap call";
-            }
-            else if (amount <= 0) //tx.Type.HasFlag(BlockchainTransactionType.Output))
-            {
-                Description =
-                    $"Sent {Math.Abs(netAmount).ToString("0." + new String('#', currencyConfig.Digits))} {tx.Currency}";
-                return Description;
-            }
-            else if (amount > 0) //tx.Type.HasFlag(BlockchainTransactionType.Input)) // has outputs
-            {
-                Description =
-                    $"Received {Math.Abs(netAmount).ToString("0." + new String('#', currencyConfig.Digits))} {tx.Currency}";
-                return Description;
-            }
-
-            return Description;
-        }
-
+        
         public static string GetTxDirection(Transaction tx)
         {
             if (tx.Amount <= 0)

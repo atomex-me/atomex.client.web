@@ -1,4 +1,5 @@
 @inject WalletStorage _walletStorage;
+@inject TezosTokenStorage _tezosTokenStorage;
 
 <div class="tokens-container">
 <div class="wallet-page__left-nav solid-dark-background tokens">
@@ -107,7 +108,7 @@
 <div class="contract-content-side">
     <div class="currency-card token">
         <div class="token">
-            <div class="currency-card__selected-currency">
+            <div class="currency-card__selected-currency @()">
                 <img class="token-image" src="https://services.tzkt.io/v1/avatars/KT1NrAnSjrjp3Bycaw8YKPrDq2aXUTHhq8MF"/>
                 <span>
                     <div class="currency-card__currency-value">hic et nunc DAO</div>
@@ -264,4 +265,12 @@
     {
         CurrentVariant = variant;
     }
+    
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         _tezosTokenStorage.LoadAsync();
+    //     }
+    // }
 }

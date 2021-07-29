@@ -283,7 +283,7 @@ namespace atomex_frontend.Storages
     {
       if (!IsRestarting)
       {
-        App.TerminalChanged += OnTerminalChangedEventHandler;
+        App.AtomexClientChanged += OnAtomexClientChanged;
         App.Terminal.QuotesUpdated += (object sender, MarketDataEventArgs args) => _ = OnQuotesUpdatedEventHandler(sender, args);
         App.Terminal.SwapUpdated += OnSwapEventHandler;
 
@@ -313,10 +313,10 @@ namespace atomex_frontend.Storages
     //   }
     // }
 
-    private void OnTerminalChangedEventHandler(object sender, TerminalChangedEventArgs args)
+    private void OnAtomexClientChanged(object sender, AtomexClientChangedEventArgs args)
     {
       Console.WriteLine("SWAP: TERMINAL CHANGED EVENT");
-      var terminal = args.Terminal;
+      var terminal = args.AtomexClient;
 
       if (terminal?.Account == null)
         return;

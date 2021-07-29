@@ -954,7 +954,7 @@ namespace atomex_frontend.Storages
 
         private void handleTransaction(IBlockchainTransaction tx)
         {
-            decimal amount = 0;
+            decimal amount;
             string description = "";
             var currencyConfig = accountStorage.Account.Currencies.GetByName(tx.Currency);
 
@@ -963,21 +963,19 @@ namespace atomex_frontend.Storages
                 case BitcoinBasedConfig _:
                     IBitcoinBasedTransaction btcBasedTrans = (IBitcoinBasedTransaction) tx;
                     amount = CurrHelper.GetTransAmount(btcBasedTrans, currencyConfig);
-                    description = CurrHelper.GetTransDescription(tx, currencyConfig, amount,
-                        CurrHelper.GetFee(btcBasedTrans, currencyConfig));
                     var BtcFee = btcBasedTrans.Fees != null
                         ? btcBasedTrans.Fees.Value / currencyConfig.DigitsMultiplier
                         : 0;
+                    
                     AddTransaction(
                         new Transaction(
-                            tx.Currency,
+                            currencyConfig,
                             btcBasedTrans.Id,
                             btcBasedTrans.State,
                             btcBasedTrans.Type,
                             btcBasedTrans.CreationTime,
                             btcBasedTrans.IsConfirmed,
                             amount,
-                            description,
                             BtcFee
                         )
                     );
@@ -986,7 +984,6 @@ namespace atomex_frontend.Storages
                 case Erc20Config _:
                     EthereumTransaction usdtTrans = (EthereumTransaction) tx;
                     amount = CurrHelper.GetTransAmount(usdtTrans, currencyConfig);
-                    description = CurrHelper.GetTransDescription(tx, currencyConfig, amount, 0);
                     string FromUsdt = usdtTrans.From;
                     string ToUsdt = usdtTrans.To;
                     decimal GasPriceUsdt = EthereumConfig.WeiToGwei((decimal) usdtTrans.GasPrice);
@@ -995,14 +992,13 @@ namespace atomex_frontend.Storages
                     bool IsInternalUsdt = usdtTrans.IsInternal;
                     AddTransaction(
                         new Transaction(
-                            tx.Currency,
+                            currencyConfig,
                             usdtTrans.Id,
                             usdtTrans.State,
                             usdtTrans.Type,
                             usdtTrans.CreationTime,
                             usdtTrans.IsConfirmed,
                             amount,
-                            description,
                             from: FromUsdt,
                             to: ToUsdt,
                             gasPrice: GasPriceUsdt,
@@ -1016,8 +1012,6 @@ namespace atomex_frontend.Storages
                 case EthereumConfig _:
                     EthereumTransaction ethTrans = (EthereumTransaction) tx;
                     amount = CurrHelper.GetTransAmount(ethTrans, currencyConfig);
-                    description =
-                        CurrHelper.GetTransDescription(ethTrans, currencyConfig, amount, CurrHelper.GetFee(ethTrans));
                     string FromEth = ethTrans.From;
                     string ToEth = ethTrans.To;
                     decimal GasPriceEth = EthereumConfig.WeiToGwei((decimal) ethTrans.GasPrice);
@@ -1027,14 +1021,13 @@ namespace atomex_frontend.Storages
                     bool IsInternalEth = ethTrans.IsInternal;
                     AddTransaction(
                         new Transaction(
-                            tx.Currency,
+                            currencyConfig,
                             ethTrans.Id,
                             ethTrans.State,
                             ethTrans.Type,
                             ethTrans.CreationTime,
                             ethTrans.IsConfirmed,
                             amount,
-                            description,
                             fee: FeeEth,
                             from: FromEth,
                             to: ToEth,
@@ -1049,7 +1042,6 @@ namespace atomex_frontend.Storages
                 case Fa12Config _:
                     TezosTransaction fa12Trans = (TezosTransaction) tx;
                     amount = CurrHelper.GetTransAmount(fa12Trans, currencyConfig);
-                    description = CurrHelper.GetTransDescription(fa12Trans, currencyConfig, amount, 0);
                     string FromFa12 = fa12Trans.From;
                     string ToFa12 = fa12Trans.To;
                     decimal GasLimitFa12 = fa12Trans.GasLimit;
@@ -1057,15 +1049,14 @@ namespace atomex_frontend.Storages
                     bool IsInternalFa12 = fa12Trans.IsInternal;
                     AddTransaction(
                         new Transaction(
-                            tx.Currency,
+                            currencyConfig,
                             fa12Trans.Id,
                             fa12Trans.State,
                             fa12Trans.Type,
                             fa12Trans.CreationTime,
                             fa12Trans.IsConfirmed,
                             amount,
-                            description,
-                            fa12Trans.Fee,
+                            FeeFa12,
                             from: FromFa12,
                             to: ToFa12,
                             gasLimit: GasLimitFa12,
@@ -1079,7 +1070,6 @@ namespace atomex_frontend.Storages
                     TezosTransaction xtzTrans = (TezosTransaction) tx;
                     amount = CurrHelper.GetTransAmount(xtzTrans, currencyConfig);
                     decimal FeeXtz = CurrHelper.GetFee(xtzTrans);
-                    description = CurrHelper.GetTransDescription(xtzTrans, currencyConfig, amount, FeeXtz);
                     string FromXtz = xtzTrans.From;
                     string ToXtz = xtzTrans.To;
                     decimal GasLimitXtz = xtzTrans.GasLimit;
@@ -1087,15 +1077,14 @@ namespace atomex_frontend.Storages
                     bool IsRewardTx = GetTezosTxIsReward(xtzTrans);
                     AddTransaction(
                         new Transaction(
-                            tx.Currency,
+                            currencyConfig,
                             xtzTrans.Id,
                             xtzTrans.State,
                             xtzTrans.Type,
                             xtzTrans.CreationTime,
                             xtzTrans.IsConfirmed,
                             amount,
-                            description,
-                            xtzTrans.Fee,
+                            FeeXtz,
                             from: FromXtz,
                             to: ToXtz,
                             gasLimit: GasLimitXtz,

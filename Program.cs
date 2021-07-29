@@ -33,6 +33,7 @@ namespace atomex_frontend
       builder.Services.AddScoped<WalletStorage, WalletStorage>();
       builder.Services.AddScoped<SwapStorage, SwapStorage>();
       builder.Services.AddScoped<BakerStorage, BakerStorage>();
+      builder.Services.AddScoped<TezosTokenStorage, TezosTokenStorage>();
 
       await builder
         .Build()

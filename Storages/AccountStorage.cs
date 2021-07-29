@@ -293,7 +293,7 @@ namespace atomex_frontend.Storages
       if (AtomexApp != null) // restarting flow
       {
         Terminal = new WebSocketAtomexClient(configuration, Account, AtomexApp.SymbolsProvider, AtomexApp.QuotesProvider);
-        AtomexApp.UseTerminal(Terminal);
+        AtomexApp.UseAtomexClient(Terminal);
 
         AtomexApp.Account.UnconfirmedTransactionAdded += OnUnconfirmedTransactionAddedEventHandler;
         AtomexApp.Account.BalanceUpdated += OnBalanceChangedEventHandler;
@@ -318,7 +318,7 @@ namespace atomex_frontend.Storages
                 baseCurrency: BitfinexQuotesProvider.Usd));
 
         Terminal = new WebSocketAtomexClient(configuration, Account, AtomexApp.SymbolsProvider, AtomexApp.QuotesProvider);
-        AtomexApp.UseTerminal(Terminal);
+        AtomexApp.UseAtomexClient(Terminal);
       }
 
       if (AtomexApp.HasQuotesProvider)
@@ -396,7 +396,7 @@ namespace atomex_frontend.Storages
         if (await WhetherToCancelClosingAsync(notFromIdle))
           return;
 
-        AtomexApp.UseTerminal(null);
+        AtomexApp.UseAtomexClient(null);
         AtomexApp.Stop();
 
         if (!notFromIdle)
