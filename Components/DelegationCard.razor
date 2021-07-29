@@ -18,7 +18,7 @@ else
             <div class="delegation-row" @onclick="(() => DelegationRowClicked(address.Address))">
                 <div class="delegation-row__address">
                     <span>
-                        @GetShortTezosAddress(address.Address)
+                        @CurrHelper.GetShortTezosAddress(address.Address)
                     </span>
                     <span class="delegation-row__gray-data">
                         @(Helper.SetPrecision(address.AvailableBalance(), 2)) <span class="currency-code">XTZ</span>
@@ -334,11 +334,6 @@ else
         get => GetDelegationInfo.Baker.MinDelegation > 0 ?
             GetDelegationInfo.Baker.MinDelegation.ToString() :
             "No limit";
-    }
-
-    private string GetShortTezosAddress(string Address)
-    {
-        return $"{Address.Substring(0, 9)}..{Address.Substring(Address.Length - 6, 6)}";
     }
 
     private void DelegationRowClicked(string address)

@@ -1,254 +1,196 @@
 @inject WalletStorage _walletStorage;
-@inject TezosTokenStorage _tezosTokenStorage;
+@inject TezosTokenStorage _tezTokenStrg;
 
 <div class="tokens-container">
-<div class="wallet-page__left-nav solid-dark-background tokens">
-    <div>
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"/>
-            <span class="contract-name trunc-text">Hic et nunc NFTs</span>
-        </button>
+    <div class="wallet-page__left-nav solid-dark-background tokens">
+        <div>
+            @foreach (var contract in _tezTokenStrg.TokensContracts)
+            {
+                <button
+                    class="wallet-menu__button contract @(contract.Contract.Name == _tezTokenStrg.TokenContract.Contract.Name ? "active" : "")"
+                    type="button"
+                    @onclick="@(() => _tezTokenStrg.TokenContract = contract)">
 
-        <button class="wallet-menu__button contact active" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL"/>
-            <span class="contract-name trunc-text">Atomex kUSD</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU"/>
-            <span class="contract-name trunc-text">Dexter ETHtz/XTZ</span>
-        </button>
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"/>
-            <span class="contract-name trunc-text">Hic et nunc NFTs</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL"/>
-            <span class="contract-name trunc-text">Atomex kUSD</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU"/>
-            <span class="contract-name trunc-text">Dexter ETHtz/XTZ</span>
-        </button>
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"/>
-            <span class="contract-name trunc-text">Hic et nunc NFTs</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL"/>
-            <span class="contract-name trunc-text">Atomex kUSD</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU"/>
-            <span class="contract-name trunc-text">Dexter ETHtz/XTZ</span>
-        </button>
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"/>
-            <span class="contract-name trunc-text">Hic et nunc NFTs</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL"/>
-            <span class="contract-name trunc-text">Atomex kUSD</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU"/>
-            <span class="contract-name trunc-text">Dexter ETHtz/XTZ</span>
-        </button>
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"/>
-            <span class="contract-name trunc-text">Hic et nunc NFTs</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL"/>
-            <span class="contract-name trunc-text">Atomex kUSD</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU"/>
-            <span class="contract-name trunc-text">Dexter ETHtz/XTZ</span>
-        </button>
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"/>
-            <span class="contract-name trunc-text">Hic et nunc NFTs</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL"/>
-            <span class="contract-name trunc-text">Atomex kUSD</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU"/>
-            <span class="contract-name trunc-text">Dexter ETHtz/XTZ</span>
-        </button>
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton"/>
-            <span class="contract-name trunc-text">Hic et nunc NFTs</span>
-        </button>
-
-        <button class="wallet-menu__button contact" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1EpQVwqLGSH7vMCWKJnq6Uxi851sEDbhWL"/>
-            <span class="contract-name trunc-text">Atomex kUSD</span>
-        </button>
-
-        <button class="wallet-menu__button contact active" type="button">
-            <img class="token-img" src="https://services.tzkt.io/v1/avatars/KT1PDrBE59Zmxnb8vXRgRAG1XmvTMTs5EDHU"/>
-            <span class="contract-name trunc-text">Dexter ETHtz/XTZ</span>
-        </button>
-
-    </div>
-</div>
-<div class="contract-content-side">
-    <div class="currency-card token">
-        <div class="token">
-            <div class="currency-card__selected-currency @()">
-                <img class="token-image" src="https://services.tzkt.io/v1/avatars/KT1NrAnSjrjp3Bycaw8YKPrDq2aXUTHhq8MF"/>
-                <span>
-                    <div class="currency-card__currency-value">hic et nunc DAO</div>
-                    <div class="currency-card__dollar-value">
-                        <div class="currency-card__dollar-value-desc">
-                            KT1NrAnSjrjp3Bycaw8YKPrDq2aXUTHhq8MF
+                    <div class="contract-btn-container">
+                        <img src="@contract.IconUrl" class="contract-img" alt="">
+                        <div class="contract-btn-container__description">
+                            <div>
+                                <div class="trunc-text contract-name">
+                                    @contract.Contract.Name
+                                </div>
+                                <div class="contract-id trunc-text">
+                                    @CurrHelper.GetShortTezosAddress(contract.Contract.Id, 10, 10)
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </span>
-            </div>
-            <div class="currency-card__buttons">
-                <button class="navigate-button small " type="button">Send</button>
-                <button class="navigate-button small " type="button">Receive</button>
-                <button class="navigate-button small " type="button">Convert</button>
-                <button class="navigate-button small " type="button">Update</button>
-                <button class="navigate-button small " type="button">Addresses</button>
-            </div>
+
+                </button>
+            }
         </div>
     </div>
-    <div class="contract-tabs-container">
-        <button class="contract-tabs-btn left @(CurrentVariant == Variant.Tokens ? "active" : "")"
-                @onclick="@(() => OnVariantClick(Variant.Tokens))">
-            Tokens
-        </button>
-        <button class="contract-tabs-btn  @(CurrentVariant == Variant.Transfers ? "active" : "")"
-                @onclick="@(() => OnVariantClick(Variant.Transfers))">
-            Transfers
-        </button>
-    </div>
-    @if (CurrentVariant == Variant.Tokens)
-    {
-        <div class="contract-content-container">
-            <div class="token-row-container">
-                <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                <div class="token-row-container__description">
-                    <div>
-                        <div class="trunc-text">
-                            CRYPOTS_Streaming
+    <div class="contract-content-side">
+        <div class="currency-card token">
+            <div class="token">
+                <div class="currency-card__selected-currency tezos-tokens @(_tezTokenStrg.HasTokenContract ? "active" : "")">
+                    <img class="token-image" src="@(_tezTokenStrg.TokenContract.IconUrl)"/>
+                    <span>
+                        <div class="currency-card__currency-value">
+                            @(_tezTokenStrg.TokenContract.Contract.Name)
                         </div>
-                        <div class="token-description trunc-text">
-                            Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                        <div class="currency-card__dollar-value">
+                            <div class="currency-card__dollar-value-desc">
+                                @(_tezTokenStrg.TokenContract.Contract.Address)
+                            </div>
                         </div>
-                    </div>
-                    <div>
-                        <i class="icon asset-icon"/>
-                    </div>
+                    </span>
                 </div>
-            </div>
-            <div class="token-row-container">
-                <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                <div class="token-row-container__description">
-                    <div>
-                        <div class="trunc-text">
-                            CRYPOTS_Streaming
-                        </div>
-                        <div class="token-description trunc-text">
-                            Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                        </div>
-                    </div>
-                    <div>
-                        <i class="icon asset-icon"/>
-                    </div>
-                </div>
-            </div>
-            <div class="token-row-container">
-                <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                <div class="token-row-container__description">
-                    <div>
-                        <div class="trunc-text">
-                            CRYPOTS_Streaming
-                        </div>
-                        <div class="token-description trunc-text">
-                            Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                        </div>
-                    </div>
-                    <div>
-                        <i class="icon asset-icon"/>
-                    </div>
-                </div>
-            </div>
-            <div class="token-row-container">
-                <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                <div class="token-row-container__description">
-                    <div>
-                        <div class="trunc-text">
-                            CRYPOTS_Streaming
-                        </div>
-                        <div class="token-description trunc-text">
-                            Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                        </div>
-                    </div>
-                    <div>
-                        <i class="icon asset-icon"/>
-                    </div>
-                </div>
-            </div>
-            <div class="token-row-container">
-                <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                <div class="token-row-container__description">
-                    <div>
-                        <div class="trunc-text">
-                            CRYPOTS_Streaming
-                        </div>
-                        <div class="token-description trunc-text">
-                            Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                        </div>
-                    </div>
-                    <div>
-                        <i class="icon asset-icon"/>
-                    </div>
-                </div>
-            </div>
-            <div class="token-row-container">
-                <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                <div class="token-row-container__description">
-                    <div>
-                        <div class="trunc-text">
-                            CRYPOTS_Streaming
-                        </div>
-                        <div class="token-description trunc-text">
-                            Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                        </div>
-                    </div>
-                    <div>
-                        <i class="icon asset-icon"/>
-                    </div>
+                <div class="currency-card__buttons">
+                    <button class="navigate-button small"
+                            type="button">
+                        Send
+                    </button>
+                    <button class="navigate-button small"
+                            type="button">
+                        Receive
+                    </button>
+                    <button class="navigate-button small"
+                            type="button">
+                        Convert
+                    </button>
+                    <button class="navigate-button small"
+                            type="button"
+                            @onclick="@_tezTokenStrg.OnUpdateClick">
+                        Update
+                    </button>
+                    <button class="navigate-button small"
+                            type="button">
+                        Addresses
+                    </button>
                 </div>
             </div>
         </div>
-    }
-    @if (CurrentVariant == Variant.Transfers)
-    {
-        <div class="contract-transfers-container">
-            <WalletDataTable
-                Variant="@WalletDataTable.AvailableVariants.Transactions"
-                TransactionsData="@_walletStorage.SelectedCurrencyTransactions"
-                ForTokens />
+        <div class="contract-tabs-container">
+            <button class="contract-tabs-btn left @(CurrentVariant == Variant.Tokens ? "active" : "")"
+                    @onclick="@(() => OnVariantClick(Variant.Tokens))">
+                Tokens
+            </button>
+            <button class="contract-tabs-btn  @(CurrentVariant == Variant.Transfers ? "active" : "")"
+                    @onclick="@(() => OnVariantClick(Variant.Transfers))">
+                Transfers
+            </button>
         </div>
-    }
-</div>
+        @if (CurrentVariant == Variant.Tokens)
+        {
+            <div class="contract-content-container">
+                <div class="token-row-container">
+                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
+                    <div class="token-row-container__description">
+                        <div>
+                            <div class="trunc-text">
+                                CRYPOTS_Streaming
+                            </div>
+                            <div class="token-description trunc-text">
+                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                            </div>
+                        </div>
+                        <div>
+                            <i class="icon asset-icon"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="token-row-container">
+                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
+                    <div class="token-row-container__description">
+                        <div>
+                            <div class="trunc-text">
+                                CRYPOTS_Streaming
+                            </div>
+                            <div class="token-description trunc-text">
+                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                            </div>
+                        </div>
+                        <div>
+                            <i class="icon asset-icon"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="token-row-container">
+                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
+                    <div class="token-row-container__description">
+                        <div>
+                            <div class="trunc-text">
+                                CRYPOTS_Streaming
+                            </div>
+                            <div class="token-description trunc-text">
+                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                            </div>
+                        </div>
+                        <div>
+                            <i class="icon asset-icon"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="token-row-container">
+                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
+                    <div class="token-row-container__description">
+                        <div>
+                            <div class="trunc-text">
+                                CRYPOTS_Streaming
+                            </div>
+                            <div class="token-description trunc-text">
+                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                            </div>
+                        </div>
+                        <div>
+                            <i class="icon asset-icon"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="token-row-container">
+                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
+                    <div class="token-row-container__description">
+                        <div>
+                            <div class="trunc-text">
+                                CRYPOTS_Streaming
+                            </div>
+                            <div class="token-description trunc-text">
+                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                            </div>
+                        </div>
+                        <div>
+                            <i class="icon asset-icon"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="token-row-container">
+                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
+                    <div class="token-row-container__description">
+                        <div>
+                            <div class="trunc-text">
+                                CRYPOTS_Streaming
+                            </div>
+                            <div class="token-description trunc-text">
+                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                            </div>
+                        </div>
+                        <div>
+                            <i class="icon asset-icon"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (CurrentVariant == Variant.Transfers)
+        {
+            <div class="contract-transfers-container">
+                <WalletDataTable
+                    Variant="@WalletDataTable.AvailableVariants.Transactions"
+                    TransactionsData="@_walletStorage.SelectedCurrencyTransactions"
+                    ForTokens/>
+            </div>
+        }
+    </div>
 </div>
 
 @code
@@ -265,12 +207,13 @@
     {
         CurrentVariant = variant;
     }
-    
-    // protected override async Task OnAfterRenderAsync(bool firstRender)
-    // {
-    //     if (firstRender)
-    //     {
-    //         _tezosTokenStorage.LoadAsync();
-    //     }
-    // }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+    }
+
+    protected override void OnInitialized()
+    {
+        _tezTokenStrg.UIRefresh += StateHasChanged;
+    }
 }

@@ -956,7 +956,7 @@ table>thead>tr>th:last-child {
     outline: none !important;
 }
 
-.wallet-menu__button.contact {
+.wallet-menu__button.contract {
     padding: 6px 15px;
 }
 
@@ -966,6 +966,10 @@ table>thead>tr>th:last-child {
 
 .wallet-menu__button>*:last-child {
     margin-left: 15px;
+}
+
+.wallet-menu__button.contract>*:last-child {
+    margin: 0;
 }
 
 .footer-text {
@@ -1076,9 +1080,17 @@ table>thead>tr>th:last-child {
  }
 
 .currency-card__selected-currency {
-    display: flex;
     align-items: center;
     margin-bottom: 20px;
+    display: flex;
+}
+
+.currency-card__selected-currency.tezos-tokens {
+    display: none;
+}
+
+.currency-card__selected-currency.tezos-tokens.active {
+    display: flex;
 }
 
 .currency-card__selected-currency>*:last-child {
@@ -2352,7 +2364,7 @@ iframe {
     height: 100%;
 }
 
-.token-img {
+.contract-img {
     width: 55px;
     height: 55px;
     border-radius: 50%;
@@ -2360,8 +2372,8 @@ iframe {
 }
 
 .wallet-page__left-nav.tokens {
-    max-width: 235px;
-    width: 235px;
+    max-width: 290px;
+    width: 290px;
     min-width: 235px;
     flex-basis: auto;
     overflow-y: auto;
@@ -2381,10 +2393,12 @@ iframe {
 }
 
 .contract-name {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 16px;
+    text-align: left;
+}
+
+.contract-name__id {
+    font-size: 14px;
+    text-align: left;
 }
 
 .contract-tabs-container {
@@ -2494,3 +2508,18 @@ button {
     padding-right: 10px;
 }
 
+.contract-btn-container {
+    display: flex;
+    width: 100%;
+}
+
+.contract-btn-container__description {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.contract-id {
+    font-size: 14px;
+}

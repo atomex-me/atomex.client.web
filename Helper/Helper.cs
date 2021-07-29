@@ -179,7 +179,7 @@ namespace atomex_frontend.Common
                     : 0
                 : 0;
         }
-        
+
         public static string GetTxDirection(Transaction tx)
         {
             if (tx.Amount <= 0)
@@ -215,6 +215,12 @@ namespace atomex_frontend.Common
             }
 
             return String.Empty;
+        }
+
+        public static string GetShortTezosAddress(string Address, int firstSymbols = 9, int lastSymbols = 6)
+        {
+            return
+                $"{Address.Substring(0, firstSymbols)}..{Address.Substring(Address.Length - lastSymbols, lastSymbols)}";
         }
     }
 }

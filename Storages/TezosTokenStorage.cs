@@ -1,21 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Net;
 using System.Threading;
-using System.Windows.Input;
 using Atomex;
 using atomex_frontend.atomex_data_structures;
 using Atomex.Blockchain.Tezos;
 using Atomex.Common;
 using Atomex.Services;
-using Atomex.Wallet;;
-using Atomex.Wallet.Abstract;
+using Atomex.Wallet;
 using Atomex.Wallet.Tezos;
 using Serilog;
 
@@ -129,55 +124,277 @@ namespace atomex_frontend.Storages
         public ObservableCollection<TezosTokenTransferViewModel> Transfers { get; set; }
 
         private TezosTokenContractViewModel _tokenContract;
+
         public TezosTokenContractViewModel TokenContract
         {
             get => _tokenContract;
             set
             {
                 _tokenContract = value;
+                
+                Console.WriteLine($"Setting TokenContract to {value.Contract.Address}");
+                
+                // OnPropertyChanged(nameof(TokenContract));
+                // OnPropertyChanged(nameof(HasTokenContract));
+                // OnPropertyChanged(nameof(IsFa12));
+                // OnPropertyChanged(nameof(IsFa2));
+                // OnPropertyChanged(nameof(TokenContractAddress));
+                // OnPropertyChanged(nameof(TokenContractName));
+                // OnPropertyChanged(nameof(TokenContractIconUrl));
                 TokenContractChanged(TokenContract);
             }
         }
-        
+
         public bool HasTokenContract => TokenContract != null;
         public bool IsFa12 => TokenContract?.IsFa12 ?? false;
         public bool IsFa2 => TokenContract?.IsFa2 ?? false;
         public string TokenContractAddress => TokenContract?.Contract?.Address ?? "";
         public string TokenContractName => TokenContract?.Contract?.Name ?? "";
         public string TokenContractIconUrl => TokenContract?.IconUrl;
-        
+
         public decimal Balance { get; set; }
         public string BalanceFormat { get; set; }
         public string BalanceCurrencyCode { get; set; }
-        
+
         private readonly IAtomexApp _app;
 
         // private readonly IConversionViewModel _conversionViewModel;
         private bool _isBalanceUpdating;
         private CancellationTokenSource _cancellation;
+        
+        public event Action UIRefresh;
+        private void CallUIRefresh()
+        {
+            UIRefresh?.Invoke();
+        }
 
         public TezosTokenStorage(AccountStorage accountStorage)
         {
-            _app                 = accountStorage.AtomexApp ?? throw new ArgumentNullException(nameof(_app));
+            _app = accountStorage.AtomexApp ?? throw new ArgumentNullException(nameof(_app));
             // _conversionViewModel = conversionViewModel ?? throw new ArgumentNullException(nameof(conversionViewModel));
 
             SubscribeToUpdates();
-
             _ = ReloadTokenContractsAsync();
         }
-        
+
         private void SubscribeToUpdates()
         {
-            _app.AtomexClientChanged    += OnAtomexClientChanged;
+            _app.AtomexClientChanged += OnAtomexClientChanged;
             _app.Account.BalanceUpdated += OnBalanceUpdatedEventHandler;
         }
-        
+
         private void OnAtomexClientChanged(object sender, AtomexClientChangedEventArgs e)
         {
             Tokens?.Clear();
             Transfers?.Clear();
             TokensContracts?.Clear();
             TokenContract = null;
+        }
+
+        protected virtual void OnBalanceUpdatedEventHandler(object sender, CurrencyEventArgs args)
+        {
+            try
+            {
+                if (Currencies.IsTezosToken(args.Currency))
+                {
+                    Task.Run(async () => await ReloadTokenContractsAsync());
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Account balance updated event handler error");
+            }
+        }
+
+        private async Task ReloadTokenContractsAsync()
+        {
+            var tokensContractsViewModels = (await _app.Account
+                    .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz)
+                    .DataRepository
+                    .GetTezosTokenContractsAsync())
+                .Select(c => new TezosTokenContractViewModel {Contract = c});
+
+            if (TokensContracts != null)
+            {
+                // add new token contracts if exists
+                var newTokenContracts = tokensContractsViewModels.Except(
+                    second: TokensContracts,
+                    comparer: new Atomex.Common.EqualityComparer<TezosTokenContractViewModel>(
+                        (x, y) => x.Contract.Address.Equals(y.Contract.Address),
+                        x => x.Contract.Address.GetHashCode()));
+                
+                Console.WriteLine($"ReloadTokenContractsAsync loaded token KTs{newTokenContracts.Count()}");
+
+                if (newTokenContracts.Any())
+                {
+                    foreach (var newTokenContract in newTokenContracts)
+                    {
+                        TokensContracts.Add(newTokenContract);
+                    }
+                    
+                    if (TokenContract == null)
+                        TokenContract = TokensContracts.FirstOrDefault();
+                }
+                else
+                {
+                    // update current token contract
+                    if (TokenContract != null)
+                        TokenContractChanged(TokenContract);
+                }
+            }
+            else
+            {
+                TokensContracts = new ObservableCollection<TezosTokenContractViewModel>(tokensContractsViewModels);
+                
+                // OnPropertyChanged(nameof(TokensContracts));
+                TokenContract = TokensContracts.FirstOrDefault();
+            }
+        }
+
+        private async void TokenContractChanged(TezosTokenContractViewModel tokenContract)
+        {
+            if (tokenContract == null)
+            {
+                Tokens = new ObservableCollection<TezosTokenViewModel>();
+                Transfers = new ObservableCollection<TezosTokenTransferViewModel>();
+
+                // OnPropertyChanged(nameof(Tokens));
+                // OnPropertyChanged(nameof(Transfers));
+
+                return;
+            }
+
+            var tezosConfig = _app.Account
+                .Currencies
+                .Get<TezosConfig>(TezosConfig.Xtz);
+
+            if (tokenContract.IsFa12)
+            {
+                var tokenAccount = _app.Account.GetTezosTokenAccount<Fa12Account>(
+                    currency: Fa12,
+                    tokenContract: tokenContract.Contract.Address,
+                    tokenId: 0);
+
+                var tokenAddresses = await tokenAccount
+                    .DataRepository
+                    .GetTezosTokenAddressesByContractAsync(tokenContract.Contract.Address);
+
+                var tokenAddress = tokenAddresses.FirstOrDefault();
+
+                Balance = tokenAccount
+                    .GetBalance()
+                    .Available;
+
+                BalanceFormat = tokenAddress?.TokenBalance != null
+                    ? $"F{Math.Min(tokenAddress.TokenBalance.Decimals, MaxAmountDecimals)}"
+                    : $"F{MaxAmountDecimals}";
+
+                BalanceCurrencyCode = tokenAddress?.TokenBalance != null
+                    ? tokenAddress.TokenBalance.Symbol
+                    : "";
+
+                // OnPropertyChanged(nameof(Balance));
+                // OnPropertyChanged(nameof(BalanceFormat));
+                // OnPropertyChanged(nameof(BalanceCurrencyCode));
+
+                Transfers = new ObservableCollection<TezosTokenTransferViewModel>((await tokenAccount
+                        .DataRepository
+                        .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
+                    .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
+
+                Tokens = new ObservableCollection<TezosTokenViewModel>();
+            }
+            else if (tokenContract.IsFa2)
+            {
+                var tezosAccount = _app.Account
+                    .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz);
+
+                var tokenAddresses = await tezosAccount
+                    .DataRepository
+                    .GetTezosTokenAddressesByContractAsync(tokenContract.Contract.Address);
+
+                Transfers = new ObservableCollection<TezosTokenTransferViewModel>((await tezosAccount
+                        .DataRepository
+                        .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
+                    .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
+
+                Tokens = new ObservableCollection<TezosTokenViewModel>(tokenAddresses
+                    .Select(a => new TezosTokenViewModel {TokenBalance = a.TokenBalance}));
+            }
+
+            Console.WriteLine($"Transfers: {Transfers.Count}");
+            foreach (var transfer in Transfers)
+            {
+                Console.WriteLine(transfer.Id);
+            }
+            
+            Console.WriteLine($"Tokens: {Tokens.Count}");
+            foreach (var token in Tokens)
+            {
+                Console.WriteLine(token.AssetUrl);
+            }
+            
+            CallUIRefresh();
+
+            // OnPropertyChanged(nameof(Tokens));
+            // OnPropertyChanged(nameof(Transfers));
+
+            // SelectedTabIndex = tokenContract.IsFa2 ? 0 : 1;
+            // OnPropertyChanged(nameof(SelectedTabIndex));
+        }
+        
+        public async void OnUpdateClick()
+        {
+            if (_isBalanceUpdating)
+                return;
+
+            _isBalanceUpdating = true;
+
+            _cancellation = new CancellationTokenSource();
+
+            // _dialogViewer.ShowProgress(
+            //     title: "Tokens balance updating...",
+            //     message: "Please wait!",
+            //     canceled: () => { _cancellation.Cancel(); });
+            
+            Console.WriteLine("Tokens balance updating...");
+
+            try
+            {
+                var tezosAccount = _app.Account
+                    .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz);
+
+                var tezosTokensScanner = new TezosTokensScanner(tezosAccount);
+
+                await tezosTokensScanner.ScanAsync(
+                    skipUsed: false,
+                    cancellationToken: _cancellation.Token);
+
+                // reload balances for all tezos tokens account
+                foreach (var currency in _app.Account.Currencies)
+                {
+                    if (Currencies.IsTezosToken(currency.Name))
+                        _app.Account
+                            .GetCurrencyAccount<TezosTokenAccount>(currency.Name)
+                            .ReloadBalances();
+                }
+
+                Console.WriteLine("Tokens balance updating finished!");
+            }
+            catch (OperationCanceledException)
+            {
+                Log.Debug("Wallet update operation canceled");
+                Console.WriteLine("Wallet update operation canceled");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "WalletViewModel.OnUpdateClick");
+                Console.WriteLine("WalletViewModel.OnUpdateClick");
+                // todo: message to user!?
+            }
+            
+
+            _isBalanceUpdating = false;
         }
     }
 }
