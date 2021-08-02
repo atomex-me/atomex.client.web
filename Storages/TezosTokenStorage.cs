@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Threading;
 using Atomex;
@@ -22,7 +23,10 @@ namespace atomex_frontend.Storages
 
         public TokenBalance TokenBalance { get; set; }
 
+        public Action PreviewLoaded;
+
         private string _tokenPreview;
+        
 
         public string TokenPreview
         {
@@ -34,17 +38,27 @@ namespace atomex_frontend.Storages
                 if (_tokenPreview != null)
                     return _tokenPreview;
 
-                foreach (var url in GetTokenPreviewUrls())
+                _ = Task.Run(async () =>
                 {
-                    _ = Task.Run(async () =>
-                    {
-                        await FromUrlAsync(url)
-                            .ConfigureAwait(false);
-                    });
-                }
+                    await LoadPreview().ConfigureAwait(false);
+
+                    if (_tokenPreview != null)
+                        PreviewLoaded?.Invoke();
+                });
 
                 return null;
             }
+        }
+
+        private async Task LoadPreview()
+        {
+            _isPreviewDownloading = true;
+            foreach (var url in GetTokenPreviewUrls())
+            {
+                await FromUrlAsync(url).ConfigureAwait(false);
+                if (_tokenPreview != null) break;
+            }
+            _isPreviewDownloading = false;
         }
 
         public string Balance => TokenBalance.Balance != "1"
@@ -59,8 +73,6 @@ namespace atomex_frontend.Storages
 
         private async Task FromUrlAsync(string url)
         {
-            _isPreviewDownloading = true;
-
             try
             {
                 var response = await HttpHelper.HttpClient
@@ -72,23 +84,19 @@ namespace atomex_frontend.Storages
                     var previewBytes = await response.Content
                         .ReadAsByteArrayAsync()
                         .ConfigureAwait(false);
-
-                    _tokenPreview = Convert.ToBase64String(previewBytes);
-
-                    // todo: Refresh UI
+                    
+                    _tokenPreview = $"data:image/png;base64, {Convert.ToBase64String(previewBytes)}";
                 }
             }
             catch
             {
                 // ignored
             }
-
-            _isPreviewDownloading = false;
         }
 
         public IEnumerable<string> GetTokenPreviewUrls()
         {
-            yield return $"https://d38roug276qjor.cloudfront.net/{TokenBalance.Contract}/{TokenBalance.TokenId}.png";
+            yield return $"https://test.atomex.me/nft-static-asset/{TokenBalance.Contract}/{TokenBalance.TokenId}.png";
 
             if (TokenBalance.ArtifactUri != null && HasIpfsPrefix(TokenBalance.ArtifactUri))
                 yield return $"https://api.dipdup.net/thumbnail/{RemoveIpfsPrefix(TokenBalance.ArtifactUri)}";
@@ -120,27 +128,21 @@ namespace atomex_frontend.Storages
         private const string Fa12 = "FA12";
 
         public ObservableCollection<TezosTokenContractViewModel> TokensContracts { get; set; }
+
         public ObservableCollection<TezosTokenViewModel> Tokens { get; set; }
+
         public ObservableCollection<TezosTokenTransferViewModel> Transfers { get; set; }
 
         private TezosTokenContractViewModel _tokenContract;
-
         public TezosTokenContractViewModel TokenContract
         {
             get => _tokenContract;
             set
             {
+                LastWasFa2 = _tokenContract?.IsFa2 ?? false;
                 _tokenContract = value;
                 
                 Console.WriteLine($"Setting TokenContract to {value.Contract.Address}");
-                
-                // OnPropertyChanged(nameof(TokenContract));
-                // OnPropertyChanged(nameof(HasTokenContract));
-                // OnPropertyChanged(nameof(IsFa12));
-                // OnPropertyChanged(nameof(IsFa2));
-                // OnPropertyChanged(nameof(TokenContractAddress));
-                // OnPropertyChanged(nameof(TokenContractName));
-                // OnPropertyChanged(nameof(TokenContractIconUrl));
                 TokenContractChanged(TokenContract);
             }
         }
@@ -148,6 +150,8 @@ namespace atomex_frontend.Storages
         public bool HasTokenContract => TokenContract != null;
         public bool IsFa12 => TokenContract?.IsFa12 ?? false;
         public bool IsFa2 => TokenContract?.IsFa2 ?? false;
+        public bool LastWasFa2 { get; set; }
+
         public string TokenContractAddress => TokenContract?.Contract?.Address ?? "";
         public string TokenContractName => TokenContract?.Contract?.Name ?? "";
         public string TokenContractIconUrl => TokenContract?.IconUrl;
@@ -166,13 +170,27 @@ namespace atomex_frontend.Storages
         private void CallUIRefresh()
         {
             UIRefresh?.Invoke();
+            Console.WriteLine("CallUIRefresh");
+        }
+        
+        public enum Variant
+        {
+            Tokens,
+            Transfers
+        }
+
+        public Variant CurrentVariant { get; set; } = Variant.Tokens;
+
+        public void OnVariantClick(Variant variant)
+        {
+            CurrentVariant = variant;
         }
 
         public TezosTokenStorage(AccountStorage accountStorage)
         {
             _app = accountStorage.AtomexApp ?? throw new ArgumentNullException(nameof(_app));
             // _conversionViewModel = conversionViewModel ?? throw new ArgumentNullException(nameof(conversionViewModel));
-
+            
             SubscribeToUpdates();
             _ = ReloadTokenContractsAsync();
         }
@@ -223,10 +241,11 @@ namespace atomex_frontend.Storages
                         (x, y) => x.Contract.Address.Equals(y.Contract.Address),
                         x => x.Contract.Address.GetHashCode()));
                 
-                Console.WriteLine($"ReloadTokenContractsAsync loaded token KTs{newTokenContracts.Count()}");
+                Console.WriteLine($"ReloadTokenContractsAsync loaded token KTs {newTokenContracts.Count()}");
 
                 if (newTokenContracts.Any())
                 {
+                    Console.WriteLine("newTokenContracts.Any()");
                     foreach (var newTokenContract in newTokenContracts)
                     {
                         TokensContracts.Add(newTokenContract);
@@ -237,6 +256,7 @@ namespace atomex_frontend.Storages
                 }
                 else
                 {
+                    Console.WriteLine($"newTokenContracts.Any() else {TokenContract}");
                     // update current token contract
                     if (TokenContract != null)
                         TokenContractChanged(TokenContract);
@@ -244,6 +264,7 @@ namespace atomex_frontend.Storages
             }
             else
             {
+                Console.WriteLine($"tokensContractsViewModels count {tokensContractsViewModels.Count()}");
                 TokensContracts = new ObservableCollection<TezosTokenContractViewModel>(tokensContractsViewModels);
                 
                 // OnPropertyChanged(nameof(TokensContracts));
@@ -253,6 +274,7 @@ namespace atomex_frontend.Storages
 
         private async void TokenContractChanged(TezosTokenContractViewModel tokenContract)
         {
+            Console.WriteLine($"Setting tokenContract to {tokenContract}");
             if (tokenContract == null)
             {
                 Tokens = new ObservableCollection<TezosTokenViewModel>();
@@ -318,8 +340,17 @@ namespace atomex_frontend.Storages
                         .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
                     .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
 
+                foreach (var ta in tokenAddresses)
+                {
+                    Console.WriteLine($"token address {ta.Address}");
+                }
+
                 Tokens = new ObservableCollection<TezosTokenViewModel>(tokenAddresses
-                    .Select(a => new TezosTokenViewModel {TokenBalance = a.TokenBalance}));
+                    .Select(a => new TezosTokenViewModel
+                    {
+                        TokenBalance = a.TokenBalance,
+                        PreviewLoaded = CallUIRefresh
+                    }));
             }
 
             Console.WriteLine($"Transfers: {Transfers.Count}");
@@ -333,6 +364,12 @@ namespace atomex_frontend.Storages
             {
                 Console.WriteLine(token.AssetUrl);
             }
+
+            if (IsFa12)
+                CurrentVariant = Variant.Transfers;
+
+            if (IsFa2 && !LastWasFa2)
+                CurrentVariant = Variant.Tokens;
             
             CallUIRefresh();
 

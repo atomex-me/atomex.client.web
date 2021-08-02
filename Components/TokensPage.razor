@@ -32,19 +32,22 @@
     <div class="contract-content-side">
         <div class="currency-card token">
             <div class="token">
-                <div class="currency-card__selected-currency tezos-tokens @(_tezTokenStrg.HasTokenContract ? "active" : "")">
-                    <img class="token-image" src="@(_tezTokenStrg.TokenContract.IconUrl)"/>
-                    <span>
-                        <div class="currency-card__currency-value">
-                            @(_tezTokenStrg.TokenContract.Contract.Name)
-                        </div>
-                        <div class="currency-card__dollar-value">
-                            <div class="currency-card__dollar-value-desc">
-                                @(_tezTokenStrg.TokenContract.Contract.Address)
+                @if (_tezTokenStrg.HasTokenContract)
+                {
+                    <div class="currency-card__selected-currency tezos-tokens @(_tezTokenStrg.HasTokenContract ? "active" : "")">
+                        <img class="token-image" src="@(_tezTokenStrg.TokenContract.IconUrl)"/>
+                        <span>
+                            <div class="currency-card__currency-value">
+                                @(_tezTokenStrg.TokenContract.Contract.Name)
                             </div>
-                        </div>
-                    </span>
-                </div>
+                            <div class="currency-card__dollar-value">
+                                <div class="currency-card__dollar-value-desc">
+                                    @(_tezTokenStrg.TokenContract.Contract.Address)
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                }
                 <div class="currency-card__buttons">
                     <button class="navigate-button small"
                             type="button">
@@ -71,142 +74,65 @@
             </div>
         </div>
         <div class="contract-tabs-container">
-            <button class="contract-tabs-btn left @(CurrentVariant == Variant.Tokens ? "active" : "")"
-                    @onclick="@(() => OnVariantClick(Variant.Tokens))">
-                Tokens
-            </button>
-            <button class="contract-tabs-btn  @(CurrentVariant == Variant.Transfers ? "active" : "")"
-                    @onclick="@(() => OnVariantClick(Variant.Transfers))">
+            @if (_tezTokenStrg.IsFa2 || (!_tezTokenStrg.IsFa2 && !_tezTokenStrg.IsFa12))
+            {
+                <button class="contract-tabs-btn left @(_tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Tokens ? "active" : "")"
+                        @onclick="@(() => _tezTokenStrg.OnVariantClick(TezosTokenStorage.Variant.Tokens))">
+                    Tokens
+                </button>
+            }
+            <button class="contract-tabs-btn @(_tezTokenStrg.IsFa12 ? "left" : "") @(_tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Transfers ? "active" : "")"
+                    @onclick="@(() => _tezTokenStrg.OnVariantClick(TezosTokenStorage.Variant.Transfers))">
                 Transfers
             </button>
         </div>
-        @if (CurrentVariant == Variant.Tokens)
-        {
-            <div class="contract-content-container">
-                <div class="token-row-container">
-                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                    <div class="token-row-container__description">
-                        <div>
-                            <div class="trunc-text">
-                                CRYPOTS_Streaming
+        <div class="contract-content-container">
+            @if (_tezTokenStrg.HasTokenContract && _tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Tokens)
+            {
+                @foreach (var token in _tezTokenStrg.Tokens)
+                {
+                    <div class="token-row-container">
+                        <img src="@token.TokenPreview" class="token-preview-img" alt="">
+                        <div class="token-row-container__description">
+                            <div>
+                                <div class="trunc-text">
+                                    @token.TokenBalance.Name
+                                </div>
+                                <div class="token-description trunc-text">
+                                    @token.TokenBalance.Description
+                                </div>
                             </div>
-                            <div class="token-description trunc-text">
-                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
+                            <div>
+                                <i class="icon asset-icon"/>
                             </div>
-                        </div>
-                        <div>
-                            <i class="icon asset-icon"/>
                         </div>
                     </div>
+                }
+            }
+            @if (_tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Transfers)
+            {
+                <div class="contract-transfers-container">
+                    <WalletDataTable
+                        Variant="@WalletDataTable.AvailableVariants.Transactions"
+                        TransactionsData="@_walletStorage.SelectedCurrencyTransactions"
+                        ForTokens/>
                 </div>
-                <div class="token-row-container">
-                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                    <div class="token-row-container__description">
-                        <div>
-                            <div class="trunc-text">
-                                CRYPOTS_Streaming
-                            </div>
-                            <div class="token-description trunc-text">
-                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                            </div>
-                        </div>
-                        <div>
-                            <i class="icon asset-icon"/>
-                        </div>
-                    </div>
-                </div>
-                <div class="token-row-container">
-                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                    <div class="token-row-container__description">
-                        <div>
-                            <div class="trunc-text">
-                                CRYPOTS_Streaming
-                            </div>
-                            <div class="token-description trunc-text">
-                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                            </div>
-                        </div>
-                        <div>
-                            <i class="icon asset-icon"/>
-                        </div>
-                    </div>
-                </div>
-                <div class="token-row-container">
-                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                    <div class="token-row-container__description">
-                        <div>
-                            <div class="trunc-text">
-                                CRYPOTS_Streaming
-                            </div>
-                            <div class="token-description trunc-text">
-                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                            </div>
-                        </div>
-                        <div>
-                            <i class="icon asset-icon"/>
-                        </div>
-                    </div>
-                </div>
-                <div class="token-row-container">
-                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                    <div class="token-row-container__description">
-                        <div>
-                            <div class="trunc-text">
-                                CRYPOTS_Streaming
-                            </div>
-                            <div class="token-description trunc-text">
-                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                            </div>
-                        </div>
-                        <div>
-                            <i class="icon asset-icon"/>
-                        </div>
-                    </div>
-                </div>
-                <div class="token-row-container">
-                    <img src="https://d38roug276qjor.cloudfront.net/KT1RJ6PbjHpwc3M5rw5s2Nbmefwbuwbdxton/156871.png" class="token-preview-img" alt="">
-                    <div class="token-row-container__description">
-                        <div>
-                            <div class="trunc-text">
-                                CRYPOTS_Streaming
-                            </div>
-                            <div class="token-description trunc-text">
-                                Purchase an edition of this Crypots if you want to get the Priority Access to the Video
-                            </div>
-                        </div>
-                        <div>
-                            <i class="icon asset-icon"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
-        @if (CurrentVariant == Variant.Transfers)
-        {
-            <div class="contract-transfers-container">
-                <WalletDataTable
-                    Variant="@WalletDataTable.AvailableVariants.Transactions"
-                    TransactionsData="@_walletStorage.SelectedCurrencyTransactions"
-                    ForTokens/>
-            </div>
-        }
+            }
+        </div>
     </div>
 </div>
 
 @code
 {
-    private enum Variant
-    {
-        Tokens,
-        Transfers
-    }
-
-    private Variant CurrentVariant { get; set; } = Variant.Tokens;
-
-    private void OnVariantClick(Variant variant)
-    {
-        CurrentVariant = variant;
-    }
+    // private string GetTransfersIsActiveClass
+    // {
+    //     get
+    //     {
+    //         if (!_tezTokenStrg.IsFa2 && !_tezTokenStrg.IsFa12) {}
+    //             return "active";
+    //         return 
+    //     }
+    // }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
