@@ -2444,6 +2444,10 @@ iframe {
     overflow-y: scroll;
 }
 
+.contract-content-container.transfers {
+    overflow-y: hidden;
+}
+
 .contract-transfers-container {
     flex-grow: 1;
 }

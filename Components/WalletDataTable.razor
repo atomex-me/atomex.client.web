@@ -5,10 +5,13 @@
 @using atomex_frontend.Common;
 
 <div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant == AvailableVariants.Addresses ? "no-js" : "")">
-    @if (Variant == AvailableVariants.Transactions && walletStorage.OpenedTx?.Currency == walletStorage.SelectedCurrency.Name)
+    @if (Variant == AvailableVariants.Transactions &&
+         (walletStorage.OpenedTx?.Currency == walletStorage.SelectedCurrency.Name) || walletStorage.OpenedTx is TezosTokenTransferViewModel)
     {
-        <DetailTxInfo OpenedTx="@walletStorage.OpenedTx" TransactionsData="@TransactionsData" TxHeight="@(GetTxHeight(walletStorage.OpenedTx))"
-                      TxInfoBlockHeight="@GetTxInfoBlockHeight"/>
+        <DetailTxInfo OpenedTx="@walletStorage.OpenedTx"
+                      TransactionsData="@TransactionsData"
+                      TxHeight="@(GetTxHeight(walletStorage.OpenedTx))"
+                      TxInfoBlockHeight="@GetTxInfoBlockHeight" />
     }
     <table class="@(ForTokens ? "tokens": "")">
         @if (Variant == AvailableVariants.Currencies)
@@ -53,7 +56,7 @@
             <tbody class="transactions-body">
             @foreach (var transaction in TransactionsData)
             {
-                <tr class="tx-row" @onclick="@(() => walletStorage.OpenedTx = walletStorage.OpenedTx?.Id != transaction.Id ? transaction : null)"
+                <tr class="tx-row" @onclick="@(() => SetOpenedTx(transaction))"
                     style="height: @(walletStorage.OpenedTx?.Id == transaction.Id ? $"{GetTxInfoBlockHeight}px" : $"{GetTxHeight(transaction)}px");">
                     <td valign="top">
                         <div class="icon-vertical-text">
@@ -203,6 +206,7 @@
 
     [Parameter]
     public string UpdatingAddress { get; set; }
+    
 
     private CurrencyConfig getCurrency(string Currency)
     {
@@ -215,6 +219,12 @@
         Transactions,
         Swaps,
         Addresses
+    }
+
+    private void SetOpenedTx(Transaction transaction)
+    {
+        Console.WriteLine($"setting opened transaction {transaction?.Id}");
+        walletStorage.OpenedTx = walletStorage.OpenedTx?.Id != transaction?.Id ? transaction : null;
     }
 
     private int GetTxHeight(Transaction tx)
@@ -234,7 +244,9 @@
         get
         {
             int height = 160;
-            TX_INFO_BLOCK_HEIGHT.TryGetValue(getCurrency(walletStorage.OpenedTx?.Currency)?.Name.ToUpper()!, out height);
+            string currencyName = getCurrency(walletStorage.OpenedTx?.Currency)?.Name.ToUpper()!;
+            if (walletStorage.OpenedTx is TezosTokenTransferViewModel) currencyName = "XTZTOKEN";
+            TX_INFO_BLOCK_HEIGHT.TryGetValue(currencyName, out height);
             return height;
         }
     }
@@ -297,7 +309,7 @@
         walletStorage.RefreshRequested += StateHasChanged;
         swapStorage.RefreshRequested += StateHasChanged;
 
-    // height of Detail tx view block for Currencies;
+        // height of Detail tx view block for Currencies;
         TX_INFO_BLOCK_HEIGHT.Add("BTC", 118);
         TX_INFO_BLOCK_HEIGHT.Add("LTC", 118);
 
@@ -307,9 +319,7 @@
         TX_INFO_BLOCK_HEIGHT.Add("TBTC", 232);
 
         TX_INFO_BLOCK_HEIGHT.Add("XTZ", 212);
-        TX_INFO_BLOCK_HEIGHT.Add("FA12", 212);
-        TX_INFO_BLOCK_HEIGHT.Add("TZBTC", 212);
-        TX_INFO_BLOCK_HEIGHT.Add("KUSD", 212);
+        TX_INFO_BLOCK_HEIGHT.Add("XTZTOKEN", 150);
     }
 
     private async void OnCopyAddressClick(string address)

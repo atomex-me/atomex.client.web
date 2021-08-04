@@ -25,8 +25,31 @@
             @(String.Format("{0:d MMM yyyy, HH:mm:ss}", OpenedTx.CreationTime))
         </div>
     </div>
+    
+    @if (OpenedTx is TezosTokenTransferViewModel)
+    {
+        <div class="tx-info__row">
+            <div>From:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrFromLink" target="_blank">@OpenedTx.From</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyFromClick" type="button"/>
+            </div>
+        </div>
 
-    @if (walletStorage.GetEthreumBasedCurrency)
+        <div class="tx-info__row">
+            <div>To:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrToLink" target="_blank">@OpenedTx.To</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyToClick" type="button"/>
+            </div>
+        </div>
+    }
+
+    else if (walletStorage.GetEthreumBasedCurrency)
     {
         <div class="tx-info__row">
             <div>From:</div>
@@ -77,7 +100,7 @@
         </div>
     }
 
-    @if (_currencyConfig is Fa12Config || _currencyConfig is TezosConfig)
+    else if (_currencyConfig is TezosConfig)
     {
         <div class="tx-info__row">
             <div>From:</div>
@@ -121,7 +144,7 @@
         </div>
     }
 
-    @if (_currencyConfig is BitcoinBasedConfig)
+    else if (_currencyConfig is BitcoinBasedConfig)
     {
         <div class="tx-info__row">
             <div>Fee:</div>
@@ -130,7 +153,6 @@
             </div>
         </div>
     }
-
 </div>
 
 @code {

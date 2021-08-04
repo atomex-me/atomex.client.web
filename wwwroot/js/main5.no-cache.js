@@ -347,7 +347,7 @@ function dragTable(dontResize=false)
     return;
   }
   if (dontResize) {
-    p.style.height = `${p.parentElement.clientHeight}px`
+    p.style.height = `${document.querySelector(".contract-content-container").clientHeight}px`
     return;
   }
   var section=p.classList[ 1 ];

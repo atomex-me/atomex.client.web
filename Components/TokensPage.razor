@@ -86,7 +86,7 @@
                 Transfers
             </button>
         </div>
-        <div class="contract-content-container">
+        <div class="contract-content-container @_tezTokenStrg.CurrentVariant.ToString().ToLower()">
             @if (_tezTokenStrg.HasTokenContract && _tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Tokens)
             {
                 @foreach (var token in _tezTokenStrg.Tokens)
@@ -103,7 +103,9 @@
                                 </div>
                             </div>
                             <div>
-                                <i class="icon asset-icon"/>
+                                <a href="@token.AssetUrl" target="_blank">
+                                    <i class="icon asset-icon"/>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -114,7 +116,7 @@
                 <div class="contract-transfers-container">
                     <WalletDataTable
                         Variant="@WalletDataTable.AvailableVariants.Transactions"
-                        TransactionsData="@_walletStorage.SelectedCurrencyTransactions"
+                        TransactionsData="@_tezTokenStrg.Transfers.Select(t => (Transaction)t).ToList()"
                         ForTokens/>
                 </div>
             }
@@ -124,16 +126,6 @@
 
 @code
 {
-    // private string GetTransfersIsActiveClass
-    // {
-    //     get
-    //     {
-    //         if (!_tezTokenStrg.IsFa2 && !_tezTokenStrg.IsFa12) {}
-    //             return "active";
-    //         return 
-    //     }
-    // }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
     }

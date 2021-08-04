@@ -133,6 +133,7 @@ namespace atomex_frontend.Storages
                 if (value != _isTezosTokensSelected)
                 {
                     _isTezosTokensSelected = value;
+                    OpenedTx = null;
                     CallUIRefresh();
                 }
             }
@@ -441,7 +442,7 @@ namespace atomex_frontend.Storages
                    SelectedCurrency?.Name == "BTC";
         }
 
-        public Transaction OpenedTx = null;
+        public Transaction OpenedTx { get; set; }
 
         public UserMessage userMessage { get; set; } = null;
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Threading;
@@ -170,7 +171,6 @@ namespace atomex_frontend.Storages
         private void CallUIRefresh()
         {
             UIRefresh?.Invoke();
-            Console.WriteLine("CallUIRefresh");
         }
         
         public enum Variant
@@ -186,9 +186,12 @@ namespace atomex_frontend.Storages
             CurrentVariant = variant;
         }
 
-        public TezosTokenStorage(AccountStorage accountStorage)
+        private WalletStorage _ws;
+
+        public TezosTokenStorage(AccountStorage accountStorage, WalletStorage ws)
         {
             _app = accountStorage.AtomexApp ?? throw new ArgumentNullException(nameof(_app));
+            _ws = ws;
             // _conversionViewModel = conversionViewModel ?? throw new ArgumentNullException(nameof(conversionViewModel));
             
             SubscribeToUpdates();
@@ -322,6 +325,7 @@ namespace atomex_frontend.Storages
                 Transfers = new ObservableCollection<TezosTokenTransferViewModel>((await tokenAccount
                         .DataRepository
                         .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
+                    .OrderByDescending(t => t.CreationTime)
                     .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
 
                 Tokens = new ObservableCollection<TezosTokenViewModel>();
@@ -338,6 +342,7 @@ namespace atomex_frontend.Storages
                 Transfers = new ObservableCollection<TezosTokenTransferViewModel>((await tezosAccount
                         .DataRepository
                         .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
+                    .OrderByDescending(t => t.CreationTime)
                     .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
 
                 foreach (var ta in tokenAddresses)
@@ -370,7 +375,9 @@ namespace atomex_frontend.Storages
 
             if (IsFa2 && !LastWasFa2)
                 CurrentVariant = Variant.Tokens;
-            
+
+
+            _ws.OpenedTx = null;
             CallUIRefresh();
 
             // OnPropertyChanged(nameof(Tokens));
