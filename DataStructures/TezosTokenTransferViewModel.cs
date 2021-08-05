@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using Atomex;
 using atomex_frontend.Common;
+using atomex_frontend.Storages;
 using Atomex.Blockchain.Abstract;
 using Atomex.Blockchain.Tezos;
 
@@ -21,7 +22,7 @@ namespace atomex_frontend.atomex_data_structures
         public string ToExplorerUri => $"{_tezosConfig.AddressExplorerUri}{To}";
         
         public TezosTokenTransferViewModel(TokenTransfer tx, TezosConfig tezosConfig) :
-            base(tezosConfig, tx.Id, tx.State, tx.Type, tx.CreationTime, tx.IsConfirmed, 0)
+            base(tezosConfig, tx.Id, tx.State, tx.Type, tx.CreationTime, tx.IsConfirmed, 0, alias: tx.Alias)
         {
             _tezosConfig = tezosConfig;
             Transaction  = tx ?? throw new ArgumentNullException(nameof(tx));

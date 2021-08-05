@@ -4,6 +4,7 @@
 @inject AccountStorage AccountStorage;
 @inject WalletStorage WalletStorage;
 @inject SwapStorage SwapStorage;
+@* @inject TezosTokenStorage _tezTokenStrg; *@
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager UriHelper;
 
@@ -117,7 +118,7 @@
                 {
                     <WalletDataTable
                         Variant="@WalletDataTable.AvailableVariants.Transactions"
-                        TransactionsData="@WalletStorage.SelectedCurrencyTransactions"/>
+                        TransactionsData="@GetTxData"/>
                 }
             }
             @if (WalletStorage.CurrentWalletSection == WalletSection.DEX)
@@ -278,6 +279,15 @@
         if (ReceiveModalOpened) ReceiveModalOpened = false;
         if (AddressesModalOpened) AddressesModalOpened = false;
         if (ConvertModalOpened) ConvertModalOpened = false;
+    }
+
+    private List<Transaction> GetTxData
+    {
+        // get => WalletStorage.IsTezosTokensSelected ?
+        //     _tezTokenStrg.Transfers.Select(t => (Transaction) t).ToList() :
+        //     WalletStorage.SelectedCurrencyTransactions;
+
+        get => WalletStorage.SelectedCurrencyTransactions;
     }
 
     I18nText.Translations Translations = new I18nText.Translations();

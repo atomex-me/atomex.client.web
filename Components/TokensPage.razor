@@ -7,7 +7,7 @@
             @foreach (var contract in _tezTokenStrg.TokensContracts)
             {
                 <button
-                    class="wallet-menu__button contract @(contract.Contract.Name == _tezTokenStrg.TokenContract.Contract.Name ? "active" : "")"
+                    class="wallet-menu__button contract @(contract.Contract.Id == _tezTokenStrg.TokenContract.Contract.Id ? "active" : "")"
                     type="button"
                     @onclick="@(() => _tezTokenStrg.TokenContract = contract)">
 

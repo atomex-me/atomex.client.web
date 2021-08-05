@@ -456,7 +456,7 @@ namespace atomex_frontend.Storages
                         async (object sender, EventArgs args) => await UpdatedQuotes();
                 }
 
-                accountStorage.AtomexApp.Account.BalanceUpdated += async (object sender, CurrencyEventArgs args) =>
+                accountStorage.AtomexApp.Account.BalanceUpdated += async (sender, args) =>
                 {
                     if (args.Currency == "XTZ")
                     {
@@ -466,7 +466,7 @@ namespace atomex_frontend.Storages
                     await BalanceUpdatedHandler(args.Currency);
                 };
 
-                accountStorage.AtomexApp.CurrenciesProvider.Updated += (object sender, EventArgs args) =>
+                accountStorage.AtomexApp.CurrenciesProvider.Updated += (sender, args) =>
                 {
                     if (SelectedCurrency != null)
                     {
@@ -664,6 +664,7 @@ namespace atomex_frontend.Storages
         public async Task BalanceUpdatedHandler(string currencyName)
         {
             var currency = accountStorage.Account.Currencies.GetByName(currencyName);
+            
             if (currency == null)
             {
                 return;
@@ -757,7 +758,7 @@ namespace atomex_frontend.Storages
                 var activeAddresses = accountStorage.Account
                     .GetUnspentAddressesAsync(currencyConfig.Name)
                     .WaitForResult();
-
+                
                 var freeAddress = accountStorage.Account
                     .GetFreeExternalAddressAsync(currencyConfig.Name)
                     .WaitForResult();
