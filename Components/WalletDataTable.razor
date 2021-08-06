@@ -223,7 +223,6 @@
 
     private void SetOpenedTx(Transaction transaction)
     {
-        Console.WriteLine($"setting opened transaction {transaction?.Id}");
         walletStorage.OpenedTx = walletStorage.OpenedTx?.Id != transaction?.Id ? transaction : null;
     }
 

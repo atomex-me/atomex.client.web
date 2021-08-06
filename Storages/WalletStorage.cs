@@ -432,19 +432,7 @@ namespace atomex_frontend.Storages
             }
         }
 
-        // public List<WalletAddressView> FromAddressList = new List<WalletAddressView>();
-
-        public List<WalletAddress> xtzNotNullAddresses
-        {
-            get
-            {
-                var res = FromAddressList
-                    .Where(addr => addr.WalletAddress.Currency == "XTZ" && addr.AvailableBalance > 0)
-                    .Select(addr => addr.WalletAddress)
-                    .ToList();
-                return res;
-            }
-        }
+        public ReceiveViewModel TezosReceiveVM { get; set; }
 
         public bool CanBuySelectedCurrency
         {
@@ -468,9 +456,14 @@ namespace atomex_frontend.Storages
 
                 accountStorage.AtomexApp.Account.BalanceUpdated += async (sender, args) =>
                 {
-                    if (args.Currency == "XTZ")
+                    if (args.Currency == TezosConfig.Xtz)
                     {
                         _ = bakerStorage.LoadDelegationInfoAsync();
+                        
+                        var tezosConfig = accountStorage.Account
+                            .Currencies
+                            .GetByName(TezosConfig.Xtz);
+                        TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
                     }
 
                     await BalanceUpdatedHandler(args.Currency);
@@ -504,6 +497,11 @@ namespace atomex_frontend.Storages
                     PortfolioData.Add(currencyConfig.Name, initialCurrencyData);
                 }
 
+                var tezosConfig = accountStorage.Account
+                    .Currencies
+                    .GetByName(TezosConfig.Xtz);
+                TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
+                
                 await bakerStorage.LoadBakerList();
                 await UpdatePortfolioAtStart();
 
@@ -729,8 +727,7 @@ namespace atomex_frontend.Storages
                 await CountCurrencyPortfolio(currencyConfig);
                 await LoadTransactions(currencyConfig);
             }
-
-            // FromAddressList = new List<WalletAddressView>();
+            
             foreach (CurrencyData currencyData in PortfolioData.Values)
             {
                 RefreshCurrencyPercent(currencyData.CurrencyConfig.Name);
@@ -1031,10 +1028,9 @@ namespace atomex_frontend.Storages
                 .GetCurrencyAccount<ILegacyCurrencyAccount>(SelectedCurrency.Name);
 
             Warning = string.Empty;
-            var previousAmount = _sendingAmount;
+            
             _sendingAmount = amount;
-
-            // this.CallUIRefresh();
+            
             IsAmountUpdating = true;
 
             if (SelectedCurrency is BitcoinBasedConfig)
@@ -1329,7 +1325,6 @@ namespace atomex_frontend.Storages
 
             if (_sendingAmount == 0)
             {
-                // _sendingFee = 0;
                 this.CallUIRefresh();
                 return;
             }

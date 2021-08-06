@@ -4,7 +4,7 @@
     <div class="atomex-input-container @(!string.IsNullOrEmpty(Description) ? "with-description" : "")">
         @if (Description != null)
         {
-            <div class="input-description light for-address">
+            <div class="input-description light @(ForEth ? "for-eth-address" : "")">
                 <span>@Description</span>
             </div>
         }
@@ -76,6 +76,9 @@
 
     [Parameter]
     public string SelectedAddress { get; set; }
+
+    [Parameter]
+    public bool ForEth { get; set; }
 
 
     private WalletAddressViewModel SelectedAddressObj => Addresses

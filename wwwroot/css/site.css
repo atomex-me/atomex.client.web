@@ -373,6 +373,7 @@ app {
     border-bottom-right-radius: 20px;
     max-height: 260px;
     overflow-y: scroll;
+    z-index: 1;
 }
 
 
@@ -392,7 +393,7 @@ app {
 }
 
 .custom-dropdown-list__container > div:hover{
-    background-color: var(--dark-blue);
+    background-color: var(--dark-input-light-blue);
 }
 
 .atomex-input-container>select:focus {
@@ -428,10 +429,10 @@ app {
 }
 
 .input-description.light {
-    background-color: var(--dark-blue);
+    background-color: var(--dark-input-light-blue);
 }
 
-.input-description.for-address {
+.input-description.for-eth-address {
     padding-left: 25px;
     min-width: 110px;
 }
