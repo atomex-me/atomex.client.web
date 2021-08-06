@@ -73,7 +73,7 @@
                     <CurrenciesRow/>
                     @if (WalletStorage.IsTezosTokensSelected)
                     {
-                        <TokensPage/>
+                        <TokensPage OnReceiveClick="@ReceiveOpenCloseHandler" />
                     }
                     else
                     {

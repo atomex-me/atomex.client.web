@@ -172,6 +172,16 @@ namespace atomex_frontend.Storages
                     .Get<CurrencyConfig>("BTC"), 0.0m, 0.0m, 0.0m);
         }
 
+        public CurrencyData GetCurrencyData(string currencyName)
+        {
+            return PortfolioData.TryGetValue(currencyName, out CurrencyData data)
+                ? data
+                : new CurrencyData(accountStorage
+                    .Account
+                    .Currencies
+                    .Get<CurrencyConfig>("BTC"), 0.0m, 0.0m, 0.0m);
+        }
+
         private System.Timers.Timer debounceFirstCurrencySelection;
 
         private void OnAfterChangeFirstCurrency(Object source, ElapsedEventArgs e)
@@ -422,7 +432,7 @@ namespace atomex_frontend.Storages
             }
         }
 
-        public List<WalletAddressView> FromAddressList = new List<WalletAddressView>();
+        // public List<WalletAddressView> FromAddressList = new List<WalletAddressView>();
 
         public List<WalletAddress> xtzNotNullAddresses
         {
@@ -492,8 +502,6 @@ namespace atomex_frontend.Storages
                 {
                     CurrencyData initialCurrencyData = new CurrencyData(currencyConfig, 0, 0, 0.0m);
                     PortfolioData.Add(currencyConfig.Name, initialCurrencyData);
-                    Console.WriteLine("Getting free address on initialize");
-                    GetFreeAddresses(initialCurrencyData.CurrencyConfig);
                 }
 
                 await bakerStorage.LoadBakerList();
@@ -672,7 +680,6 @@ namespace atomex_frontend.Storages
 
             await CountCurrencyPortfolio(currency);
             await RefreshTransactions(currency.Name);
-            RefreshCurrencyAddresses(currency.Name);
             RefreshCurrencyPercent(currency.Name);
 
             this.CallUIRefresh();
@@ -698,15 +705,6 @@ namespace atomex_frontend.Storages
             {
                 currencyData.Balance = availableBalance;
                 currencyData.DollarValue = this.GetDollarValue(currencyConfig.Name, availableBalance);
-            }
-        }
-
-        private void RefreshCurrencyAddresses(string currencyName)
-        {
-            CurrencyData currData;
-            if (PortfolioData.TryGetValue(currencyName, out currData))
-            {
-                GetFreeAddresses(currData.CurrencyConfig);
             }
         }
 
@@ -736,7 +734,6 @@ namespace atomex_frontend.Storages
             foreach (CurrencyData currencyData in PortfolioData.Values)
             {
                 RefreshCurrencyPercent(currencyData.CurrencyConfig.Name);
-                RefreshCurrencyAddresses(currencyData.CurrencyConfig.Name);
             }
 
             this.CallUIRefresh();
@@ -745,97 +742,6 @@ namespace atomex_frontend.Storages
             {
                 await DrawDonutChart(updateData: true);
             }
-        }
-
-        private void GetFreeAddresses(CurrencyConfig currencyConfig)
-        {
-            FromAddressList = FromAddressList
-                .Where(wa => wa.WalletAddress.Currency != currencyConfig.Name)
-                .ToList(); // removing old addresses for this currency;
-
-            if (currencyConfig is BitcoinBasedConfig || currencyConfig is Fa12Config || currencyConfig is Erc20Config)
-            {
-                var activeAddresses = accountStorage.Account
-                    .GetUnspentAddressesAsync(currencyConfig.Name)
-                    .WaitForResult();
-                
-                var freeAddress = accountStorage.Account
-                    .GetFreeExternalAddressAsync(currencyConfig.Name)
-                    .WaitForResult();
-
-                var receiveAddresses = activeAddresses
-                    .Select(wa => new WalletAddressView(wa, currencyConfig.Format))
-                    .ToList();
-
-                if (activeAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
-                    receiveAddresses.AddEx(new WalletAddressView(freeAddress, currencyConfig.Format,
-                        isFreeAddress: true));
-
-                FromAddressList.AddRange(receiveAddresses);
-            }
-
-            else if (currencyConfig is EthereumConfig || currencyConfig is TezosConfig)
-            {
-                var activeTokenAddresses = accountStorage.Account
-                    .GetCurrencyAccount<ILegacyCurrencyAccount>(currencyConfig.Name)
-                    .GetUnspentTokenAddressesAsync()
-                    .WaitForResult()
-                    .ToList();
-
-                var activeAddresses = accountStorage.Account
-                    .GetUnspentAddressesAsync(currencyConfig.Name)
-                    .WaitForResult()
-                    .ToList();
-
-                activeTokenAddresses.ForEach(a =>
-                    a.Balance = activeAddresses.Find(b => b.Address == a.Address)?.Balance ?? 0m);
-
-                activeAddresses = activeAddresses
-                    .Where(a => activeTokenAddresses.FirstOrDefault(b => b.Address == a.Address) == null)
-                    .ToList();
-
-                var freeAddress = accountStorage.Account
-                    .GetFreeExternalAddressAsync(currencyConfig.Name)
-                    .WaitForResult();
-
-                var receiveAddresses = activeTokenAddresses
-                    .Select(w => new WalletAddressView(w, currencyConfig.Format))
-                    .Concat(activeAddresses.Select(w => new WalletAddressView(w, currencyConfig.Format)))
-                    .ToList();
-
-                if (receiveAddresses.FirstOrDefault(w => w.Address == freeAddress.Address) == null)
-                    receiveAddresses.AddEx(new WalletAddressView(freeAddress, currencyConfig.Format,
-                        isFreeAddress: true));
-
-                receiveAddresses = receiveAddresses.Select(wa =>
-                {
-                    wa.WalletAddress.Currency = currencyConfig.Name;
-                    return wa;
-                }).ToList();
-
-                FromAddressList.AddRange(receiveAddresses);
-            }
-        }
-
-        public WalletAddress GetDefaultAddress()
-        {
-            IEnumerable<WalletAddressView> fromAddressList = FromAddressList
-                .Where(wa => wa.WalletAddress.Currency == SelectedCurrency.Name);
-
-            if (SelectedCurrency is TezosConfig || SelectedCurrency is EthereumConfig)
-            {
-                var activeAddressViewModel = fromAddressList
-                    .OrderByDescending(vm => vm.WalletAddress.AvailableBalance())
-                    .ToList()
-                    .FirstOrDefault(vm => vm.WalletAddress.HasActivity);
-
-                if (activeAddressViewModel != null)
-                    return activeAddressViewModel.WalletAddress;
-
-                return fromAddressList.First(vm => vm.IsFreeAddress).WalletAddress;
-            }
-
-            return fromAddressList.First(vm => vm.IsFreeAddress).WalletAddress;
         }
 
         public async Task DrawDonutChart(bool updateData = false)

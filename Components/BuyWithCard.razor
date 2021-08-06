@@ -5,14 +5,18 @@
 <div id="wert-widget"></div>
 
 @code {
+  
+  
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
     if (firstRender)
     {
+      var _receiveVM = new ReceiveViewModel(accountStorage.AtomexApp, walletStorage.SelectedCurrency);
+      
       await JSRuntime.InvokeVoidAsync(
         "renderWertWidget",
         walletStorage.SelectedCurrency.Name,
-        walletStorage.GetDefaultAddress().Address, accountStorage.CurrentNetwork.ToString(),
+        _receiveVM.SelectedAddress, accountStorage.CurrentNetwork.ToString(),
         $"user:{accountStorage.GetUserId()}/network:{accountStorage.CurrentNetwork}"
       );
     }

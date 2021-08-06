@@ -54,7 +54,9 @@
                         Send
                     </button>
                     <button class="navigate-button small"
-                            type="button">
+                            type="button"
+                            @onclick="@OnReceiveClick"
+                            >
                         Receive
                     </button>
                     <button class="navigate-button small"
@@ -126,6 +128,9 @@
 
 @code
 {
+    [Parameter]
+    public EventCallback OnReceiveClick { get; set; }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
     }
