@@ -1,10 +1,10 @@
 ﻿@page "/wallet"
 
 @using System.Timers;
+@using Atomex.TezosTokens
 @inject AccountStorage AccountStorage;
 @inject WalletStorage WalletStorage;
 @inject SwapStorage SwapStorage;
-@* @inject TezosTokenStorage _tezTokenStrg; *@
 @inject IJSRuntime JSRuntime;
 @inject NavigationManager UriHelper;
 
@@ -175,7 +175,7 @@
                 </div>
                 <WalletDataTable
                     Variant="@WalletDataTable.AvailableVariants.Swaps"
-                    TransactionsData="@WalletStorage.SelectedCurrencyTransactions"
+                    TransactionsData="@GetTxData"
                     SwapsData="@SwapStorage.Swaps"/>
             }
 
@@ -281,16 +281,11 @@
         if (ConvertModalOpened) ConvertModalOpened = false;
     }
 
-    private List<Transaction> GetTxData
-    {
-        // get => WalletStorage.IsTezosTokensSelected ?
-        //     _tezTokenStrg.Transfers.Select(t => (Transaction) t).ToList() :
-        //     WalletStorage.SelectedCurrencyTransactions;
+    private List<Transaction> GetTxData => WalletStorage.SelectedCurrency is Fa12Config ?
+        WalletStorage.SelectedCurrencyTezTokenTransfers :
+        WalletStorage.SelectedCurrencyTransactions;
 
-        get => WalletStorage.SelectedCurrencyTransactions;
-    }
-
-    I18nText.Translations Translations = new I18nText.Translations();
+    I18nText.Translations Translations = new();
 
     protected override async Task OnInitializedAsync()
     {

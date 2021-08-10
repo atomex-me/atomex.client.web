@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Linq;
-using System.Net.Http;
-using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Threading;
 using Atomex;
@@ -162,8 +159,7 @@ namespace atomex_frontend.Storages
         public string BalanceCurrencyCode { get; set; }
 
         private readonly IAtomexApp _app;
-
-        // private readonly IConversionViewModel _conversionViewModel;
+        
         private bool _isBalanceUpdating;
         private CancellationTokenSource _cancellation;
         
@@ -192,8 +188,7 @@ namespace atomex_frontend.Storages
         {
             _app = accountStorage.AtomexApp ?? throw new ArgumentNullException(nameof(_app));
             _ws = ws;
-            // _conversionViewModel = conversionViewModel ?? throw new ArgumentNullException(nameof(conversionViewModel));
-            
+
             SubscribeToUpdates();
             _ = ReloadTokenContractsAsync();
         }
@@ -248,7 +243,6 @@ namespace atomex_frontend.Storages
 
                 if (newTokenContracts.Any())
                 {
-                    Console.WriteLine("newTokenContracts.Any()");
                     foreach (var newTokenContract in newTokenContracts)
                     {
                         TokensContracts.Add(newTokenContract);
@@ -270,7 +264,6 @@ namespace atomex_frontend.Storages
                 Console.WriteLine($"tokensContractsViewModels count {tokensContractsViewModels.Count()}");
                 TokensContracts = new ObservableCollection<TezosTokenContractViewModel>(tokensContractsViewModels);
                 
-                // OnPropertyChanged(nameof(TokensContracts));
                 TokenContract = TokensContracts.FirstOrDefault();
             }
         }
@@ -282,9 +275,6 @@ namespace atomex_frontend.Storages
             {
                 Tokens = new ObservableCollection<TezosTokenViewModel>();
                 Transfers = new ObservableCollection<TezosTokenTransferViewModel>();
-
-                // OnPropertyChanged(nameof(Tokens));
-                // OnPropertyChanged(nameof(Transfers));
 
                 return;
             }
@@ -317,10 +307,6 @@ namespace atomex_frontend.Storages
                 BalanceCurrencyCode = tokenAddress?.TokenBalance != null
                     ? tokenAddress.TokenBalance.Symbol
                     : "";
-
-                // OnPropertyChanged(nameof(Balance));
-                // OnPropertyChanged(nameof(BalanceFormat));
-                // OnPropertyChanged(nameof(BalanceCurrencyCode));
 
                 Transfers = new ObservableCollection<TezosTokenTransferViewModel>((await tokenAccount
                         .DataRepository
@@ -379,12 +365,6 @@ namespace atomex_frontend.Storages
 
             _ws.OpenedTx = null;
             CallUIRefresh();
-
-            // OnPropertyChanged(nameof(Tokens));
-            // OnPropertyChanged(nameof(Transfers));
-
-            // SelectedTabIndex = tokenContract.IsFa2 ? 0 : 1;
-            // OnPropertyChanged(nameof(SelectedTabIndex));
         }
         
         public async void OnUpdateClick()
@@ -396,11 +376,6 @@ namespace atomex_frontend.Storages
 
             _cancellation = new CancellationTokenSource();
 
-            // _dialogViewer.ShowProgress(
-            //     title: "Tokens balance updating...",
-            //     message: "Please wait!",
-            //     canceled: () => { _cancellation.Cancel(); });
-            
             Console.WriteLine("Tokens balance updating...");
 
             try

@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Components;
 using System.Timers;
 using System.Globalization;
 using Atomex.Wallet.Abstract;
+using Atomex.Wallet.Tezos;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -142,6 +143,8 @@ namespace atomex_frontend.Storages
         public Dictionary<string, CurrencyData> PortfolioData { get; set; } = new Dictionary<string, CurrencyData>();
 
         public Dictionary<string, Transaction> Transactions { get; set; } = new Dictionary<string, Transaction>();
+        
+        public Dictionary<string, TezosTokenTransferViewModel> TezTokenTransfers { get; set; } = new Dictionary<string, TezosTokenTransferViewModel>();
 
         public List<Transaction> SelectedCurrencyTransactions
         {
@@ -152,6 +155,20 @@ namespace atomex_frontend.Storages
                     return currName == SelectedCurrency.Name;
                 })
                 .Select(kvp => kvp.Value)
+                .ToList()
+                .OrderByDescending(a => a.CreationTime)
+                .ToList();
+        }
+        
+        public List<Transaction> SelectedCurrencyTezTokenTransfers
+        {
+            get => TezTokenTransfers
+                .Where(kvp =>
+                {
+                    var currName = kvp.Key.Split(Convert.ToChar("/"))[1];
+                    return currName == SelectedCurrency.Name;
+                })
+                .Select(kvp => (Transaction)kvp.Value)
                 .ToList()
                 .OrderByDescending(a => a.CreationTime)
                 .ToList();
@@ -459,7 +476,6 @@ namespace atomex_frontend.Storages
                     if (args.Currency == TezosConfig.Xtz)
                     {
                         _ = bakerStorage.LoadDelegationInfoAsync();
-                        
                         var tezosConfig = accountStorage.Account
                             .Currencies
                             .GetByName(TezosConfig.Xtz);
@@ -622,9 +638,19 @@ namespace atomex_frontend.Storages
 
             try
             {
-                await new HdWalletScanner(accountStorage.Account)
-                    .ScanAsync(currency.Name)
-                    .ConfigureAwait(false);
+                if (currency is Fa12Config)
+                {
+                    await accountStorage.Account
+                        .GetCurrencyAccount<Fa12Account>(currency.Name)
+                        .UpdateBalanceAsync(default);
+                }
+                else
+                {
+                    
+                    await new HdWalletScanner(accountStorage.Account)
+                        .ScanAsync(currency.Name)
+                        .ConfigureAwait(false);
+                }
             }
             catch (Exception e)
             {
@@ -671,16 +697,13 @@ namespace atomex_frontend.Storages
         {
             var currency = accountStorage.Account.Currencies.GetByName(currencyName);
             
-            if (currency == null)
-            {
-                return;
-            }
-
+            if (currency == null) return;
+            
             await CountCurrencyPortfolio(currency);
             await RefreshTransactions(currency.Name);
             RefreshCurrencyPercent(currency.Name);
 
-            this.CallUIRefresh();
+            CallUIRefresh();
 
             if (CurrentWalletSection == WalletSection.Portfolio)
             {
@@ -724,9 +747,16 @@ namespace atomex_frontend.Storages
 
             foreach (var currencyConfig in currenciesList)
             {
+                if (currencyConfig is Fa12Config)
+                {
+                    await LoadTezTransfersAsync(currencyConfig as Fa12Config);
+                }
+
                 await CountCurrencyPortfolio(currencyConfig);
                 await LoadTransactions(currencyConfig);
             }
+            
+            
             
             foreach (CurrencyData currencyData in PortfolioData.Values)
             {
@@ -771,17 +801,23 @@ namespace atomex_frontend.Storages
 
         public async Task RefreshTransactions(string currency)
         {
-            var transactions = await accountStorage.Account.GetTransactionsAsync(currency);
-            foreach (var tx in transactions)
+            var currencyConfig = accountStorage.Account
+                .Currencies
+                .GetByName(currency);
+
+            if (currencyConfig is Fa12Config)
             {
-                var txAge = DateTime.Now - tx.CreationTime;
-                if (Transactions.ContainsKey($"{tx.Id}/{tx.Currency}") &&
-                    tx.State == BlockchainTransactionState.Confirmed && txAge.Value.TotalDays > 1)
+                await LoadTezTransfersAsync(currencyConfig as Fa12Config);
+            }
+            else
+            {
+                var transactions = await accountStorage.Account.GetTransactionsAsync(currency);
+                foreach (var tx in transactions)
                 {
-                    continue;
-                }
-                else
-                {
+                    var txAge = DateTime.Now - tx.CreationTime;
+                    if (Transactions.ContainsKey($"{tx.Id}/{tx.Currency}") &&
+                        tx.State == BlockchainTransactionState.Confirmed && txAge.Value.TotalDays > 1) continue;
+                
                     handleTransaction(tx);
                 }
             }
@@ -793,6 +829,57 @@ namespace atomex_frontend.Storages
             foreach (var tx in transactions)
             {
                 handleTransaction(tx);
+            }
+        }
+        
+        private async Task LoadTezTransfersAsync(Fa12Config Currency)
+        {
+            Log.Debug("LoadTezTransfersAsync for {@currency}.", Currency.Name);
+        
+            try
+            {
+                if (accountStorage.Account == null)
+                    return;
+        
+                var transfers = (await accountStorage.Account
+                        .GetCurrencyAccount<Fa12Account>(Currency.Name)
+                        .DataRepository
+                        .GetTezosTokenTransfersAsync(Currency.TokenContractAddress)
+                        .ConfigureAwait(false))
+                    .ToList();
+                
+                var transfersList =  new List<TezosTokenTransferViewModel>(
+                    transfers.Select(t => new TezosTokenTransferViewModel(t, Currency))
+                        .ToList()
+                        .SortList((t1, t2) => t2.Time.CompareTo(t1.Time))
+                        .ToList()
+                );
+                
+                Console.WriteLine($"Finded {transfersList.Count} fa12 transfers;");
+
+                foreach (var tx in transfersList)
+                {
+                    TezosTokenTransferViewModel oldTx;
+                    string txKeyInDict = $"{tx.Id}/{tx.Currency}";
+
+                    if (TezTokenTransfers.TryGetValue(txKeyInDict, out oldTx))
+                    {
+                        TezTokenTransfers[txKeyInDict] = tx;
+                    }
+                    else
+                    {
+                        TezTokenTransfers.Add(txKeyInDict, tx);
+                    }
+                }
+
+            }
+            catch (OperationCanceledException)
+            {
+                Log.Debug("LoadTezTransfersAsync canceled.");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "LoadTezTransfersAsync error for {@currency}.", Currency?.Name);
             }
         }
 
@@ -944,6 +1031,7 @@ namespace atomex_frontend.Storages
                     );
                     break;
 
+                // todo: remove
                 case Fa12Config _:
                     TezosTransaction fa12Trans = (TezosTransaction) tx;
                     amount = CurrHelper.GetTransAmount(fa12Trans, currencyConfig);
@@ -2063,6 +2151,7 @@ namespace atomex_frontend.Storages
             _sendingFee = 0;
             _ethTotalFee = 0;
             _useDefaultFee = true;
+            OpenedTx = null;
 
             CallCloseModals();
 
