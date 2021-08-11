@@ -248,11 +248,11 @@
         get => walletStorage.GetDollarValue(walletStorage.SelectedCurrency.FeeCode, walletStorage.TotalFee);
     }
 
-    private System.Timers.Timer debounceInputAmount;
-    private System.Timers.Timer debounceInputFee;
-    private System.Timers.Timer debounceInputAddress;
-    private System.Timers.Timer debounceInputGasPrice;
-    private System.Timers.Timer debounceInputGasLimit;
+    private Timer debounceInputAmount;
+    private Timer debounceInputFee;
+    private Timer debounceInputAddress;
+    private Timer debounceInputGasPrice;
+    private Timer debounceInputGasLimit;
 
     private string SendingAmountString = "0";
     private string SendingFeeString = "0";
@@ -367,7 +367,7 @@
         }
     }
 
-    I18nText.Translations Translations = new I18nText.Translations();
+    I18nText.Translations Translations = new();
 
     protected override async Task OnInitializedAsync()
     {
