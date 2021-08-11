@@ -2,7 +2,7 @@
 @inject WalletStorage _walletStorage;
 @inject TezosTokenStorage _tezTokenStrg;
 
-<div class="tokens-container">
+<div class="tokens-container @(_tezTokenStrg.IsBalanceUpdating ? "disabled" : "")">
     <div class="wallet-page__left-nav solid-dark-background tokens">
         <div>
             @foreach (var contract in _tezTokenStrg.TokensContracts)
@@ -32,8 +32,17 @@
     </div>
     <div class="contract-content-side">
         <div class="currency-card token">
-            <div class="token">
-                @if (_tezTokenStrg.HasTokenContract)
+            <div class="token loading-container">
+                @if (_tezTokenStrg.IsBalanceUpdating)
+                {
+                    <Loader />
+                    <div class="currency-card__selected-currency tezos-tokens active">
+                        <div class="updating-tez-tokens__text">
+                            Updating Tezos tokens...
+                        </div>
+                    </div>
+                }
+                @if (_tezTokenStrg.HasTokenContract && !_tezTokenStrg.IsBalanceUpdating)
                 {
                     <div class="currency-card__selected-currency tezos-tokens @(_tezTokenStrg.HasTokenContract ? "active" : "")">
                         <img class="token-image" src="@(_tezTokenStrg.TokenContract.IconUrl)"/>
@@ -113,7 +122,7 @@
                                 {
                                     <a href="@token.AssetUrl" target="_blank">
                                         <i class="icon asset-icon"/>
-                                    </a>   
+                                    </a>
                                 }
                                 else
                                 {
@@ -146,7 +155,7 @@
 
     [Parameter]
     public EventCallback OnAddressesClick { get; set; }
-    
+
     [Parameter]
     public EventCallback OnConvertClick { get; set; }
 

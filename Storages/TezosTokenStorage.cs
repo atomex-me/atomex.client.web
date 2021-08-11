@@ -164,8 +164,18 @@ namespace atomex_frontend.Storages
         public string BalanceCurrencyCode { get; set; }
 
         private readonly IAtomexApp _app;
-        
-        private bool _isBalanceUpdating;
+
+        private bool _isBalanceUpdaing;
+
+        public bool IsBalanceUpdating
+        {
+            get => _isBalanceUpdaing;
+            set
+            {
+                _isBalanceUpdaing = value;
+                CallUIRefresh();
+            }
+        }
         private CancellationTokenSource _cancellation;
         
         public event Action UIRefresh;
@@ -376,10 +386,10 @@ namespace atomex_frontend.Storages
         
         public async void OnUpdateClick()
         {
-            if (_isBalanceUpdating)
+            if (IsBalanceUpdating)
                 return;
 
-            _isBalanceUpdating = true;
+            IsBalanceUpdating = true;
 
             _cancellation = new CancellationTokenSource();
 
@@ -420,7 +430,7 @@ namespace atomex_frontend.Storages
             }
             
 
-            _isBalanceUpdating = false;
+            IsBalanceUpdating = false;
         }
     }
 }
