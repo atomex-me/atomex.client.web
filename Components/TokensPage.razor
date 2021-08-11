@@ -1,3 +1,4 @@
+@using System.Globalization
 @inject WalletStorage _walletStorage;
 @inject TezosTokenStorage _tezTokenStrg;
 
@@ -38,11 +39,13 @@
                         <img class="token-image" src="@(_tezTokenStrg.TokenContract.IconUrl)"/>
                         <span>
                             <div class="currency-card__currency-value">
-                                @(_tezTokenStrg.TokenContract.Contract.Name)
+                                @(_tezTokenStrg.TokenContract.IsFa12 ?
+                                    _tezTokenStrg.Balance.ToString(_tezTokenStrg.BalanceFormat, CultureInfo.InvariantCulture) :
+                                    _tezTokenStrg.TokenContractName)
                             </div>
                             <div class="currency-card__dollar-value">
                                 <div class="currency-card__dollar-value-desc">
-                                    @(_tezTokenStrg.TokenContract.Contract.Address)
+                                    @_tezTokenStrg.TokenContract.Contract.Address
                                 </div>
                             </div>
                         </span>
@@ -55,12 +58,12 @@
                     </button>
                     <button class="navigate-button small"
                             type="button"
-                            @onclick="@OnReceiveClick"
-                            >
+                            @onclick="@OnReceiveClick">
                         Receive
                     </button>
-                    <button class="navigate-button small"
-                            type="button">
+                    <button class="navigate-button small @(!_tezTokenStrg.IsConvertable ? "disabled" : "")"
+                            type="button"
+                            @onclick="@OnConvertClick">
                         Convert
                     </button>
                     <button class="navigate-button small"
@@ -69,7 +72,8 @@
                         Update
                     </button>
                     <button class="navigate-button small"
-                            type="button">
+                            type="button"
+                            @onclick="@OnAddressesClick">
                         Addresses
                     </button>
                 </div>
@@ -104,10 +108,19 @@
                                     @token.TokenBalance.Description
                                 </div>
                             </div>
-                            <div>
-                                <a href="@token.AssetUrl" target="_blank">
-                                    <i class="icon asset-icon"/>
-                                </a>
+                            <div class="token-right-content">
+                                @if (token.IsIpfsAsset)
+                                {
+                                    <a href="@token.AssetUrl" target="_blank">
+                                        <i class="icon asset-icon"/>
+                                    </a>   
+                                }
+                                else
+                                {
+                                    <span>
+                                        @token.Balance
+                                    </span>
+                                }
                             </div>
                         </div>
                     </div>
@@ -118,7 +131,7 @@
                 <div class="contract-transfers-container">
                     <WalletDataTable
                         Variant="@WalletDataTable.AvailableVariants.Transactions"
-                        TransactionsData="@_tezTokenStrg.Transfers.Select(t => (Transaction)t).ToList()"
+                        TransactionsData="@_tezTokenStrg.Transfers.Select(t => (Transaction) t).ToList()"
                         ForTokens/>
                 </div>
             }
@@ -131,9 +144,11 @@
     [Parameter]
     public EventCallback OnReceiveClick { get; set; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-    }
+    [Parameter]
+    public EventCallback OnAddressesClick { get; set; }
+    
+    [Parameter]
+    public EventCallback OnConvertClick { get; set; }
 
     protected override void OnInitialized()
     {

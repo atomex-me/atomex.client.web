@@ -3,6 +3,7 @@
 @inject SwapStorage swapStorage;
 @inject IJSRuntime JSRuntime;
 @using atomex_frontend.Common;
+@using System.Collections.ObjectModel
 
 <div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant == AvailableVariants.Addresses ? "no-js" : "")">
     @if (Variant == AvailableVariants.Transactions &&
@@ -11,9 +12,9 @@
         <DetailTxInfo OpenedTx="@walletStorage.OpenedTx"
                       TransactionsData="@TransactionsData"
                       TxHeight="@(GetTxHeight(walletStorage.OpenedTx))"
-                      TxInfoBlockHeight="@GetTxInfoBlockHeight" />
+                      TxInfoBlockHeight="@GetTxInfoBlockHeight"/>
     }
-    <table class="@(ForTokens ? "tokens": "")">
+    <table class="@(ForTokens ? "tokens" : "")">
         @if (Variant == AvailableVariants.Currencies)
         {
             <thead class="js-resize-height">
@@ -142,13 +143,14 @@
                 <th>Address</th>
                 <th>Path</th>
                 <th>Balance</th>
+                <th>Token Balance</th>
                 <th>Update</th>
                 <th>Key</th>
             </tr>
             </thead>
 
             <tbody>
-            @foreach (var address in Addresses)
+            @foreach (var address in Addresses.Addresses)
             {
                 <tr>
                     <td class="transaction-desc">
@@ -164,11 +166,16 @@
                         @address.Balance
                     </td>
                     <td>
-                        <button class="refresh-address-button @(UpdatingAddress == address.Address ? "rotate" : "")" type="button"
+                        @address.TokenBalance
+                    </td>
+                    <td>
+                        <button class="refresh-address-button @(UpdatingAddress == address.Address ? "rotate" : "")"
+                                type="button"
                                 @onclick="@(() => OnUpdateAddress.InvokeAsync(address.Address))"/>
                     </td>
                     <td>
-                        <button class="copy-button priv-key" @onclick="@(() => OnCopyPrivateKey.InvokeAsync(address.Address))"
+                        <button class="copy-button priv-key"
+                                @onclick="@(() => OnCopyPrivateKey.InvokeAsync(address.Address))"
                                 type="button"/>
                     </td>
                 </tr>
@@ -182,7 +189,7 @@
 
     [Parameter]
     public AvailableVariants Variant { get; set; }
-    
+
     [Parameter]
     public bool ForTokens { get; set; }
 
@@ -196,7 +203,7 @@
     public IEnumerable<Swap> SwapsData { get; set; }
 
     [Parameter]
-    public IEnumerable<AddressInfo> Addresses { get; set; }
+    public AddressesViewModel Addresses { get; set; }
 
     [Parameter]
     public EventCallback<string> OnCopyPrivateKey { get; set; }
@@ -206,7 +213,7 @@
 
     [Parameter]
     public string UpdatingAddress { get; set; }
-    
+
 
     private CurrencyConfig getCurrency(string Currency)
     {
@@ -308,7 +315,7 @@
         walletStorage.RefreshRequested += StateHasChanged;
         swapStorage.RefreshRequested += StateHasChanged;
 
-        // height of Detail tx view block for Currencies;
+    // height of Detail tx view block for Currencies;
         TX_INFO_BLOCK_HEIGHT.Add("BTC", 118);
         TX_INFO_BLOCK_HEIGHT.Add("LTC", 118);
 
@@ -333,4 +340,5 @@
             await JSRuntime.InvokeVoidAsync("dragTable", ForTokens);
         }
     }
+
 }

@@ -1,22 +1,30 @@
 @using System.Globalization;
+@using Atomex.TezosTokens
 @using Serilog;
+@implements IDisposable;
 @inject IJSRuntime JSRuntime;
 @inject WalletStorage walletStorage;
 @inject AccountStorage accountStorage;
+@inject TezosTokenStorage _tezTokenStorage;
 
 <div class="modal__container">
     <div class="dark-background__no-grad modal-title">
         @Translations.Addresses
     </div>
 
-    @if (Addresses != null && Addresses.Count() > 0 && String.IsNullOrEmpty(ExportPrivKeyAddress))
+    @if (_addressVM.Addresses != null && _addressVM.Addresses.Count > 0 && String.IsNullOrEmpty(ExportPrivKeyAddress))
     {
         <WalletDataTable
             Variant="@WalletDataTable.AvailableVariants.Addresses"
-            Addresses="@Addresses"
+            Addresses="@_addressVM"
             OnCopyPrivateKey="@OnCopyPrivateKey"
             OnUpdateAddress="@OnUpdateAddress"
             UpdatingAddress="@UpdatingAddress"/>
+    }
+    
+    @if (_addressVM.Addresses == null || _addressVM.Addresses.Count == 0)
+    {
+        <p class="modal-subtitle">No addresses finded in local database, try to update @(_addressVM.Currency.Name).</p>
     }
 
     @if (!String.IsNullOrEmpty(Warning))
@@ -76,104 +84,63 @@
         set { _warning = value; }
     }
 
-    public bool HasWarning => !string.IsNullOrEmpty(Warning);
-
     private string UpdatingAddress = String.Empty;
 
     private async void OnUpdateAddress(string address)
     {
         Console.WriteLine($"Started updating {address}");
         UpdatingAddress = address;
-        await new HdWalletScanner(accountStorage.Account)
-            .ScanAddressAsync(_currency.Name, address)
-            .ConfigureAwait(false);
-
-        var balance = await accountStorage.Account
-            .GetAddressBalanceAsync(_currency.Name, address)
-            .ConfigureAwait(false);
-
-        await Load();
-
-        Console.WriteLine($"Ended updating {address}");
-
-        await JSRuntime.InvokeVoidAsync("showNotificationInWallet", Translations.AddressUpdated.Replace("{0}", UpdatingAddress));
+        
+        await _addressVM.Update(address);
+        
+        // await JSRuntime.InvokeVoidAsync("showNotificationInWallet", Translations.AddressUpdated.Replace("{0}", UpdatingAddress));
         UpdatingAddress = String.Empty;
+        Console.WriteLine($"Ended updating {address}");
         StateHasChanged();
-    }
-
-    public async Task Load()
-    {
-        try
-        {
-            var account = accountStorage.Account.GetCurrencyAccount(_currency.Name);
-
-            var addresses = (await account.GetAddressesAsync())
-                .ToList();
-
-            addresses.Sort((a1, a2) =>
-            {
-                var chainResult = a1.KeyIndex.Chain.CompareTo(a2.KeyIndex.Chain);
-
-                return chainResult == 0
-                    ? a1.KeyIndex.Index.CompareTo(a2.KeyIndex.Index)
-                    : chainResult;
-            });
-
-            Addresses = addresses.Select(a => new AddressInfo
-            {
-                Address = a.Address,
-                Path = $"m/44'/{_currency.Bip44Code}/0'/{a.KeyIndex.Chain}/{a.KeyIndex.Index}",
-                Balance = a.Balance.ToString(CultureInfo.InvariantCulture),
-            });
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Error while load addresses.");
-        }
     }
 
     private async void ExportKey()
     {
-        try
-        {
-            var walletAddress = await accountStorage.Account
-                .GetAddressAsync(_currency.Name, ExportPrivKeyAddress);
-
-            var hdWallet = accountStorage.Account.Wallet as HdWallet;
-
-            using var privateKey = hdWallet.KeyStorage
-                .GetPrivateKey(_currency, walletAddress.KeyIndex);
-
-            using var unsecuredPrivateKey = privateKey.ToUnsecuredBytes();
-
-            var pk = _currency is BitcoinBasedConfig btcBased
-                ? new NBitcoin.Key(unsecuredPrivateKey)
-                    .GetWif(btcBased.Network)
-                    .ToWif()
-                : Hex.ToHexString(unsecuredPrivateKey);
-
-            await JSRuntime.InvokeAsync<string>("copyTextToClipboard", pk);
-
-            Warning = Translations.PrivKeyCopied;
-        }
-        catch (Exception e)
-        {
-            Log.Error(e, "Private key export error");
-        }
-        finally
-        {
-            StateHasChanged();
-        }
+        var pk = await _addressVM.ExportKey(ExportPrivKeyAddress);
+        await JSRuntime.InvokeAsync<string>("copyTextToClipboard", pk);
+        Warning = Translations.PrivKeyCopied;
+        StateHasChanged();
     }
 
-    I18nText.Translations Translations = new I18nText.Translations();
+    private AddressesViewModel _addressVM { get; set; }
+
+    I18nText.Translations Translations = new();
 
     protected override async Task OnInitializedAsync()
     {
+        var tezosConfig = accountStorage.AtomexApp.Account
+            .Currencies
+            .GetByName(TezosConfig.Xtz);
+        
+        if (walletStorage.IsTezosTokensSelected)
+        {
+            _addressVM = new AddressesViewModel(accountStorage.AtomexApp, tezosConfig, _tezTokenStorage.TokenContract?.Contract?.Address);
+        }
+        else if (walletStorage.SelectedCurrency is Fa12Config)
+        {
+            var currency = walletStorage.SelectedCurrency as Fa12Config;
+            _addressVM = new AddressesViewModel(accountStorage.AtomexApp, tezosConfig, currency.TokenContractAddress);
+        }
+        else
+        {
+            _addressVM = new AddressesViewModel(accountStorage.AtomexApp, walletStorage.SelectedCurrency, null);
+        }
+
+        _addressVM.UIRefresh += StateHasChanged;
+
         Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
         walletStorage.RefreshRequested += StateHasChanged;
-
-        _ = Load();
+        
+    }
+    
+    void IDisposable.Dispose()
+    {
+        _addressVM.UIRefresh -= StateHasChanged;
     }
 
 }

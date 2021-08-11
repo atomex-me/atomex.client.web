@@ -52,7 +52,7 @@
         </div>
         <div class="wallet-page__container">
             <Modal IsOpen="@(WalletStorage.userMessage != null)" NoClose>
-                <UserMessageModal/>
+                <UserMessageModal />
             </Modal>
 
 
@@ -73,7 +73,10 @@
                     <CurrenciesRow/>
                     @if (WalletStorage.IsTezosTokensSelected)
                     {
-                        <TokensPage OnReceiveClick="@ReceiveOpenCloseHandler" />
+                        <TokensPage
+                            OnReceiveClick="@ReceiveOpenCloseHandler"
+                            OnAddressesClick="@OnAddressesOpenCloseHandler"
+                            OnConvertClick="@OnConvertHandler" />
                     }
                     else
                     {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
@@ -9,6 +10,7 @@ using atomex_frontend.atomex_data_structures;
 using Atomex.Blockchain.Tezos;
 using Atomex.Common;
 using Atomex.Services;
+using Atomex.TezosTokens;
 using Atomex.Wallet;
 using Atomex.Wallet.Tezos;
 using Serilog;
@@ -60,7 +62,7 @@ namespace atomex_frontend.Storages
         }
 
         public string Balance => TokenBalance.Balance != "1"
-            ? $"{TokenBalance.Balance}  {TokenBalance.Symbol}"
+            ? $"{TokenBalance.GetTokenBalance().ToString(CultureInfo.InvariantCulture)}  {TokenBalance.Symbol}"
             : "";
 
         public bool IsIpfsAsset => TokenBalance.ArtifactUri != null && HasIpfsPrefix(TokenBalance.ArtifactUri);
@@ -149,6 +151,9 @@ namespace atomex_frontend.Storages
         public bool IsFa12 => TokenContract?.IsFa12 ?? false;
         public bool IsFa2 => TokenContract?.IsFa2 ?? false;
         public bool LastWasFa2 { get; set; }
+        
+        public bool IsConvertable => _app.Account.Currencies
+            .Any(c => c is Fa12Config fa12 && fa12.TokenContractAddress == TokenContractAddress);
 
         public string TokenContractAddress => TokenContract?.Contract?.Address ?? "";
         public string TokenContractName => TokenContract?.Contract?.Name ?? "";
@@ -362,7 +367,9 @@ namespace atomex_frontend.Storages
             if (IsFa2 && !LastWasFa2)
                 CurrentVariant = Variant.Tokens;
 
-
+            _ws.SelectedTezTokenContractAddress = TokenContractAddress;
+            _ws.SelectedTezTokenContractIsFa12 = IsFa12;
+            
             _ws.OpenedTx = null;
             CallUIRefresh();
         }

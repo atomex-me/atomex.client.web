@@ -1161,7 +1161,7 @@ table>thead>tr>th:last-child {
 }
 
 .currency-card .token {
-    max-width: 500px;
+    width: 500px;
     margin: 0 auto;
 }
 
@@ -1252,7 +1252,7 @@ table>thead>tr>th:last-child {
 }
 
 .modal-window.big {
-    width: 950px;
+    width: 1020px;
 }
 
 .no-flex {
@@ -2640,9 +2640,15 @@ button {
 
 .contract-id {
     font-size: 14px;
+    text-align: left;
 }
 
 .new-badge {
     font-size: 0.8rem;
     margin-right: 3px;
+}
+
+.token-right-content {
+    display: flex;
+    align-items: center;
 }
