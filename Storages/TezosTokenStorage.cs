@@ -13,6 +13,8 @@ using Atomex.Services;
 using Atomex.TezosTokens;
 using Atomex.Wallet;
 using Atomex.Wallet.Tezos;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Serilog;
 
 namespace atomex_frontend.Storages
@@ -116,10 +118,56 @@ namespace atomex_frontend.Storages
 
     public class TezosTokenContractViewModel
     {
+        public Action UIRefresh;
         public TokenContract Contract { get; set; }
         public string IconUrl => $"https://services.tzkt.io/v1/avatars/{Contract.Address}";
         public bool IsFa12 => Contract.GetContractType() == "FA12";
         public bool IsFa2 => Contract.GetContractType() == "FA2";
+
+        private string _name;
+        public string Name
+        {
+            get
+            {
+                if (_name != null)
+                    return _name;
+
+                _ = TryGetAliasAsync();
+
+                _name = Contract.Name;
+                return _name;
+            }
+        }
+
+        private async Task TryGetAliasAsync()
+        {
+            try
+            {
+                var response = await HttpHelper.HttpClient
+                    .GetAsync($"https://api.tzkt.io/v1/accounts/{Contract.Address}")
+                    .ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                    return;
+
+                var stringResponse = await response.Content
+                    .ReadAsStringAsync()
+                    .ConfigureAwait(false);
+
+                var alias = JsonConvert.DeserializeObject<JObject>(stringResponse)
+                    ?["alias"]
+                    ?.Value<string>();
+
+                if (alias != null)
+                    _name = alias;
+
+                UIRefresh?.Invoke();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Alias getting error.");
+            }
+        }
     }
 
     public class TezosTokenStorage
@@ -142,7 +190,6 @@ namespace atomex_frontend.Storages
                 LastWasFa2 = _tokenContract?.IsFa2 ?? false;
                 _tokenContract = value;
                 
-                Console.WriteLine($"Setting TokenContract to {value.Contract.Address}");
                 TokenContractChanged(TokenContract);
             }
         }
@@ -156,8 +203,7 @@ namespace atomex_frontend.Storages
             .Any(c => c is Fa12Config fa12 && fa12.TokenContractAddress == TokenContractAddress);
 
         public string TokenContractAddress => TokenContract?.Contract?.Address ?? "";
-        public string TokenContractName => TokenContract?.Contract?.Name ?? "";
-        public string TokenContractIconUrl => TokenContract?.IconUrl;
+        public string TokenContractName => TokenContract?.Name ?? "";
 
         public decimal Balance { get; set; }
         public string BalanceFormat { get; set; }
@@ -243,7 +289,11 @@ namespace atomex_frontend.Storages
                     .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz)
                     .DataRepository
                     .GetTezosTokenContractsAsync())
-                .Select(c => new TezosTokenContractViewModel {Contract = c});
+                .Select(c => new TezosTokenContractViewModel
+                {
+                    UIRefresh = CallUIRefresh,
+                    Contract = c
+                });
 
             if (TokensContracts != null)
             {
@@ -254,8 +304,6 @@ namespace atomex_frontend.Storages
                         (x, y) => x.Contract.Address.Equals(y.Contract.Address),
                         x => x.Contract.Address.GetHashCode()));
                 
-                Console.WriteLine($"ReloadTokenContractsAsync loaded token KTs {newTokenContracts.Count()}");
-
                 if (newTokenContracts.Any())
                 {
                     foreach (var newTokenContract in newTokenContracts)
@@ -268,7 +316,6 @@ namespace atomex_frontend.Storages
                 }
                 else
                 {
-                    Console.WriteLine($"newTokenContracts.Any() else {TokenContract}");
                     // update current token contract
                     if (TokenContract != null)
                         TokenContractChanged(TokenContract);
@@ -276,7 +323,7 @@ namespace atomex_frontend.Storages
             }
             else
             {
-                Console.WriteLine($"tokensContractsViewModels count {tokensContractsViewModels.Count()}");
+
                 TokensContracts = new ObservableCollection<TezosTokenContractViewModel>(tokensContractsViewModels);
                 
                 TokenContract = TokensContracts.FirstOrDefault();
@@ -345,32 +392,17 @@ namespace atomex_frontend.Storages
                         .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
                     .OrderByDescending(t => t.CreationTime)
                     .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
-
-                foreach (var ta in tokenAddresses)
-                {
-                    Console.WriteLine($"token address {ta.Address}");
-                }
+                
 
                 Tokens = new ObservableCollection<TezosTokenViewModel>(tokenAddresses
+                    .Where(a => a.Balance != 0)
                     .Select(a => new TezosTokenViewModel
                     {
                         TokenBalance = a.TokenBalance,
                         PreviewLoaded = CallUIRefresh
                     }));
             }
-
-            Console.WriteLine($"Transfers: {Transfers.Count}");
-            foreach (var transfer in Transfers)
-            {
-                Console.WriteLine(transfer.Id);
-            }
             
-            Console.WriteLine($"Tokens: {Tokens.Count}");
-            foreach (var token in Tokens)
-            {
-                Console.WriteLine(token.AssetUrl);
-            }
-
             if (IsFa12)
                 CurrentVariant = Variant.Transfers;
 

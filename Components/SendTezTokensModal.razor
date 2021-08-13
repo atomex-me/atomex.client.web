@@ -1,0 +1,366 @@
+@inject WalletStorage walletStorage;
+@inject AccountStorage _accountStorage;
+@inject TezosTokenStorage _tezTokenStrg;
+@using System.Timers;
+@using atomex_frontend.Common;
+@using Atomex;
+@using Atomex.EthereumTokens;
+@using Atomex.Wallet.Abstract
+@using Serilog;
+@using System.Globalization
+@implements IDisposable;
+
+<div class="modal__container loading-container">
+    <div class="dark-background__no-grad modal-title">
+        @if (State == States.SendingData)
+        {
+            @Translations.Send
+        }
+        @if (State == States.Confirmation)
+        {
+            @Translations.SendConfirmation
+        }
+        @if (State == States.Sending)
+        {
+            @Translations.Sending
+        }
+        @if (State == States.Success)
+        {
+            @Translations.Success
+        }
+        @if (State == States.Error)
+        {
+            @Translations.Error
+        }
+    </div>
+
+    <div class="modal-subtitle">
+        @if (State == States.SendingData)
+        {
+            @("Instantly sending of Tezos FA12/FA2 tokens.")
+        }
+        @if (State == States.Confirmation)
+        {
+            @String.Concat(Translations.DoYouReallyWant, ":")
+        }
+        @if (State == States.Success)
+        {
+            @Translations.SendingWasSuccessfull
+        }
+        @if (State == States.Error && _sendVM?.SendConfirmationViewModel?.Error != null)
+        {
+            @_sendVM.SendConfirmationViewModel.Error.Description
+        }
+
+        @if (State == States.Error && _sendVM?.SendConfirmationViewModel?.Error != null)
+        {
+            @_sendVM.SendConfirmationViewModel.Error.Description
+        }
+    </div>
+    @if (State == States.Sending)
+    {
+        <Loader ClassName="sending"/>
+    }
+
+    @if (State == States.SendingData)
+    {
+        <DropdownCustom
+            Description="From address:"
+            OnAddressChange="@(address => _sendVM.From = address)"
+            Addresses="@_sendVM.FromAddresses.ToList()"
+            SelectedAddress="@_sendVM.From"
+            Disabled="@_tezTokenStrg.TokenContract.IsFa2"/>
+        
+        <Input
+            Description="Token contract:"
+            InputType="text"
+            InputName="sendTokenContract"
+            Value="@_sendVM.TokenContract"
+            OnChange="@TokenContractChange"
+            Theme="dark"
+            Disabled="@_tezTokenStrg.TokenContract.IsFa2"/>
+
+        <Input
+            Description="Token Id:"
+            InputType="text"
+            InputName="sendTokenId"
+            Value="@Helper.DecimalToStr(_sendVM.TokenId)"
+            OnChange="@SendAddressChange"
+            Theme="dark"
+            Disabled="@_tezTokenStrg.TokenContract.IsFa2"/>
+
+        <Input
+            Description="To address:"
+            InputType="text"
+            InputName="sendTokenAddreess"
+            Value="@_sendVM.To"
+            OnChange="@SendAddressChange"
+            Theme="dark"/>
+
+        <div class="flex">
+            <Input
+                Description="@($"Amount, {_sendVM.CurrencyCode}:")"
+                InputType="number"
+                InputName="sendAmount"
+                Theme="dark"
+                Value="@Helper.DecimalToStr(_sendVM.Amount)"
+                OnChange="@SendAmountChange"
+                AdditionalRightInfo="@($"{_sendVM.AmountInBase.ToString(_sendVM.BaseCurrencyFormat, CultureInfo.InvariantCulture)} USD")"
+                WithButton="right"/>
+            <NavigateButton Variant="right" OnClick="@_sendVM.OnMaxClick">MAX</NavigateButton>
+        </div>
+
+        <Input
+            Description="@($"Fee, {_sendVM.FeeCurrencyCode}:")"
+            InputType="number"
+            InputName="minersFee"
+            Theme="dark"
+            Value="@Helper.DecimalToStr(_sendVM.Fee)"
+            OnChange="@SendFeeChange"
+            AdditionalRightInfo="@($"{_sendVM.FeeInBase.ToString(_sendVM.BaseCurrencyFormat, CultureInfo.InvariantCulture)} USD")"
+            Disabled="@(FeeInputDisabled)"/>
+
+        <Checkbox
+            Checked="@_sendVM.UseDefaultFee"
+            Description="@Translations.UseDefaultFee"
+            OnChange="@OnUseDefaultFeeChange"/>
+
+        @if (!String.IsNullOrEmpty(_sendVM.Warning))
+        {
+            <div class="send-warning">@_sendVM.Warning</div>
+        }
+    }
+
+    @if (State == States.Confirmation)
+    {
+        <div class="send-confirmation__container">
+            <div>
+                <span class="send-confirmation__label">to send:</span>
+                <span class="send-confirmation__coin">
+                    @_sendVM.SendConfirmationViewModel.Amount.ToString(_sendVM.SendConfirmationViewModel.CurrencyFormat, CultureInfo.InvariantCulture) <span class="currency-code">@_sendVM.SendConfirmationViewModel.CurrencyCode</span>
+                </span>
+                <span class="send-confirmation__usd">(@_sendVM.SendConfirmationViewModel.AmountInBase.ToString(_sendVM.SendConfirmationViewModel.BaseCurrencyFormat, CultureInfo.InvariantCulture) <span class="currency-code">@_sendVM.SendConfirmationViewModel.BaseCurrencyCode</span>)</span>
+            </div>
+            <div>
+                <span class="send-confirmation__label">to address:</span>
+                <span class="send-confirmation__address">@_sendVM.SendConfirmationViewModel.To</span>
+            </div>
+            <div>
+                <span class="send-confirmation__label">with comission:</span>
+                <span class="send-confirmation__coin">
+                    @_sendVM.SendConfirmationViewModel.Fee.ToString(_sendVM.SendConfirmationViewModel.FeeCurrencyFormat, CultureInfo.InvariantCulture) <span class="currency-code">@_sendVM.SendConfirmationViewModel.FeeCurrencyCode</span>
+                </span>
+                <span class="send-confirmation__usd">(@_sendVM.SendConfirmationViewModel.FeeInBase.ToString(_sendVM.SendConfirmationViewModel.BaseCurrencyFormat, CultureInfo.InvariantCulture) <span class="currency-code">@_sendVM.SendConfirmationViewModel.BaseCurrencyCode</span>)</span>
+            </div>
+        </div>
+    }
+
+    <div class="modal-buttons-container">
+        <div>
+            @if (State == States.SendingData || State == States.Confirmation)
+            {
+                <NavigateButton Variant="left" OnClick="handleCancel">
+                    @if (State == States.SendingData)
+                    {
+                        @Translations.Cancel
+                    }
+                    @if (State == States.Confirmation)
+                    {
+                        @Translations.No
+                    }
+                </NavigateButton>
+                <NavigateButton Variant="right" OnClick="OnNextClick" Disabled="@(!GetFormValid)">
+                    @if (State == States.SendingData)
+                    {
+                        @Translations.Send
+                    }
+                    @if (State == States.Confirmation)
+                    {
+                        @Translations.Yes
+                    }
+                </NavigateButton>
+            }
+            @if (State == States.Success)
+            {
+                <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
+            }
+            @if (State == States.Error)
+            {
+                <NavigateButton Variant="center" OnClick="handleCancel">OK</NavigateButton>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+
+    [Parameter]
+    public EventCallback OnCancelClick { get; set; }
+
+    [Parameter]
+    public TezosTokenViewModel SendClickedToken { get; set; }
+
+    private bool GetFormValid => true;
+    private bool GetAddressError => false;
+    private States State { get; set; } = States.SendingData;
+
+    private async void handleCancel()
+    {
+        if (State == States.Confirmation)
+        {
+            State = States.SendingData;
+        }
+        else
+        {
+            await OnCancelClick.InvokeAsync(null);
+        }
+    }
+
+    private bool FeeInputDisabled => _sendVM.UseDefaultFee;
+
+    private Timer debounceInputAmount;
+    private Timer debounceInputFee;
+    private Timer debounceInputAddress;
+    private Timer debounceInputContract;
+
+    private string SendingAmountString = "0";
+    private string SendingFeeString = "0";
+    private string SendingAddress = "";
+    private string TokenContract = "";
+
+    private void SendAddressChange(string address)
+    {
+        debounceInputAddress.Stop();
+        debounceInputAddress.Start();
+        SendingAddress = address;
+    }
+    
+    private void TokenContractChange(string contract)
+    {
+        debounceInputContract.Stop();
+        debounceInputContract.Start();
+        TokenContract = contract;
+    }
+
+    private void SendAmountChange(string amount)
+    {
+        debounceInputAmount.Stop();
+        debounceInputAmount.Start();
+        SendingAmountString = amount;
+    }
+
+    private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { _sendVM.Amount = Helper.StrToDecimal(SendingAmountString); });
+    }
+
+    private void OnUserFinishAddress(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { _sendVM.To = SendingAddress; });
+    }
+    
+    private void OnUserFinishContract(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { _sendVM.TokenContract = TokenContract; });
+    }
+
+    private void SendFeeChange(string fee)
+    {
+        debounceInputFee.Stop();
+        debounceInputFee.Start();
+        SendingFeeString = fee;
+    }
+
+    private void OnUserFinishFee(Object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() => { _sendVM.Fee = Helper.StrToDecimal(SendingFeeString); });
+    }
+
+    private void OnUseDefaultFeeChange(bool value)
+    {
+        _sendVM.UseDefaultFee = value;
+    }
+
+    private async void OnNextClick()
+    {
+        if (State == States.SendingData)
+        {
+            await _sendVM.OnNextCommand();
+            if (String.IsNullOrEmpty(_sendVM.Warning))
+            {
+                State = States.Confirmation;
+            }
+            return;
+        }
+        if (State == States.Confirmation)
+        {
+            State = States.Sending;
+            await _sendVM.SendConfirmationViewModel.Send();
+
+            if (_sendVM.SendConfirmationViewModel.Error == null)
+            {
+                State = States.Success;
+            }
+            else
+            {
+                State = States.Error;
+            }
+
+            StateHasChanged();
+        }
+    }
+
+    private TezosTokensSendViewModel _sendVM { get; set; }
+
+    I18nText.Translations Translations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+
+        _sendVM = new TezosTokensSendViewModel(
+            Translations,
+            app: _accountStorage.AtomexApp,
+            from: null,
+            tokenContract: _tezTokenStrg.TokenContract?.Contract?.Address,
+            tokenId: SendClickedToken?.TokenBalance?.TokenId ?? 0);
+
+        _sendVM.UIRefresh += StateHasChanged;
+
+        await I18nText.SetCurrentLanguageAsync(UserStorage.LangCodes.en.ToName());
+        walletStorage.UseDefaultFee = true;
+
+        walletStorage.RefreshRequested += StateHasChanged;
+
+        debounceInputAmount = new Timer(850);
+        debounceInputAmount.Elapsed += OnUserFinishAmount;
+        debounceInputAmount.AutoReset = false;
+
+        debounceInputFee = new Timer(850);
+        debounceInputFee.Elapsed += OnUserFinishFee;
+        debounceInputFee.AutoReset = false;
+
+        debounceInputAddress = new Timer(850);
+        debounceInputAddress.Elapsed += OnUserFinishAddress;
+        debounceInputAddress.AutoReset = false;
+        
+        debounceInputContract = new Timer(850);
+        debounceInputContract.Elapsed += OnUserFinishContract;
+        debounceInputContract.AutoReset = false;
+    }
+
+    void IDisposable.Dispose()
+    {
+        _sendVM.UIRefresh -= StateHasChanged;
+    }
+
+    private enum States
+    {
+        SendingData,
+        Confirmation,
+        Sending,
+        Success,
+        Error
+    }
+
+}

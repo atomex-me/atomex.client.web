@@ -417,11 +417,11 @@ app {
     background-color: var(--dark-blue-background);
     display: flex;
     align-items: center;
-    padding-left: 40px;
+    justify-content: flex-end;
+    padding: 0 15px;
     border-top-left-radius: 3.5em;
     border-bottom-left-radius: 3.5em;
-    padding-right: 15px;
-    min-width: 140px;
+    min-width: 160px;
 }
 
 .input-description.dark {
@@ -2651,6 +2651,10 @@ button {
 .token-right-content {
     display: flex;
     align-items: center;
+}
+
+.token-right-content > button {
+    margin-right: 15px;
 }
 
 .updating-tez-tokens__text {

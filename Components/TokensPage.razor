@@ -1,6 +1,9 @@
 @using System.Globalization
+@using atomex_frontend.I18nText
 @inject WalletStorage _walletStorage;
+@inject AccountStorage _accountStorage;
 @inject TezosTokenStorage _tezTokenStrg;
+@implements IDisposable;
 
 <div class="tokens-container @(_tezTokenStrg.IsBalanceUpdating ? "disabled" : "")">
     <div class="wallet-page__left-nav solid-dark-background tokens">
@@ -17,7 +20,7 @@
                         <div class="contract-btn-container__description">
                             <div>
                                 <div class="trunc-text contract-name">
-                                    @contract.Contract.Name
+                                    @contract.Name
                                 </div>
                                 <div class="contract-id trunc-text">
                                     @CurrHelper.GetShortTezosAddress(contract.Contract.Id, 10, 10)
@@ -61,20 +64,27 @@
                     </div>
                 }
                 <div class="currency-card__buttons">
-                    <button class="navigate-button small"
-                            type="button">
-                        Send
-                    </button>
+                    @if (_tezTokenStrg.IsFa12)
+                    {
+                        <button class="navigate-button small"
+                                type="button"
+                                @onclick="@SendOpenCloseHandler">
+                            Send
+                        </button>   
+                    }
                     <button class="navigate-button small"
                             type="button"
                             @onclick="@OnReceiveClick">
                         Receive
                     </button>
-                    <button class="navigate-button small @(!_tezTokenStrg.IsConvertable ? "disabled" : "")"
-                            type="button"
-                            @onclick="@OnConvertClick">
-                        Convert
-                    </button>
+                    @if (_tezTokenStrg.IsFa12)
+                    {
+                        <button class="navigate-button small"
+                                type="button"
+                                @onclick="@OnConvertClick">
+                            Convert
+                        </button>
+                    }
                     <button class="navigate-button small"
                             type="button"
                             @onclick="@_tezTokenStrg.OnUpdateClick">
@@ -118,6 +128,11 @@
                                 </div>
                             </div>
                             <div class="token-right-content">
+                                <button class="navigate-button small"
+                                        type="button"
+                                        @onclick="@(() => SendFa2Click(token))">
+                                    Send
+                                </button>
                                 @if (token.IsIpfsAsset)
                                 {
                                     <a href="@token.AssetUrl" target="_blank">
@@ -146,6 +161,11 @@
             }
         </div>
     </div>
+    <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
+        <SendTezTokensModal
+            SendClickedToken="@SendClickedToken"
+            OnCancelClick="@SendOpenCloseHandler"/>
+    </Modal>
 </div>
 
 @code
@@ -159,8 +179,36 @@
     [Parameter]
     public EventCallback OnConvertClick { get; set; }
 
-    protected override void OnInitialized()
+
+    private TezosTokenViewModel SendClickedToken { get; set; }
+
+    private bool SendModalOpened { get; set; }
+    
+    private void SendOpenCloseHandler()
+    {
+        SendModalOpened = !SendModalOpened;
+
+        if (!SendModalOpened) SendClickedToken = null;
+    }
+
+    private void SendFa2Click(TezosTokenViewModel tokenViewModel)
+    {
+        SendClickedToken = tokenViewModel;
+        SendOpenCloseHandler();
+    }
+
+    private Translations translations;
+
+    protected override async void OnInitialized()
     {
         _tezTokenStrg.UIRefresh += StateHasChanged;
+        
+        if (translations == null) 
+            translations = await I18nText.GetTextTableAsync<Translations>(this);
+    }
+
+    public void Dispose()
+    {
+        _tezTokenStrg.UIRefresh -= StateHasChanged;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -95,6 +96,16 @@ namespace atomex_frontend
         list[k] = list[n];
         list[n] = value;
       }
+    }
+  }
+  
+  public static class DecimalExtension
+  {
+    public static decimal TruncateByFormat(this decimal d, string format)
+    {
+      var s = d.ToString(format, CultureInfo.InvariantCulture);
+
+      return decimal.Parse(s, CultureInfo.InvariantCulture);
     }
   }
 }

@@ -1,7 +1,7 @@
 @using System.Globalization
 @inject WalletStorage walletStorage;
 <div>
-    <div class="atomex-input-container @(!string.IsNullOrEmpty(Description) ? "with-description" : "")">
+    <div class="atomex-input-container @(!string.IsNullOrEmpty(Description) ? "with-description" : "") @(Disabled ? "disabled" : "")">
         @if (Description != null)
         {
             <div class="input-description light @(ForEth ? "for-eth-address" : "")">
@@ -76,6 +76,9 @@
 
     [Parameter]
     public string SelectedAddress { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
 
     [Parameter]
     public bool ForEth { get; set; }
