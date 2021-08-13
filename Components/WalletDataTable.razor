@@ -154,7 +154,7 @@
             {
                 <tr>
                     <td class="transaction-desc">
-                        <a href="@($"{walletStorage.SelectedCurrency.AddressExplorerUri}{address.Address}")" target="_blank">
+                        <a href="@(Addresses.GetExplorerUrl(address.Address))" target="_blank">
                             @address.Address
                         </a>
                         <button class="copy-button small" @onclick="@(() => OnCopyAddressClick(address.Address))" type="button"/>

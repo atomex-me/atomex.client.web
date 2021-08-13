@@ -524,9 +524,11 @@ namespace atomex_frontend.Storages
                     .GetCurrencyAccount(TezosConfig.Xtz)
                     .GetAddressAsync(_selectedAddress.Address)
                     .WaitForResult();
-
-                using var securePublicKey = App.Account.Wallet
-                    .GetPublicKey(_tezosConfig, walletAddress.KeyIndex);
+                
+                using var securePublicKey = App.Account.Wallet.GetPublicKey(
+                    currency: _tezosConfig,
+                    keyIndex: walletAddress.KeyIndex,
+                    keyType: walletAddress.KeyType);
 
                 var isSuccess = await tx.FillOperationsAsync(
                     securePublicKey: securePublicKey,
@@ -629,9 +631,11 @@ namespace atomex_frontend.Storages
                     .GetCurrencyAccount(TezosConfig.Xtz)
                     .GetAddressAsync(_selectedAddress.Address)
                     .WaitForResult();
-
-                using var securePublicKey = App.Account.Wallet
-                    .GetPublicKey(_tezosConfig, walletAddress.KeyIndex);
+                
+                using var securePublicKey = App.Account.Wallet.GetPublicKey(
+                    currency: _tezosConfig,
+                    keyIndex: walletAddress.KeyIndex,
+                    keyType: walletAddress.KeyType);
 
                 var isSuccess = await tx.FillOperationsAsync(
                     securePublicKey: securePublicKey,
@@ -698,8 +702,10 @@ namespace atomex_frontend.Storages
                     .GetAddressAsync(_selectedAddress.Address)
                     .WaitForResult();
 
-                using var securePublicKey = App.Account.Wallet
-                    .GetPublicKey(Currency, walletAddress.KeyIndex);
+                using var securePublicKey = App.Account.Wallet.GetPublicKey(
+                    currency: Currency,
+                    keyIndex: walletAddress.KeyIndex,
+                    keyType: walletAddress.KeyType);
 
                 await tx.FillOperationsAsync(
                     securePublicKey: securePublicKey,
