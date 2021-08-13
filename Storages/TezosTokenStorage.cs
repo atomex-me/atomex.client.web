@@ -332,7 +332,6 @@ namespace atomex_frontend.Storages
 
         private async void TokenContractChanged(TezosTokenContractViewModel tokenContract)
         {
-            Console.WriteLine($"Setting tokenContract to {tokenContract}");
             if (tokenContract == null)
             {
                 Tokens = new ObservableCollection<TezosTokenViewModel>();
@@ -426,7 +425,6 @@ namespace atomex_frontend.Storages
             _cancellation = new CancellationTokenSource();
 
             Console.WriteLine("Tokens balance updating...");
-
             try
             {
                 var tezosAccount = _app.Account
@@ -451,17 +449,14 @@ namespace atomex_frontend.Storages
             }
             catch (OperationCanceledException)
             {
-                Log.Debug("Wallet update operation canceled");
-                Console.WriteLine("Wallet update operation canceled");
+                Log.Debug("Tezos tokens update operation canceled");
             }
             catch (Exception e)
             {
-                Log.Error(e, "WalletViewModel.OnUpdateClick");
-                Console.WriteLine("WalletViewModel.OnUpdateClick");
+                Log.Error(e, "Exception during update TezosTokens");
                 // todo: message to user!?
             }
             
-
             IsBalanceUpdating = false;
         }
     }

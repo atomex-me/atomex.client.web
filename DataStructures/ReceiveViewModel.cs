@@ -54,7 +54,7 @@ namespace atomex_frontend.atomex_data_structures
                             // main address
                             var address = g.FirstOrDefault(w => w.Currency == _currency.Name);
 
-                            var isFreeAddress = address.Address == freeAddress.Address;
+                            var isFreeAddress = address?.Address == freeAddress.Address;
 
                             var hasTokens = g.Any(w => w.Currency != _currency.Name);
 
@@ -144,8 +144,6 @@ namespace atomex_frontend.atomex_data_structures
             
             TokenContract = tokenContract;
             Currency = currency;
-            
-            Console.WriteLine($"Created ReceiveViewModel with curr {Currency.Name} and TokenContr {TokenContract}");
         }
 
         protected virtual string GetDefaultAddress()

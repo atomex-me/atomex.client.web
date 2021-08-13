@@ -531,6 +531,7 @@ namespace atomex_frontend.Storages
                 var tezosConfig = accountStorage.Account
                     .Currencies
                     .GetByName(TezosConfig.Xtz);
+                
                 TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
 
                 await bakerStorage.LoadBakerList();
@@ -542,6 +543,7 @@ namespace atomex_frontend.Storages
                 if (accountStorage.LoadingUpdate && !accountStorage.LoadFromRestore)
                 {
                     await ScanAllCurrencies();
+                    accountStorage.LoadingUpdate = false;
                 }
 
                 URIHelper.NavigateTo("/wallet");
@@ -683,7 +685,38 @@ namespace atomex_frontend.Storages
         {
             AllPortfolioUpdating = true;
             var currencies = accountStorage.Account.Currencies.ToList();
-            await Task.WhenAll(currencies.Select(currency => ScanCurrencyAsync(currency, scanningAll: true)));
+            try
+            {
+                await Task.WhenAll(currencies.Select(currency => ScanCurrencyAsync(currency, scanningAll: true)));
+                var tezosAccount = accountStorage.Account
+                    .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz);
+
+                var tezosTokensScanner = new TezosTokensScanner(tezosAccount);
+
+                await tezosTokensScanner.ScanAsync(
+                    skipUsed: false,
+                    cancellationToken: default);
+
+                // reload balances for all tezos tokens account
+                foreach (var currency in accountStorage.Account.Currencies)
+                {
+                    if (Currencies.IsTezosToken(currency.Name))
+                        accountStorage.Account
+                            .GetCurrencyAccount<TezosTokenAccount>(currency.Name)
+                            .ReloadBalances();
+                }
+
+                Console.WriteLine("Tokens balance updating finished!");
+            }
+            catch (OperationCanceledException)
+            {
+                Log.Debug("Tezos tokens update operation canceled");
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Exception during update TezosTokens");
+                // todo: message to user!?
+            }
             AllPortfolioUpdating = false;
         }
 

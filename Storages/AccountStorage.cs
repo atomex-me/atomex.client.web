@@ -57,7 +57,6 @@ namespace atomex_frontend.Storages
 
     public bool LoadingUpdate = false;
 
-    private int CURRENT_DB_VERSION = 3;
     public AccountDataRepository ADR;
     private NavigationManager URIHelper;
     public IAccount Account { get; set; }
@@ -231,23 +230,29 @@ namespace atomex_frontend.Storages
     [JSInvokableAttribute("LoadWallet")]
     public async void LoadWallet(string data, int dbVersion)
     {
-      Console.WriteLine("Loading wallet....");
+      Console.WriteLine($"Loading wallet with db version {dbVersion}");
 
-      if (dbVersion == 0 && CURRENT_DB_VERSION == 1 && CurrentNetwork == Network.TestNet)
+      if (dbVersion == 1 && CurrentNetwork == Network.TestNet)
       {
-        await migradeDB_0_TO_1();
+        await MigrateFrom_0_to_1();
         return;
       }
 
-      if ((dbVersion == 0 || dbVersion == 1) && CURRENT_DB_VERSION == 2 && CurrentNetwork == Network.MainNet)
+      if (dbVersion == 1 && CurrentNetwork == Network.MainNet)
       {
-        await migradeDB_0_OR_1_TO_2();
+        await MigrateFrom_1_to_2();
         return;
       }
 
-      if ((dbVersion == 0 || dbVersion == 1 || dbVersion == 2) && CURRENT_DB_VERSION == 3 && CurrentNetwork == Network.MainNet)
+      if (dbVersion == 2 && CurrentNetwork == Network.MainNet)
       {
-        await migradeDB_TO_3();
+        await MigrateFrom_2_to_3();
+        return;
+      }
+      
+      if (dbVersion == 3 && CurrentNetwork == Network.MainNet)
+      {
+        await MigrateFrom_3_to_4();
         return;
       }
 
@@ -302,7 +307,7 @@ namespace atomex_frontend.Storages
 
         AtomexApp.Start();
 
-        this.CallInitialize(IsRestarting: true);
+        CallInitialize(IsRestarting: true);
         Console.WriteLine($"Restarting: switched to Account with {CurrentWalletName} wallet");
         return;
       }
@@ -333,13 +338,13 @@ namespace atomex_frontend.Storages
       AtomexApp.Terminal.ServiceDisconnected += OnTerminalServiceStateChangedEventHandler;
 
       Console.WriteLine($"Starting Atomex app with {CurrentWalletName} wallet with data {data.Length}");
-      this.CallInitialize(IsRestarting: false);
+      CallInitialize(IsRestarting: false);
       AtomexApp.Start();
     }
 
     private void SaveDataCallback(AccountDataRepository.AvailableDataType type, string key, string value)
     {
-      jSRuntime.InvokeAsync<string>("saveData", new string[] { type.ToName(), CurrentWalletName, key, value }); // todo: delete tx in InexedDB
+      jSRuntime.InvokeAsync<string>("saveData", new [] { type.ToName(), CurrentWalletName, key, value });
     }
 
     private void OnTerminalServiceStateChangedEventHandler(object sender, TerminalServiceEventArgs args)
@@ -435,19 +440,19 @@ namespace atomex_frontend.Storages
 
     private void InitializeAtomexConfigs()
     {
-      this.coreAssembly = AppDomain.CurrentDomain
+      coreAssembly = AppDomain.CurrentDomain
         .GetAssemblies()
         .FirstOrDefault(a => a.GetName().Name == "Atomex.Client.Core");
 
-      this.currenciesConfiguration = new ConfigurationBuilder()
+      currenciesConfiguration = new ConfigurationBuilder()
         .AddEmbeddedJsonFile(coreAssembly, "currencies.json")
         .Build();
 
-      this.symbolsConfiguration = new ConfigurationBuilder()
+      symbolsConfiguration = new ConfigurationBuilder()
         .AddEmbeddedJsonFile(coreAssembly, "symbols.json")
         .Build();
 
-      this.currenciesProvider = new CurrenciesProvider(CurrenciesConfigurationJson(coreAssembly));
+      currenciesProvider = new CurrenciesProvider(CurrenciesConfigurationJson(coreAssembly));
 
       Currencies = currenciesProvider.GetCurrencies(CurrentNetwork);
     }
@@ -463,37 +468,53 @@ namespace atomex_frontend.Storages
         return reader.ReadToEnd();
     }
 
-    private async Task migradeDB_0_TO_1()
+    private async Task MigrateFrom_0_to_1()
     {
-      Console.WriteLine($"Applying migration database to verson {CURRENT_DB_VERSION}.");
+      int TARGET_VER = 1;
+      Console.WriteLine($"Applying migration database to verson {1}.");
 
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
-      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
+      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
       _ = ConnectToWallet(CurrentWalletName, _password);
     }
 
-    private async Task migradeDB_0_OR_1_TO_2()
+    private async Task MigrateFrom_1_to_2()
     {
-      Console.WriteLine($"Applying migration database to verson {CURRENT_DB_VERSION}.");
+      int TARGET_VER = 2;
+      Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
 
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Output.ToName(), CurrentWalletName);
-      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
+      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
       _ = ConnectToWallet(CurrentWalletName, _password);
     }
 
-    private async Task migradeDB_TO_3()
+    private async Task MigrateFrom_2_to_3()
     {
-      Console.WriteLine($"Applying migration database to verson {CURRENT_DB_VERSION}.");
+      int TARGET_VER = 3;
+      Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
 
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Output.ToName(), CurrentWalletName);
-      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, CURRENT_DB_VERSION);
+      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
+
+      Console.WriteLine("Migration applied, DB version saved, restarting.");
+      LoadingUpdate = true;
+      _ = ConnectToWallet(CurrentWalletName, _password);
+    }
+    
+    private async Task MigrateFrom_3_to_4()
+    {
+      int TARGET_VER = 4;
+      Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
+
+      await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
+      await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
       LoadingUpdate = true;
