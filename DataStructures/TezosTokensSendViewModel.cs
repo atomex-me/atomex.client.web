@@ -227,7 +227,7 @@ namespace atomex_frontend.atomex_data_structures
 
         public SendConfirmationViewModel SendConfirmationViewModel { get; set; }
 
-        Translations Translations = new();
+        Translations Translations = new Translations();
         
         public event Action UIRefresh;
         private void CallUIRefresh()

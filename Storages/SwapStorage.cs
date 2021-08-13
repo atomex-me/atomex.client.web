@@ -16,6 +16,7 @@ using Atomex.Swaps;
 using Serilog;
 using Microsoft.JSInterop;
 using atomex_frontend.Common;
+using atomex_frontend.I18nText;
 using Atomex.Wallet.Abstract;
 
 namespace atomex_frontend.Storages
@@ -38,7 +39,7 @@ namespace atomex_frontend.Storages
         }
 
         private IJSRuntime jSRuntime;
-        I18nText.Translations Translations = new();
+        Translations Translations = new Translations();
 
         private async void LoadTranslations(Toolbelt.Blazor.I18nText.I18nText I18nText)
         {
