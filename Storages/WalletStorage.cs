@@ -540,10 +540,10 @@ namespace atomex_frontend.Storages
                 _selectedCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("BTC");
                 _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("XTZ");
 
-                if (accountStorage.LoadingUpdate && !accountStorage.LoadFromRestore)
+                if (accountStorage.UpdateAllCurrencies && !accountStorage.LoadFromRestore)
                 {
                     await ScanAllCurrencies();
-                    accountStorage.LoadingUpdate = false;
+                    accountStorage.UpdateAllCurrencies = false;
                 }
 
                 URIHelper.NavigateTo("/wallet");
@@ -900,9 +900,7 @@ namespace atomex_frontend.Storages
                         .SortList((t1, t2) => t2.Time.CompareTo(t1.Time))
                         .ToList()
                 );
-
-                Console.WriteLine($"Finded {transfersList.Count} fa12 transfers;");
-
+                
                 foreach (var tx in transfersList)
                 {
                     TezosTokenTransferViewModel oldTx;

@@ -129,7 +129,9 @@ async function saveData(type, walletName, dbId, value) {
     }
 
     if (type === "RemoveWalletAddress") {
-        debugger;
+        addressesToRemove.push(dbId);
+        debouncedRemoveAddress(walletName);
+        return;
     }
 
     const dbKey = `${walletName}/${type}`;
@@ -147,6 +149,29 @@ async function saveData(type, walletName, dbId, value) {
             setDataUnsync();
         }
     }
+}
+
+let addressesToRemove = [];
+
+async function removeAddresses(walletName) {
+    const copyAddressesToRemove = [...addressesToRemove];
+    addressesToRemove = [];
+    const waKey = `${walletName}/${dataTypes[0]}`;
+    let allWalletAddresses = await idbKeyval.get(waKey);
+    
+    copyAddressesToRemove.forEach(address => {
+        delete allWalletAddresses[address];
+    })
+    
+    dataStore = {
+        ...dataStore,
+        [waKey]: allWalletAddresses
+    };
+
+    await idbKeyval.del(waKey);
+
+    saveToStore(walletName);
+    setDataUnsync();
 }
 
 async function syncWithDb(walletName) {
@@ -209,6 +234,7 @@ function debounce(func, wait, immediate) {
 };
 
 window.saveToStore = debounce(syncWithDb, 1500);
+window.debouncedRemoveAddress = debounce(removeAddresses, 2000);
 
 var UIdataIndicator;
 var SYNC_DATA_TEXT = "Data saved ✔️";

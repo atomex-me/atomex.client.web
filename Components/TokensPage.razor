@@ -51,9 +51,17 @@
                         <img class="token-image" src="@(_tezTokenStrg.TokenContract.IconUrl)"/>
                         <span>
                             <div class="currency-card__currency-value">
-                                @(_tezTokenStrg.TokenContract.IsFa12 ?
-                                    _tezTokenStrg.Balance.ToString(_tezTokenStrg.BalanceFormat, CultureInfo.InvariantCulture) :
-                                    _tezTokenStrg.TokenContractName)
+                                @if (_tezTokenStrg.TokenContract.IsFa12)
+                                {
+                                    <span>
+                                        @_tezTokenStrg.Balance.ToString(_tezTokenStrg.BalanceFormat, CultureInfo.InvariantCulture)
+                                    </span>
+                                    <span class="currency-card__currency-value-desc">@_tezTokenStrg.TokenContractName</span>
+                                }
+                                else
+                                {
+                                    <span>@_tezTokenStrg.TokenContractName</span>
+                                }
                             </div>
                             <div class="currency-card__dollar-value">
                                 <div class="currency-card__dollar-value-desc">

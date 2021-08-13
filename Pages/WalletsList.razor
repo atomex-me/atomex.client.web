@@ -41,7 +41,7 @@
           <Loader />
         }
         <div class="wallets-list__unlock-container @(AccountStorage.WalletLoading ? "loading" : "")">
-          @if (!AccountStorage.LoadingUpdate)
+          @if (!AccountStorage.UpdateAllCurrencies)
           {
             <p>Please enter password to unlock "@AvailableWallets[SelectedWalletIndex]"</p>
           }

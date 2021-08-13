@@ -631,6 +631,9 @@ namespace atomex_frontend.atomex_data_structures
 
         private IEnumerable<WalletAddressViewModel> GetFromAddressList(string tokenContract, decimal tokenId)
         {
+            if (tokenContract == null)
+                return Enumerable.Empty<WalletAddressViewModel>();
+
             var tezosConfig = _app.Account
                 .Currencies
                 .Get<TezosConfig>(TezosConfig.Xtz);
@@ -639,35 +642,32 @@ namespace atomex_frontend.atomex_data_structures
                 .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz);
 
             var tezosAddresses = tezosAccount
-                .GetAddressesAsync()
+                .GetUnspentAddressesAsync()
+                .WaitForResult()
+                .ToDictionary(w => w.Address, w => w);
+
+            var tokenAddresses = tezosAccount.DataRepository
+                .GetTezosTokenAddressesByContractAsync(tokenContract)
                 .WaitForResult();
 
-            var tokenAddresses = tokenContract != null
-                ? tezosAccount.DataRepository
-                    .GetTezosTokenAddressesByContractAsync(tokenContract)
-                    .WaitForResult()
-                : new List<WalletAddress>();
-
-            return tezosAddresses
-                .Concat(tokenAddresses)
-                .GroupBy(w => w.Address)
-                .Select(g =>
+            return tokenAddresses
+                .Where(w => w.Balance != 0)
+                .Select(w =>
                 {
-                    // main address
-                    var address = g.FirstOrDefault(w => w.Currency == tezosConfig.Name);
-
-                    var tokenAddress = g.FirstOrDefault(w => w.Currency != tezosConfig.Name && w.TokenBalance?.TokenId == TokenId);
-
-                    var tokenBalance = tokenAddress?.Balance ?? 0m;
+                    var tokenBalance = w.Balance;
 
                     var showTokenBalance = tokenBalance != 0;
 
-                    var tokenCode = tokenAddress?.TokenBalance?.Symbol ?? "TOKENS";
+                    var tokenCode = w.TokenBalance?.Symbol ?? "TOKENS";
+
+                    var tezosBalance = tezosAddresses.TryGetValue(w.Address, out var tezosAddress)
+                        ? tezosAddress.AvailableBalance()
+                        : 0m;
 
                     return new WalletAddressViewModel
                     {
-                        Address          = g.Key,
-                        AvailableBalance = address?.AvailableBalance() ?? 0m,
+                        Address          = w.Address,
+                        AvailableBalance = tezosBalance,
                         CurrencyFormat   = tezosConfig.Format,
                         CurrencyCode     = tezosConfig.Name,
                         IsFreeAddress    = false,

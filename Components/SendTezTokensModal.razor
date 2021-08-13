@@ -78,7 +78,7 @@
             Value="@_sendVM.TokenContract"
             OnChange="@TokenContractChange"
             Theme="dark"
-            Disabled="@_tezTokenStrg.TokenContract.IsFa2"/>
+            Disabled/>
 
         <Input
             Description="Token Id:"
@@ -87,7 +87,7 @@
             Value="@Helper.DecimalToStr(_sendVM.TokenId)"
             OnChange="@SendAddressChange"
             Theme="dark"
-            Disabled="@_tezTokenStrg.TokenContract.IsFa2"/>
+            Disabled/>
 
         <Input
             Description="To address:"

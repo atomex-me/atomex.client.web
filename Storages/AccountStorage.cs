@@ -33,13 +33,11 @@ namespace atomex_frontend.Storages
     public AccountStorage(HttpClient httpClient,
       ILocalStorageService localStorage,
       IJSRuntime jSRuntime,
-      NavigationManager uriHelper,
       Toolbelt.Blazor.I18nText.I18nText I18nText)
     {
       this.httpClient = httpClient;
       this.localStorage = localStorage;
       this.jSRuntime = jSRuntime;
-      this.URIHelper = uriHelper;
 
       LoadTranslations(I18nText);
       InitializeAtomexConfigs();
@@ -55,10 +53,18 @@ namespace atomex_frontend.Storages
 
     public bool LoadFromRestore = false;
 
-    public bool LoadingUpdate = false;
+    private bool _updateAllCurrencies;
+
+    public bool UpdateAllCurrencies
+    {
+      get => _updateAllCurrencies;
+      set
+      {
+        if (!NewWallet) _updateAllCurrencies = value;
+      }
+    }
 
     public AccountDataRepository ADR;
-    private NavigationManager URIHelper;
     public IAccount Account { get; set; }
     public IAtomexApp AtomexApp { get; set; }
     public IAtomexClient Terminal { get; set; }
@@ -90,6 +96,7 @@ namespace atomex_frontend.Storages
     public ILocalStorageService localStorage;
     public IJSRuntime jSRuntime;
     public string CurrentWalletName;
+    public bool NewWallet;
     private SecureString _password;
 
     public Network CurrentNetwork
@@ -504,7 +511,7 @@ namespace atomex_frontend.Storages
       await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
-      LoadingUpdate = true;
+      UpdateAllCurrencies = true;
       _ = ConnectToWallet(CurrentWalletName, _password);
     }
     
@@ -517,7 +524,7 @@ namespace atomex_frontend.Storages
       await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
-      LoadingUpdate = true;
+      UpdateAllCurrencies = true;
       _ = ConnectToWallet(CurrentWalletName, _password);
     }
   }

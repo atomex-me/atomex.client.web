@@ -142,6 +142,7 @@
             <tr>
                 <th>Address</th>
                 <th>Path</th>
+                <th>Type</th>
                 <th>Balance</th>
                 <th>Token Balance</th>
                 <th>Update</th>
@@ -153,14 +154,17 @@
             @foreach (var address in Addresses.Addresses)
             {
                 <tr>
-                    <td class="transaction-desc">
+                    <td>
                         <a href="@(Addresses.GetExplorerUrl(address.Address))" target="_blank">
                             @address.Address
                         </a>
                         <button class="copy-button small" @onclick="@(() => OnCopyAddressClick(address.Address))" type="button"/>
                     </td>
-                    <td class="transaction-desc">
+                    <td>
                         @address.Path
+                    </td>
+                    <td>
+                        @address.Type
                     </td>
                     <td>
                         @address.Balance

@@ -1,7 +1,6 @@
 namespace atomex_frontend.atomex_data_structures
 {
-    public class 
-    WalletAddressViewModel
+    public class WalletAddressViewModel
     {
         public string Address { get; set; }
         public bool HasActivity { get; set; }
