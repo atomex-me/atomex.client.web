@@ -321,7 +321,7 @@
         _sendVM = new TezosTokensSendViewModel(
             Translations,
             app: _accountStorage.AtomexApp,
-            from: null,
+            from: SendClickedToken?.Address,
             tokenContract: _tezTokenStrg.TokenContract?.Contract?.Address,
             tokenId: SendClickedToken?.TokenBalance?.TokenId ?? 0);
 

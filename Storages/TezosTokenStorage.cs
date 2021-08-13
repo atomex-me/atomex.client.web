@@ -24,6 +24,8 @@ namespace atomex_frontend.Storages
         private bool _isPreviewDownloading = false;
 
         public TokenBalance TokenBalance { get; set; }
+        
+        public string Address { get; set; }
 
         public Action PreviewLoaded;
 
@@ -397,8 +399,9 @@ namespace atomex_frontend.Storages
                     .Where(a => a.Balance != 0)
                     .Select(a => new TezosTokenViewModel
                     {
-                        TokenBalance = a.TokenBalance,
-                        PreviewLoaded = CallUIRefresh
+                        TokenBalance  = a.TokenBalance,
+                        PreviewLoaded = CallUIRefresh,
+                        Address       = a.Address,
                     }));
             }
             
