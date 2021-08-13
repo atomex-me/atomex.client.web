@@ -1,195 +1,221 @@
 @using Atomex;
 @using Atomex.TezosTokens;
 @inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
 @inject IJSRuntime JSRuntime;
 
 <div class="tx-info__container" style="top: @(GetTxInfoTop); height: @(GetTxInfoHeight)">
-  @if (OpenedTx.CanBeRemoved) {
-    <i class="delete-tx__icon" @onclick="@DeleteTx" />
-  }
-  <div class="tx-info__row">
-    <div>Transaction id:</div>
-    <div>
-      <span>
-        <a href="@GetTxLink" target="_blank">@OpenedTx.Id</a>
-      </span>
-      <button class="copy-button small" @onclick="@OnCopyTxIdClick" type="button" />
-    </div>     
-  </div>
-
-  <div class="tx-info__row">
-    <div>Timestamp:</div>
-    <div>
-      @(String.Format("{0:d MMM yyyy, HH:mm:ss}", OpenedTx.CreationTime))
-    </div>
-  </div>
-
-  @if (walletStorage.GetEthreumBasedCurrency) {
+    @if (OpenedTx.CanBeRemoved)
+    {
+        <i class="delete-tx__icon" @onclick="@DeleteTx"/>
+    }
     <div class="tx-info__row">
-      <div>From:</div>
-      <div>
-        <span>
-          <a href="@GetAddrFromLink" target="_blank">@OpenedTx.From</a>
-        </span>
-        <button class="copy-button small" @onclick="@OnCopyFromClick" type="button" />
-      </div>     
+        <div>Transaction id:</div>
+        <div>
+            <span>
+                <a href="@GetTxLink" target="_blank">@OpenedTx.Id</a>
+            </span>
+            <button class="copy-button small" @onclick="@OnCopyTxIdClick" type="button"/>
+        </div>
     </div>
 
     <div class="tx-info__row">
-      <div>To:</div>
-      <div>
-        <span>
-          <a href="@GetAddrToLink" target="_blank">@OpenedTx.To</a>
-        </span>
-        <button class="copy-button small" @onclick="@OnCopyToClick" type="button" />
-      </div>     
+        <div>Timestamp:</div>
+        <div>
+            @(String.Format("{0:d MMM yyyy, HH:mm:ss}", OpenedTx.CreationTime))
+        </div>
     </div>
+    
+    @if (OpenedTx is TezosTokenTransferViewModel)
+    {
+        <div class="tx-info__row">
+            <div>From:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrFromLink" target="_blank">@OpenedTx.From</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyFromClick" type="button"/>
+            </div>
+        </div>
 
-    <div class="tx-info__row">
-      <div>Gas Price:</div>
-      <div>
-        @OpenedTx.GasPrice
-      </div>     
-    </div>
+        <div class="tx-info__row">
+            <div>To:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrToLink" target="_blank">@OpenedTx.To</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyToClick" type="button"/>
+            </div>
+        </div>
+    }
 
-    <div class="tx-info__row">
-      <div>Gas Limit:</div>
-      <div>
-        @OpenedTx.GasLimit
-      </div>     
-    </div>
+    else if (walletStorage.GetEthreumBasedCurrency)
+    {
+        <div class="tx-info__row">
+            <div>From:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrFromLink" target="_blank">@OpenedTx.From</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyFromClick" type="button"/>
+            </div>
+        </div>
 
-    <div class="tx-info__row">
-      <div>Gas Used:</div>
-      <div>
-        @OpenedTx.GasUsed
-      </div>     
-    </div>
+        <div class="tx-info__row">
+            <div>To:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrToLink" target="_blank">@OpenedTx.To</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyToClick" type="button"/>
+            </div>
+        </div>
 
-    <div class="tx-info__row">
-      <div>Is Internal:</div>
-      <div>
-        @(OpenedTx.IsInternal ? "yes" : "no")
-      </div>     
-    </div>
-  }
+        <div class="tx-info__row">
+            <div>Gas Price:</div>
+            <div>
+                @OpenedTx.GasPrice
+            </div>
+        </div>
 
-  @if(OpenedTx.Currency is FA12 || OpenedTx.Currency is Tezos) {
-    <div class="tx-info__row">
-      <div>From:</div>
-      <div>
-        <span>
-          <a href="@GetAddrFromLink" target="_blank">@OpenedTx.From</a>
-        </span>
-        <button class="copy-button small" @onclick="@OnCopyFromClick" type="button" />
-      </div>     
-    </div>
+        <div class="tx-info__row">
+            <div>Gas Limit:</div>
+            <div>
+                @OpenedTx.GasLimit
+            </div>
+        </div>
 
-    <div class="tx-info__row">
-      <div>To:</div>
-      <div>
-        <span>
-          <a href="@GetAddrToLink" target="_blank">@OpenedTx.To</a>
-        </span>
-        <button class="copy-button small" @onclick="@OnCopyToClick" type="button" />
-      </div>     
-    </div>
+        <div class="tx-info__row">
+            <div>Gas Used:</div>
+            <div>
+                @OpenedTx.GasUsed
+            </div>
+        </div>
 
-    <div class="tx-info__row">
-      <div>Gas Limit:</div>
-      <div>
-        @OpenedTx.GasLimit
-      </div>     
-    </div>
+        <div class="tx-info__row">
+            <div>Is Internal:</div>
+            <div>
+                @(OpenedTx.IsInternal ? "yes" : "no")
+            </div>
+        </div>
+    }
 
-    <div class="tx-info__row">
-      <div>Fee:</div>
-      <div>
-        @OpenedTx.Fee
-      </div>     
-    </div>
+    else if (_currencyConfig is TezosConfig)
+    {
+        <div class="tx-info__row">
+            <div>From:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrFromLink" target="_blank">@OpenedTx.From</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyFromClick" type="button"/>
+            </div>
+        </div>
 
-    <div class="tx-info__row">
-      <div>Is Internal:</div>
-      <div>
-        @(OpenedTx.IsInternal ? "yes" : "no")
-      </div>     
-    </div>
-  }
+        <div class="tx-info__row">
+            <div>To:</div>
+            <div>
+                <span>
+                    <a href="@GetAddrToLink" target="_blank">@OpenedTx.To</a>
+                </span>
+                <button class="copy-button small" @onclick="@OnCopyToClick" type="button"/>
+            </div>
+        </div>
 
-  @if(OpenedTx.Currency is BitcoinBasedCurrency) {
-    <div class="tx-info__row">
-      <div>Fee:</div>
-      <div>
-        @OpenedTx.Fee
-      </div>     
-    </div>
-  }
+        <div class="tx-info__row">
+            <div>Gas Limit:</div>
+            <div>
+                @OpenedTx.GasLimit
+            </div>
+        </div>
 
+        <div class="tx-info__row">
+            <div>Fee:</div>
+            <div>
+                @OpenedTx.Fee
+            </div>
+        </div>
+
+        <div class="tx-info__row">
+            <div>Is Internal:</div>
+            <div>
+                @(OpenedTx.IsInternal ? "yes" : "no")
+            </div>
+        </div>
+    }
+
+    else if (_currencyConfig is BitcoinBasedConfig)
+    {
+        <div class="tx-info__row">
+            <div>Fee:</div>
+            <div>
+                @OpenedTx.Fee
+            </div>
+        </div>
+    }
 </div>
 
 @code {
-  [Parameter]
-  public Transaction OpenedTx { get; set; }
 
-  [Parameter]
-  public List<Transaction> TransactionsData { get; set; }
+    [Parameter]
+    public Transaction OpenedTx { get; set; }
 
-  [Parameter]
-  public int TxHeight { get; set; }
+    [Parameter]
+    public List<Transaction> TransactionsData { get; set; }
 
-  [Parameter]
-  public int TxInfoBlockHeight { get; set; }
+    [Parameter]
+    public int TxHeight { get; set; }
 
-  private async void OnCopyTxIdClick()
-  {
-    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", OpenedTx.Id);
-  }
+    [Parameter]
+    public int TxInfoBlockHeight { get; set; }
 
-  private async void OnCopyFromClick()
-  {
-    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", OpenedTx.From);
-  }
-
-  private async void OnCopyToClick()
-  {
-    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", OpenedTx.To);
-  }
-
-  private void DeleteTx() {
-    walletStorage.RemoveTransacton(OpenedTx.Id, OpenedTx.Currency.Name);
-  }
-
-  private string GetTxInfoTop
-  {
-    get
+    private async void OnCopyTxIdClick()
     {
-      var currentTx = TransactionsData.Find(tx => tx.Id == OpenedTx.Id);
-      var txIndex = TransactionsData.IndexOf(currentTx);
-      return $"{37 + TxHeight + TxHeight * txIndex}px";
+        await JSRuntime.InvokeAsync<string>("copyTextToClipboard", OpenedTx.Id);
     }
-  }
 
-  private string GetTxInfoHeight
-  {
-    get
+    private async void OnCopyFromClick()
     {
-      return $"{TxInfoBlockHeight - TxHeight}px";
+        await JSRuntime.InvokeAsync<string>("copyTextToClipboard", OpenedTx.From);
     }
-  }
 
-  private string GetTxLink
-  {
-    get => $"{OpenedTx.Currency.TxExplorerUri}{OpenedTx.Id}";
-  }
+    private async void OnCopyToClick()
+    {
+        await JSRuntime.InvokeAsync<string>("copyTextToClipboard", OpenedTx.To);
+    }
 
-  private string GetAddrFromLink
-  {
-    get => $"{OpenedTx.Currency.AddressExplorerUri}{OpenedTx.From}";
-  }
+    private void DeleteTx()
+    {
+        walletStorage.RemoveTransacton(OpenedTx.Id, OpenedTx.Currency);
+    }
 
-  private string GetAddrToLink
-  {
-    get => $"{OpenedTx.Currency.AddressExplorerUri}{OpenedTx.To}";
-  }
+    private string GetTxInfoTop
+    {
+        get
+        {
+            var currentTx = TransactionsData.Find(tx => tx.Id == OpenedTx.Id);
+            var txIndex = TransactionsData.IndexOf(currentTx);
+            return $"{37 + TxHeight + TxHeight * txIndex}px";
+        }
+    }
+
+    private CurrencyConfig _currencyConfig => accountStorage.Account.Currencies.GetByName(OpenedTx.Currency);
+
+    private string GetTxInfoHeight => $"{TxInfoBlockHeight - TxHeight}px";
+
+    private string GetTxLink
+    {
+        get => $"{_currencyConfig.TxExplorerUri}{OpenedTx.Id}";
+    }
+
+    private string GetAddrFromLink
+    {
+        get => $"{_currencyConfig.AddressExplorerUri}{OpenedTx.From}";
+    }
+
+    private string GetAddrToLink
+    {
+        get => $"{_currencyConfig.AddressExplorerUri}{OpenedTx.To}";
+    }
+
 }

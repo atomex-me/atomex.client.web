@@ -1,95 +1,100 @@
 @using QRCodeEncoderLibrary;
+@using Atomex.TezosTokens
 @inject IJSRuntime JSRuntime;
 @inject WalletStorage walletStorage;
 @inject AccountStorage accountStorage;
+@inject TezosTokenStorage _tezosTokenStorage;
 
 <div class="modal__container">
-  <div class="dark-background__no-grad modal-title">
-    @Translations.Receive
-  </div>
+    <div class="dark-background__no-grad modal-title">
+        @Translations.Receive
+    </div>
 
-  <RoundedContainer>
-    <CurrencyModalCard SelectedCurrency="@walletStorage.SelectedCurrency" Amount="@walletStorage.SelectedCurrencyData.Balance" />
-  </RoundedContainer>
+    <RoundedContainer>
+        <CurrencyModalCard
+            SelectedCurrency="@_receiveVM.Currency"
+            Amount="@walletStorage.GetCurrencyData(_receiveVM.Currency.Name).Balance"/>
+    </RoundedContainer>
 
-  <div class="receive-modal-dropdown__container">
-    <Dropdown
-      OnChange="@OnChange"
-      Options="@DropOptions"
-      Description="@Translations.Address"
-      CurrentValue="@CurrentValue" />
-    <i class="copy-button" @onclick="@OnCopyClick" />
-  </div>
+    <div class="receive-modal-dropdown__container">
+        <DropdownCustom
+            Description="@Translations.Address"
+            OnAddressChange="@OnChange" 
+            Addresses="@_receiveVM.FromAddressList"
+            SelectedAddress="@_receiveVM.SelectedAddress"
+            ForEth />
+        <i class="copy-button addresses-copy" @onclick="@OnCopyClick"></i>
+    </div>
 
-  <div class="receive-qrcode">
-    @if(CurrentValue.Length > 0) {
-      <img src="data:image/png;base64,@(GetBase64QR(CurrentValue))" />
-    }
-  </div>
+    <div class="receive-qrcode">
+        @if (_receiveVM.SelectedAddress?.Length > 0)
+        {
+            <img src="data:image/png;base64,@(GetBase64QR(_receiveVM.SelectedAddress))"/>
+        }
+    </div>
 </div>
 
 @code {
-  [Parameter]
-  public EventCallback OnCancelClick { get; set; }
 
-  protected string[] DropOptions
-  {
-    get
+    [Parameter]
+    public EventCallback OnCancelClick { get; set; }
+
+    private IAtomexApp _app => accountStorage.AtomexApp;
+
+    private ReceiveViewModel _receiveVM { get; set; }
+    
+
+    private void OnChange(string address)
     {
-      IEnumerable<WalletAddressView> SelectedCurrencyAddreses = walletStorage.FromAddressList
-          .Where(wa => wa.WalletAddress.Currency == walletStorage.SelectedCurrency.Name);
-
-      var res = SelectedCurrencyAddreses.Select(wa => $"{wa.Address} {Helper.SetPrecision(wa.AvailableBalance, 4)}").ToArray();
-      return res;
+        _receiveVM.SelectedAddress = address;
+        StateHasChanged();
     }
-  }
 
-  private string _currentValue;
-  protected string CurrentValue
-  {
-    get
+    private async void OnCopyClick()
     {
-      if (_currentValue == null)
-      {
-        return walletStorage.GetDefaultAddress().Address;
-      }
-      else
-      {
-        return _currentValue;
-      }
+        await JSRuntime.InvokeAsync<string>("copyTextToClipboard", _receiveVM.SelectedAddress);
     }
-  }
 
-  protected void OnChange(string value)
-  {
-    _currentValue = value;
-  }
-
-  protected async void OnCopyClick()
-  {
-    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", CurrentValue);
-  }
-
-  private string GetBase64QR(string address)
-  {
-    if (address == null || address.Length == 0)
+    private string GetBase64QR(string address)
     {
-      return "";
+        if (address == null || address.Length == 0)
+        {
+            return "";
+        }
+        QREncoder Encoder = new QREncoder();
+        Encoder.ErrorCorrection = ErrorCorrection.Q;
+        Encoder.ModuleSize = 8;
+        Encoder.QuietZone = 32;
+        Encoder.Encode(address);
+        var memoryStream = new MemoryStream();
+        Encoder.SaveQRCodeToPngFile(memoryStream);
+        return Convert.ToBase64String(memoryStream.ToArray());
     }
-    QREncoder Encoder = new QREncoder();
-    Encoder.ErrorCorrection = ErrorCorrection.Q;
-    Encoder.ModuleSize = 8;
-    Encoder.QuietZone = 32;
-    Encoder.Encode(address);
-    var memoryStream = new MemoryStream();
-    Encoder.SaveQRCodeToPngFile(memoryStream);
-    return Convert.ToBase64String(memoryStream.ToArray());
-  }
 
-  I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync()
-  {
-    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-    walletStorage.RefreshRequested += StateHasChanged;
-  }
+    I18nText.Translations Translations = new I18nText.Translations();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var tezosConfig = _app.Account
+            .Currencies
+            .GetByName(TezosConfig.Xtz);
+
+        if (walletStorage.IsTezosTokensSelected)
+        {
+            _receiveVM = new ReceiveViewModel(_app, tezosConfig, _tezosTokenStorage.TokenContract?.Contract?.Address);
+        }
+        else if (walletStorage.SelectedCurrency is Fa12Config)
+        {
+            var currency = walletStorage.SelectedCurrency as Fa12Config;
+            _receiveVM = new ReceiveViewModel(_app, tezosConfig, currency?.TokenContractAddress);
+        }
+        else
+        {
+            _receiveVM = new ReceiveViewModel(_app, walletStorage.SelectedCurrency);
+        }
+        
+        Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+        walletStorage.RefreshRequested += StateHasChanged;
+    }
+
 }

@@ -1,0 +1,91 @@
+@using System.Globalization
+@inject WalletStorage walletStorage;
+<div>
+    <div class="atomex-input-container @(!string.IsNullOrEmpty(Description) ? "with-description" : "") @(Disabled ? "disabled" : "")">
+        @if (Description != null)
+        {
+            <div class="input-description light @(ForEth ? "for-eth-address" : "")">
+                <span>@Description</span>
+            </div>
+        }
+        <button class="custom-dropdown @(IsOpened ? "opened" : "")"
+                @onclick=@(() => IsOpened = !IsOpened)>
+            <div class="dropdown-custom-item">
+                <div class="dropdown-left-content">
+                    @SelectedAddressObj.Address
+                </div>
+                <div class="dropdown-right-content">
+                    <div>
+                        @SelectedAddressObj.AvailableBalance.ToString(SelectedAddressObj.CurrencyFormat, CultureInfo.InvariantCulture)
+                        <span> @SelectedAddressObj.CurrencyCode</span>
+                    </div>
+                    @if (SelectedAddressObj.ShowTokenBalance)
+                    {
+                        <div>
+                            @SelectedAddressObj.TokenBalance.ToString(SelectedAddressObj.CurrencyFormat, CultureInfo.InvariantCulture)
+                            <span> @SelectedAddressObj.TokenCode</span>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (IsOpened)
+            {
+                <div class="custom-dropdown-list__container">
+                    @foreach (var address in Addresses)
+                    {
+                        <div class="dropdown-custom-item" @onclick="@(() => OnAddressChange.InvokeAsync(address.Address))">
+                            <div class="dropdown-left-content">
+                                @if (address.IsFreeAddress)
+                                {
+                                    <span class="new-badge">(new) </span>
+                                }
+                                @address.Address
+                            </div>
+                            <div class="dropdown-right-content">
+                                <div>
+                                    @address.AvailableBalance.ToString(address.CurrencyFormat, CultureInfo.InvariantCulture)
+                                    <span> @address.CurrencyCode</span>
+                                </div>
+                                @if (address.ShowTokenBalance)
+                                {
+                                    <div>
+                                        @address.TokenBalance.ToString(address.CurrencyFormat, CultureInfo.InvariantCulture)
+                                        <span> @address.TokenCode</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </button>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public string Description { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnAddressChange { get; set; }
+
+    [Parameter]
+    public List<WalletAddressViewModel> Addresses { get; set; }
+
+    [Parameter]
+    public string SelectedAddress { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public bool ForEth { get; set; }
+
+
+    private WalletAddressViewModel SelectedAddressObj => Addresses
+        .Find(a => a.Address == SelectedAddress);
+
+    private bool IsOpened { get; set; }
+}

@@ -219,6 +219,7 @@ namespace atomex_frontend.Storages
         await accountStorage
             .SaveWallet(wallet, StoragePassword1.ToSecureString(), walletName);
 
+        accountStorage.NewWallet = true;
         await accountStorage.ConnectToWallet(walletName, StoragePassword1.ToSecureString());
       }
 

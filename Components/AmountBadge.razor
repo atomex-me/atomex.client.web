@@ -2,54 +2,62 @@
 @inject SwapStorage swapStorage;
 
 <div class="exchange-amount-container">
-  @if (Label.Length > 0)
-  {
-    <span>
-      @(Label):
-    </span>
-  }
-  <div class="exchange-amount__input">
-    <input type="number" class="@(GetAmountColor)" value="@(Helper.DecimalToStr(Amount))" @oninput="@HandleChange"
-      onkeydown="return event.keyCode !== 69" step="any" />
-    <div class="exchexchange-amount__input-add-info">
-      <span class="currency-abbr @(GetAmountColor)">@SelectedCurrency.Name</span>
-      <div class="exchange-amount-container__usd-amount">($@Helper.DecimalToStr(DollarAmount, "F2") <span
-          class="currency-abbr small">USD</span>)</div>
+    @if (Label.Length > 0)
+    {
+        <span>
+            @(Label):
+        </span>
+    }
+    <div class="exchange-amount__input">
+        <input type="number" class="@(GetAmountColor)" value="@(Helper.DecimalToStr(Amount))" @oninput="@HandleChange"
+               onkeydown="return event.keyCode !== 69" step="any"/>
+        <div class="exchexchange-amount__input-add-info">
+            <span class="currency-abbr @(GetAmountColor)">@SelectedCurrency.Name</span>
+            <div class="exchange-amount-container__usd-amount">
+                ($@Helper.DecimalToStr(DollarAmount, "F2")
+                <span
+                    class="currency-abbr small">
+                    USD
+                </span>)
+            </div>
+        </div>
+        <div class="exchange-amount__available-container" @onclick="@(swapStorage.MaxAmountCommand)">
+            <NavigateButton Variant="small">Max</NavigateButton>
+        </div>
     </div>
-    <div class="exchange-amount__available-container" @onclick="@(swapStorage.MaxAmountCommand)">
-      <NavigateButton Variant="small">Max</NavigateButton>
-    </div>
-  </div>
 </div>
 
 @code {
-  [Parameter]
-  public string Label { get; set; } = "";
 
-  [Parameter]
-  public Currency SelectedCurrency { get; set; }
+    [Parameter]
+    public string Label { get; set; } = "";
 
-  [Parameter]
-  public decimal Amount { get; set; } = 0.0m;
+    [Parameter]
+    public CurrencyConfig SelectedCurrency { get; set; }
 
-  [Parameter]
-  public decimal DollarAmount { get; set; } = 0.0m;
+    [Parameter]
+    public decimal Amount { get; set; } = 0.0m;
 
-  [Parameter]
-  public decimal TotalAmount { get; set; } = 0.0m;
+    [Parameter]
+    public decimal DollarAmount { get; set; } = 0.0m;
 
-  [Parameter]
-  public decimal TotalAmountDollars { get; set; } = 0.0m;
+    [Parameter]
+    public decimal TotalAmount { get; set; } = 0.0m;
 
-  [Parameter]
-  public EventCallback<decimal> OnChange { get; set; }
+    [Parameter]
+    public decimal TotalAmountDollars { get; set; } = 0.0m;
 
-  private string GetAmountColor {
-    get => swapStorage.IsAmountValid ? "": "error";
-  }
+    [Parameter]
+    public EventCallback<decimal> OnChange { get; set; }
 
-  private async void HandleChange(ChangeEventArgs evt)
-  {
-    await OnChange.InvokeAsync(Helper.StrToDecimal(evt.Value.ToString()));
-  }
+    private string GetAmountColor
+    {
+        get => swapStorage.IsAmountValid ? "" : "error";
+    }
+
+    private async void HandleChange(ChangeEventArgs evt)
+    {
+        await OnChange.InvokeAsync(Helper.StrToDecimal(evt.Value.ToString()));
+    }
+
 }

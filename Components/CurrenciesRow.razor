@@ -1,27 +1,36 @@
 @inject WalletStorage walletStorage;
+@inject AccountStorage accountStorage;
 
 <div class="currencies-row @(walletStorage.IsUpdating ? "loading" : "")">
-  @foreach (var currency in walletStorage.AvailableCurrencies)
-  {
-    <div>
-      <div @onclick="@(() => OnClick(currency))">
-          <i class="icon currency-icon @(currency.Description.ToLower())" />
-      </div>
-      <div>
-        @currency.Description
-      </div>
-    </div>
-  }
+    @foreach (var currency in walletStorage.AvailableCurrenciesNames)
+    {
+        <div>
+            <div @onclick="@(() => OnClick(currency.Key))">
+                <i class="icon currency-icon @(currency.Value.ToLower())"/>
+            </div>
+            <div>
+                @currency.Value
+            </div>
+        </div>
+    }
 </div>
 
-@code { 
-  private void OnClick(Currency currency)
-  {
-    walletStorage.SelectedCurrency = currency;
-  }
+@code {
 
-  protected override void OnInitialized()
-  {
-    walletStorage.RefreshRequested += StateHasChanged;
-  }
+    private void OnClick(string currencyName)
+    {
+        if (currencyName == walletStorage.TezosTokensCaption)
+        {
+            walletStorage.IsTezosTokensSelected = true;
+            return;
+        }
+        
+        walletStorage.SelectedCurrency = accountStorage.Account.Currencies.GetByName(currencyName);
+    }
+
+    protected override void OnInitialized()
+    {
+        walletStorage.RefreshRequested += StateHasChanged;
+    }
+
 }

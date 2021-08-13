@@ -1,0 +1,222 @@
+@using System.Globalization
+@using atomex_frontend.I18nText
+@inject WalletStorage _walletStorage;
+@inject AccountStorage _accountStorage;
+@inject TezosTokenStorage _tezTokenStrg;
+@implements IDisposable;
+
+<div class="tokens-container @(_tezTokenStrg.IsBalanceUpdating ? "disabled" : "")">
+    <div class="wallet-page__left-nav solid-dark-background tokens">
+        <div>
+            @foreach (var contract in _tezTokenStrg.TokensContracts)
+            {
+                <button
+                    class="wallet-menu__button contract @(contract.Contract.Id == _tezTokenStrg.TokenContract.Contract.Id ? "active" : "")"
+                    type="button"
+                    @onclick="@(() => _tezTokenStrg.TokenContract = contract)">
+
+                    <div class="contract-btn-container">
+                        <img src="@contract.IconUrl" class="contract-img" alt="">
+                        <div class="contract-btn-container__description">
+                            <div>
+                                <div class="trunc-text contract-name">
+                                    @contract.Name
+                                </div>
+                                <div class="contract-id trunc-text">
+                                    @CurrHelper.GetShortTezosAddress(contract.Contract.Id, 10, 10)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </button>
+            }
+        </div>
+    </div>
+    <div class="contract-content-side">
+        <div class="currency-card token">
+            <div class="token loading-container">
+                @if (_tezTokenStrg.IsBalanceUpdating)
+                {
+                    <Loader />
+                    <div class="currency-card__selected-currency tezos-tokens active">
+                        <div class="updating-tez-tokens__text">
+                            Updating Tezos tokens...
+                        </div>
+                    </div>
+                }
+                @if (_tezTokenStrg.HasTokenContract && !_tezTokenStrg.IsBalanceUpdating)
+                {
+                    <div class="currency-card__selected-currency tezos-tokens @(_tezTokenStrg.HasTokenContract ? "active" : "")">
+                        <img class="token-image" src="@(_tezTokenStrg.TokenContract.IconUrl)"/>
+                        <span>
+                            <div class="currency-card__currency-value">
+                                @if (_tezTokenStrg.TokenContract.IsFa12)
+                                {
+                                    <span>
+                                        @_tezTokenStrg.Balance.ToString(_tezTokenStrg.BalanceFormat, CultureInfo.InvariantCulture)
+                                    </span>
+                                    <span class="currency-card__currency-value-desc">@_tezTokenStrg.TokenContractName</span>
+                                }
+                                else
+                                {
+                                    <span>@_tezTokenStrg.TokenContractName</span>
+                                }
+                            </div>
+                            <div class="currency-card__dollar-value">
+                                <div class="currency-card__dollar-value-desc">
+                                    @_tezTokenStrg.TokenContract.Contract.Address
+                                </div>
+                            </div>
+                        </span>
+                    </div>
+                }
+                <div class="currency-card__buttons">
+                    @if (_tezTokenStrg.IsFa12)
+                    {
+                        <button class="navigate-button small"
+                                type="button"
+                                @onclick="@SendOpenCloseHandler">
+                            Send
+                        </button>   
+                    }
+                    <button class="navigate-button small"
+                            type="button"
+                            @onclick="@OnReceiveClick">
+                        Receive
+                    </button>
+                    @if (_tezTokenStrg.IsFa12)
+                    {
+                        <button class="navigate-button small"
+                                type="button"
+                                @onclick="@OnConvertClick">
+                            Convert
+                        </button>
+                    }
+                    <button class="navigate-button small"
+                            type="button"
+                            @onclick="@_tezTokenStrg.OnUpdateClick">
+                        Update
+                    </button>
+                    <button class="navigate-button small"
+                            type="button"
+                            @onclick="@OnAddressesClick">
+                        Addresses
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="contract-tabs-container">
+            @if (_tezTokenStrg.IsFa2 || (!_tezTokenStrg.IsFa2 && !_tezTokenStrg.IsFa12))
+            {
+                <button class="contract-tabs-btn left @(_tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Tokens ? "active" : "")"
+                        @onclick="@(() => _tezTokenStrg.OnVariantClick(TezosTokenStorage.Variant.Tokens))">
+                    Tokens
+                </button>
+            }
+            <button class="contract-tabs-btn @(_tezTokenStrg.IsFa12 ? "left" : "") @(_tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Transfers ? "active" : "")"
+                    @onclick="@(() => _tezTokenStrg.OnVariantClick(TezosTokenStorage.Variant.Transfers))">
+                Transfers
+            </button>
+        </div>
+        <div class="contract-content-container @_tezTokenStrg.CurrentVariant.ToString().ToLower()">
+            @if (_tezTokenStrg.HasTokenContract && _tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Tokens)
+            {
+                @foreach (var token in _tezTokenStrg.Tokens)
+                {
+                    <div class="token-row-container">
+                        <img src="@token.TokenPreview" class="token-preview-img" alt="">
+                        <div class="token-row-container__description">
+                            <div>
+                                <div class="trunc-text">
+                                    @token.TokenBalance.Name
+                                </div>
+                                <div class="token-description trunc-text">
+                                    @token.TokenBalance.Description
+                                </div>
+                            </div>
+                            <div class="token-right-content">
+                                <button class="navigate-button small"
+                                        type="button"
+                                        @onclick="@(() => SendFa2Click(token))">
+                                    Send
+                                </button>
+                                @if (token.IsIpfsAsset)
+                                {
+                                    <a href="@token.AssetUrl" target="_blank">
+                                        <i class="icon asset-icon"/>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span>
+                                        @token.Balance
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            @if (_tezTokenStrg.CurrentVariant == TezosTokenStorage.Variant.Transfers)
+            {
+                <div class="contract-transfers-container">
+                    <WalletDataTable
+                        Variant="@WalletDataTable.AvailableVariants.Transactions"
+                        TransactionsData="@_tezTokenStrg.Transfers.Select(t => (Transaction) t).ToList()"
+                        ForTokens/>
+                </div>
+            }
+        </div>
+    </div>
+    <Modal IsOpen="@SendModalOpened" OnClose="@SendOpenCloseHandler">
+        <SendTezTokensModal
+            SendClickedToken="@SendClickedToken"
+            OnCancelClick="@SendOpenCloseHandler"/>
+    </Modal>
+</div>
+
+@code
+{
+    [Parameter]
+    public EventCallback OnReceiveClick { get; set; }
+
+    [Parameter]
+    public EventCallback OnAddressesClick { get; set; }
+
+    [Parameter]
+    public EventCallback OnConvertClick { get; set; }
+
+
+    private TezosTokenViewModel SendClickedToken { get; set; }
+
+    private bool SendModalOpened { get; set; }
+    
+    private void SendOpenCloseHandler()
+    {
+        SendModalOpened = !SendModalOpened;
+
+        if (!SendModalOpened) SendClickedToken = null;
+    }
+
+    private void SendFa2Click(TezosTokenViewModel tokenViewModel)
+    {
+        SendClickedToken = tokenViewModel;
+        SendOpenCloseHandler();
+    }
+
+    private Translations translations;
+
+    protected override async void OnInitialized()
+    {
+        _tezTokenStrg.UIRefresh += StateHasChanged;
+        
+        if (translations == null) 
+            translations = await I18nText.GetTextTableAsync<Translations>(this);
+    }
+
+    public void Dispose()
+    {
+        _tezTokenStrg.UIRefresh -= StateHasChanged;
+    }
+}

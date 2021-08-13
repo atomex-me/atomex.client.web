@@ -3,303 +3,346 @@
 @inject SwapStorage swapStorage;
 @inject IJSRuntime JSRuntime;
 @using atomex_frontend.Common;
+@using System.Collections.ObjectModel
 
-<div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant==AvailableVariants.Addresses ? "no-js" : "")">
-  @if (Variant == AvailableVariants.Transactions && walletStorage.OpenedTx?.Currency.Name == walletStorage.SelectedCurrency.Name)
-  {
-    <DetailTxInfo OpenedTx="@walletStorage.OpenedTx" TransactionsData="@TransactionsData" TxHeight="@(GetTxHeight(walletStorage.OpenedTx))"
-      TxInfoBlockHeight="@GetTxInfoBlockHeight" />
-  }
-  <table>
-    @if (Variant == AvailableVariants.Currencies)
+<div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant == AvailableVariants.Addresses ? "no-js" : "")">
+    @if (Variant == AvailableVariants.Transactions &&
+         (walletStorage.OpenedTx?.Currency == walletStorage.SelectedCurrency.Name) || walletStorage.OpenedTx is TezosTokenTransferViewModel)
     {
-      <thead class="js-resize-height">
-        <tr>
-          <th>Currency</th>
-          <th>Balance</th>
-          <th>Value</th>
-          <th>% in portfolio</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach (var currency in CurrenciesData.Values)
-        {
-          <tr>
-            <td>
-              <div class="icon-vertical-text">
-                <i class="icon currency-icon @currency.Currency.Description.ToLower()" />
-                <span class="currency-name">@currency.Currency.Name</span>
-              </div>
-            </td>
-            <td>@(Helper.DecimalToStr(currency.Balance, currency.Currency.Format)) @(currency.Currency.Name.ToUpper())</td>
-            <td>$@(Helper.DecimalToStr(currency.DollarValue, "F2"))</td>
-            <td>@(Helper.DecimalToStr(currency.Percent, "F1")) %</td>
-          </tr>
-        }
-      </tbody>
+        <DetailTxInfo OpenedTx="@walletStorage.OpenedTx"
+                      TransactionsData="@TransactionsData"
+                      TxHeight="@(GetTxHeight(walletStorage.OpenedTx))"
+                      TxInfoBlockHeight="@GetTxInfoBlockHeight"/>
     }
-    @if (Variant == AvailableVariants.Transactions)
-    {
-      <thead class="js-resize-height">
-        <tr>
-          <th>Type</th>
-          <th>Description</th>
-          <th>Amount</th>
-          <th>State</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-
-      <tbody class="transactions-body">
-        @foreach (var transaction in TransactionsData)
+    <table class="@(ForTokens ? "tokens" : "")">
+        @if (Variant == AvailableVariants.Currencies)
         {
-          <tr class="tx-row" @onclick="@(() => walletStorage.OpenedTx = walletStorage.OpenedTx?.Id != transaction.Id ? transaction : null )"
-            style="height: @(walletStorage.OpenedTx?.Id == transaction.Id ? $"{GetTxInfoBlockHeight}px" : $"{GetTxHeight(transaction)}px");">
-            <td valign="top">
-              <div class="icon-vertical-text">
-                <i class="icon transaction-icon @GetTransactionType(transaction)" title="@transaction.Type.ToName()" />
-              </div>
-            </td>
-            <td valign="top" class="transaction-desc with-alias">
-              <span>@transaction.Description</span>
-              @if (!(transaction.Currency is BitcoinBasedCurrency))
-              {
-                <span class="transaction-desc__from">
-                  @(CurrHelper.GetTxDirection(transaction)): <span
-                    class="transaction-desc__from-alias">@CurrHelper.GetTxAlias(transaction)</span>
-                </span>
-              }
-            </td>
-            <td valign="top" class="transaction-desc @(transaction.Amount < 0 ? "negative-transaction-amount" : "")">
-              @transaction.Amount</td>
-            <td valign="top" class="transaction-desc">
-              <span class="badge badge-@(GetBadgeColor(transaction.State))">@transaction.State.ToName()</span>
-            </td>
-            <td valign="top" class="transaction-desc">@(String.Format("{0:d MMM yyyy, HH:mm}", transaction.CreationTime))
-            </td>
-          </tr>
+            <thead class="js-resize-height">
+            <tr>
+                <th>Currency</th>
+                <th>Balance</th>
+                <th>Value</th>
+                <th>% in portfolio</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var currency in CurrenciesData.Values)
+            {
+                <tr>
+                    <td>
+                        <div class="icon-vertical-text">
+                            <i class="icon currency-icon @currency.CurrencyConfig.Description.ToLower()"/>
+                            <span class="currency-name">@currency.CurrencyConfig.Name</span>
+                        </div>
+                    </td>
+                    <td>@(Helper.DecimalToStr(currency.Balance, currency.CurrencyConfig.Format)) @(currency.CurrencyConfig.Name.ToUpper())</td>
+                    <td>$@(Helper.DecimalToStr(currency.DollarValue, "F2"))</td>
+                    <td>@(Helper.DecimalToStr(currency.Percent, "F1")) %</td>
+                </tr>
+            }
+            </tbody>
         }
-        </tbody>
-    }
-
-    @if (Variant == AvailableVariants.Swaps)
-    {
-      <thead class="js-resize-height">
-        <tr>
-          <th>Description</th>
-          <th>State</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @foreach (Swap swap in SwapsData)
+        @if (Variant == AvailableVariants.Transactions)
         {
-          <tr>
-            <td class="transaction-desc">
-              Convert <span class="@(swap.SoldCurrency.ToLower())-brush">@(AmountHelper.QtyToAmount(swap.Side, swap.Qty,
-                                                                           swap.Price, getCurrency(swap.SoldCurrency).DigitsMultiplier)) <span
-                  class="currency-abbr">@swap.SoldCurrency</span></span> to <span
-                class="@(swap.PurchasedCurrency.ToLower())-brush">@(AmountHelper.QtyToAmount(swap.Side.Opposite(), swap.Qty,
-                                                                    swap.Price, getCurrency(swap.PurchasedCurrency).DigitsMultiplier)) <span
-                  class="currency-abbr">@swap.PurchasedCurrency</span></span>
-            </td>
-            <td class="transaction-desc">
-              <span class="badge badge-@(GetBadgeColor(swap))">@CompactStateBySwap(swap)</span>
-            </td>
-            <td>
-              @(String.Format("{0:d MMM yyyy, HH:mm}", swap.TimeStamp.ToLocalTime()))
-            </td>
-          </tr>
+            <thead class="js-resize-height">
+            <tr>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>State</th>
+                <th>Time</th>
+            </tr>
+            </thead>
+
+            <tbody class="transactions-body">
+            @foreach (var transaction in TransactionsData)
+            {
+                <tr class="tx-row" @onclick="@(() => SetOpenedTx(transaction))"
+                    style="height: @(walletStorage.OpenedTx?.Id == transaction.Id ? $"{GetTxInfoBlockHeight}px" : $"{GetTxHeight(transaction)}px");">
+                    <td valign="top">
+                        <div class="icon-vertical-text">
+                            <i class="icon transaction-icon @GetTransactionType(transaction)" title="@transaction.Type.ToName()"/>
+                        </div>
+                    </td>
+                    <td valign="top" class="transaction-desc with-alias">
+                        <span>@transaction.Description</span>
+                        @if (!(getCurrency(transaction.Currency) is BitcoinBasedConfig))
+                        {
+                            <span class="transaction-desc__from">
+                                @(CurrHelper.GetTxDirection(transaction)):
+                                <span
+                                    class="transaction-desc__from-alias">
+                                    @CurrHelper.GetTxAlias(transaction)
+                                </span>
+                            </span>
+                        }
+                    </td>
+                    <td valign="top" class="transaction-desc @(transaction.Amount < 0 ? "negative-transaction-amount" : "")">
+                        @transaction.Amount
+                    </td>
+                    <td valign="top" class="transaction-desc">
+                        <span class="badge badge-@(GetBadgeColor(transaction.State))">@transaction.State.ToName()</span>
+                    </td>
+                    <td valign="top" class="transaction-desc">
+                        @(String.Format("{0:d MMM yyyy, HH:mm}", transaction.CreationTime))
+                    </td>
+                </tr>
+            }
+            </tbody>
         }
-      </tbody>
-    }
 
-    @if (Variant == AvailableVariants.Addresses)
-    {
-      <thead>
-        <tr>
-          <th>Address</th>
-          <th>Path</th>
-          <th>Balance</th>
-          <th>Update</th>
-          <th>Key</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @foreach (var address in Addresses)
+        @if (Variant == AvailableVariants.Swaps)
         {
-          <tr>
-            <td class="transaction-desc">
-              <a href="@($"{walletStorage.SelectedCurrency.AddressExplorerUri}{address.Address}")" target="_blank">
-                @address.Address
-              </a>
-              <button class="copy-button small" @onclick="@(() => OnCopyAddressClick(address.Address))" type="button" />
-            </td>
-            <td class="transaction-desc">
-              @address.Path
-            </td>
-            <td>
-              @address.Balance
-            </td>
-            <td>
-              <button class="refresh-address-button @(UpdatingAddress == address.Address ? "rotate" : "")" type="button"
-                @onclick="@(() => OnUpdateAddress.InvokeAsync(address.Address))" />
-            </td>
-            <td>
-              <button class="copy-button priv-key" @onclick="@(() => OnCopyPrivateKey.InvokeAsync(address.Address))"
-                type="button" />
-            </td>
-          </tr>
+            <thead class="js-resize-height">
+            <tr>
+                <th>Description</th>
+                <th>State</th>
+                <th>Time</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @foreach (Swap swap in SwapsData)
+            {
+                <tr>
+                    <td class="transaction-desc">
+                        Convert
+                        <span class="@(swap.SoldCurrency.ToLower())-brush">
+                            @(AmountHelper.QtyToAmount(swap.Side, swap.Qty,
+                                swap.Price, getCurrency(swap.SoldCurrency).DigitsMultiplier))
+                            <span
+                                class="currency-abbr">
+                                @swap.SoldCurrency
+                            </span>
+                        </span> to
+                        <span
+                            class="@(swap.PurchasedCurrency.ToLower())-brush">
+                            @(AmountHelper.QtyToAmount(swap.Side.Opposite(), swap.Qty,
+                                swap.Price, getCurrency(swap.PurchasedCurrency).DigitsMultiplier))
+                            <span
+                                class="currency-abbr">
+                                @swap.PurchasedCurrency
+                            </span>
+                        </span>
+                    </td>
+                    <td class="transaction-desc">
+                        <span class="badge badge-@(GetBadgeColor(swap))">@CompactStateBySwap(swap)</span>
+                    </td>
+                    <td>
+                        @(String.Format("{0:d MMM yyyy, HH:mm}", swap.TimeStamp.ToLocalTime()))
+                    </td>
+                </tr>
+            }
+            </tbody>
         }
-      </tbody>
-    }
-  </table>
+
+        @if (Variant == AvailableVariants.Addresses)
+        {
+            <thead>
+            <tr>
+                <th>Address</th>
+                <th>Path</th>
+                <th>Type</th>
+                <th>Balance</th>
+                <th>Token Balance</th>
+                <th>Update</th>
+                <th>Key</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @foreach (var address in Addresses.Addresses)
+            {
+                <tr>
+                    <td>
+                        <a href="@(Addresses.GetExplorerUrl(address.Address))" target="_blank">
+                            @address.Address
+                        </a>
+                        <button class="copy-button small" @onclick="@(() => OnCopyAddressClick(address.Address))" type="button"/>
+                    </td>
+                    <td>
+                        @address.Path
+                    </td>
+                    <td>
+                        @address.Type
+                    </td>
+                    <td>
+                        @address.Balance
+                    </td>
+                    <td>
+                        @address.TokenBalance
+                    </td>
+                    <td>
+                        <button class="refresh-address-button @(UpdatingAddress == address.Address ? "rotate" : "")"
+                                type="button"
+                                @onclick="@(() => OnUpdateAddress.InvokeAsync(address.Address))"/>
+                    </td>
+                    <td>
+                        <button class="copy-button priv-key"
+                                @onclick="@(() => OnCopyPrivateKey.InvokeAsync(address.Address))"
+                                type="button"/>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        }
+    </table>
 </div>
 
 @code {
-  [Parameter]
-  public AvailableVariants Variant { get; set; }
 
-  [Parameter]
-  public Dictionary<string, CurrencyData> CurrenciesData { get; set; }
+    [Parameter]
+    public AvailableVariants Variant { get; set; }
 
-  [Parameter]
-  public List<Transaction> TransactionsData { get; set; }
+    [Parameter]
+    public bool ForTokens { get; set; }
 
-  [Parameter]
-  public IEnumerable<Swap> SwapsData { get; set; }
+    [Parameter]
+    public Dictionary<string, CurrencyData> CurrenciesData { get; set; }
 
-  [Parameter]
-  public IEnumerable<AddressInfo> Addresses { get; set; }
+    [Parameter]
+    public List<Transaction> TransactionsData { get; set; }
 
-  [Parameter]
-  public EventCallback<string> OnCopyPrivateKey { get; set; }
+    [Parameter]
+    public IEnumerable<Swap> SwapsData { get; set; }
 
-  [Parameter]
-  public EventCallback<string> OnUpdateAddress { get; set; }
+    [Parameter]
+    public AddressesViewModel Addresses { get; set; }
 
-  [Parameter]
-  public string UpdatingAddress { get; set; }
+    [Parameter]
+    public EventCallback<string> OnCopyPrivateKey { get; set; }
 
-  private Currency getCurrency(string Currency)
-  {
-    return AccountStorage.Currencies.GetByName(Currency);
-  }
+    [Parameter]
+    public EventCallback<string> OnUpdateAddress { get; set; }
 
-  public enum AvailableVariants
-  {
-    Currencies,
-    Transactions,
-    Swaps,
-    Addresses
-  }
+    [Parameter]
+    public string UpdatingAddress { get; set; }
 
-  private int GetTxHeight(Transaction tx)
-  {
-    return tx.Currency is BitcoinBasedCurrency ? 45 : 57;
-  }
-  private Dictionary<string, int> TX_INFO_BLOCK_HEIGHT = new Dictionary<string, int>();
 
-  private string GetTransactionType(Transaction tx)
-  {
-    return tx.IsRewardTx ? "reward" : tx.Type.ToName().ToLower();
-  }
-
-  private int GetTxInfoBlockHeight
-  {
-    get
+    private CurrencyConfig getCurrency(string Currency)
     {
-      int height = 160;
-      TX_INFO_BLOCK_HEIGHT.TryGetValue(walletStorage.OpenedTx?.Currency.Name.ToUpper(), out height);
-      return height;
+        return AccountStorage.Currencies.GetByName(Currency);
     }
-  }
 
-  private static string CompactStateBySwap(Swap swap)
-  {
-    if (swap.IsComplete)
-      return "Completed";
-
-    if (swap.IsCanceled)
-      return "Canceled";
-
-    if (swap.IsUnsettled)
-      return "Unsettled";
-
-    if (swap.IsRefunded)
-      return "Refunded";
-
-    return "In Progress";
-  }
-
-  private string GetBadgeColor(BlockchainTransactionState state)
-  {
-    switch (state)
+    public enum AvailableVariants
     {
-      case BlockchainTransactionState.Confirmed:
-        return "primary";
-      case BlockchainTransactionState.Unconfirmed:
-        return "warning";
-      case BlockchainTransactionState.Failed:
-        return "danger";
-      case BlockchainTransactionState.Pending:
+        Currencies,
+        Transactions,
+        Swaps,
+        Addresses
+    }
+
+    private void SetOpenedTx(Transaction transaction)
+    {
+        walletStorage.OpenedTx = walletStorage.OpenedTx?.Id != transaction?.Id ? transaction : null;
+    }
+
+    private int GetTxHeight(Transaction tx)
+    {
+        return getCurrency(tx.Currency) is BitcoinBasedConfig ? 45 : 57;
+    }
+
+    private Dictionary<string, int> TX_INFO_BLOCK_HEIGHT = new Dictionary<string, int>();
+
+    private string GetTransactionType(Transaction tx)
+    {
+        return tx.IsRewardTx ? "reward" : tx.Type.ToName().ToLower();
+    }
+
+    private int GetTxInfoBlockHeight
+    {
+        get
+        {
+            int height = 160;
+            string currencyName = getCurrency(walletStorage.OpenedTx?.Currency)?.Name.ToUpper()!;
+            if (walletStorage.OpenedTx is TezosTokenTransferViewModel) currencyName = "XTZTOKEN";
+            TX_INFO_BLOCK_HEIGHT.TryGetValue(currencyName, out height);
+            return height;
+        }
+    }
+
+    private static string CompactStateBySwap(Swap swap)
+    {
+        if (swap.IsComplete)
+            return "Completed";
+
+        if (swap.IsCanceled)
+            return "Canceled";
+
+        if (swap.IsUnsettled)
+            return "Unsettled";
+
+        if (swap.IsRefunded)
+            return "Refunded";
+
+        return "In Progress";
+    }
+
+    private string GetBadgeColor(BlockchainTransactionState state)
+    {
+        switch (state)
+        {
+            case BlockchainTransactionState.Confirmed:
+                return "primary";
+            case BlockchainTransactionState.Unconfirmed:
+                return "warning";
+            case BlockchainTransactionState.Failed:
+                return "danger";
+            case BlockchainTransactionState.Pending:
+                return "info";
+            case BlockchainTransactionState.Unknown:
+                return "dark";
+            default:
+                return "secondary";
+        }
+    }
+
+    private static string GetBadgeColor(Swap swap)
+    {
+        if (swap.IsComplete)
+            return "primary";
+
+        if (swap.IsCanceled)
+            return "warning";
+
+        if (swap.IsUnsettled)
+            return "danger";
+
+        if (swap.IsRefunded)
+            return "dark";
+
         return "info";
-      case BlockchainTransactionState.Unknown:
-        return "dark";
-      default:
-        return "secondary";
     }
-  }
 
-  private static string GetBadgeColor(Swap swap)
-  {
-    if (swap.IsComplete)
-      return "primary";
-
-    if (swap.IsCanceled)
-      return "warning";
-
-    if (swap.IsUnsettled)
-      return "danger";
-
-    if (swap.IsRefunded)
-      return "dark";
-
-    return "info";
-  }
-
-  protected override void OnInitialized()
-  {
-    walletStorage.RefreshRequested += StateHasChanged;
-    swapStorage.RefreshRequested += StateHasChanged;
+    protected override void OnInitialized()
+    {
+        walletStorage.RefreshRequested += StateHasChanged;
+        swapStorage.RefreshRequested += StateHasChanged;
 
     // height of Detail tx view block for Currencies;
-    TX_INFO_BLOCK_HEIGHT.Add("BTC", 118);
-    TX_INFO_BLOCK_HEIGHT.Add("LTC", 118);
+        TX_INFO_BLOCK_HEIGHT.Add("BTC", 118);
+        TX_INFO_BLOCK_HEIGHT.Add("LTC", 118);
 
-    TX_INFO_BLOCK_HEIGHT.Add("ETH", 232);
-    TX_INFO_BLOCK_HEIGHT.Add("USDT", 232);
-    TX_INFO_BLOCK_HEIGHT.Add("WBTC", 232);
-    TX_INFO_BLOCK_HEIGHT.Add("TBTC", 232);
+        TX_INFO_BLOCK_HEIGHT.Add("ETH", 232);
+        TX_INFO_BLOCK_HEIGHT.Add("USDT", 232);
+        TX_INFO_BLOCK_HEIGHT.Add("WBTC", 232);
+        TX_INFO_BLOCK_HEIGHT.Add("TBTC", 232);
 
-    TX_INFO_BLOCK_HEIGHT.Add("XTZ", 212);
-    TX_INFO_BLOCK_HEIGHT.Add("FA12", 212);
-    TX_INFO_BLOCK_HEIGHT.Add("TZBTC", 212);
-    TX_INFO_BLOCK_HEIGHT.Add("KUSD", 212);
-  }
-
-  private async void OnCopyAddressClick(string address)
-  {
-    await JSRuntime.InvokeAsync<string>("copyTextToClipboard", address);
-  }
-
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender)
-    {
-      await JSRuntime.InvokeVoidAsync("dragTable");
+        TX_INFO_BLOCK_HEIGHT.Add("XTZ", 212);
+        TX_INFO_BLOCK_HEIGHT.Add("XTZTOKEN", 150);
     }
-  }
+
+    private async void OnCopyAddressClick(string address)
+    {
+        await JSRuntime.InvokeAsync<string>("copyTextToClipboard", address);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("dragTable", ForTokens);
+        }
+    }
+
 }

@@ -2,97 +2,103 @@
 @inject AccountStorage accountStorage;
 
 <div class="exchange-container @(IsOpened ? "opened" : "") noselect">
-  @if(Label?.Length > 0) {
-    <span>
-      @(Label):
-    </span>
-  }
-  <div class="relative">
-    <RoundedContainer OnClick="@OnDropdownClick">
-      <CurrencyModalCard
-        SelectedBaker="@SelectedBaker"
-        SelectedCurrency="@SelectedCurrency"
-        Amount="@(walletStorage.GetCurrencyData(SelectedCurrency, "balance"))" />
-
-      @if (IsOpened) {
-        <div class="exchange-dropdown">
-          @foreach (Currency currency in walletStorage.AvailableCurrencies)
-          {
-            if (!IsSecondCurrency || (IsSecondCurrency && GetCurrencyIsConverted(currency))) {
-              <CurrencyModalCard
-                SelectedCurrency="@currency"
-                Amount="@(walletStorage.GetCurrencyData(currency, "balance"))"
-                OnClick="() => OnCurrencyClick(currency)" />
-            }
-          }
-        </div>
-      }
-    </RoundedContainer>
-    @if (WithExchange) {
-      <button
-        class="change-selected-currencies__button"
-        disabled="@(GetCurrencyIsConverted(walletStorage.SelectedSecondCurrency) ? false : true)"
-        @onclick="walletStorage.SwapCurrencies" >
-      </button>
+    @if (Label?.Length > 0)
+    {
+        <span>
+            @(Label):
+        </span>
     }
-  </div>
+    <div class="relative">
+        <RoundedContainer OnClick="@OnDropdownClick">
+            <CurrencyModalCard
+                SelectedBaker="@SelectedBaker"
+                SelectedCurrency="@SelectedCurrency"
+                Amount="@(walletStorage.GetCurrencyData(SelectedCurrency, "balance"))"/>
+
+            @if (IsOpened)
+            {
+                <div class="exchange-dropdown">
+                    @foreach (CurrencyConfig currencyConfig in walletStorage.AvailableCurrencies)
+                    {
+                        if (!IsSecondCurrency || (IsSecondCurrency && GetCurrencyIsConverted(currencyConfig)))
+                        {
+                            <CurrencyModalCard
+                                SelectedCurrency="@currencyConfig"
+                                Amount="@(walletStorage.GetCurrencyData(currencyConfig, "balance"))"
+                                OnClick="() => OnCurrencyClick(currencyConfig)"/>
+                        }
+                    }
+                </div>
+            }
+        </RoundedContainer>
+        @if (WithExchange)
+        {
+            <button
+                class="change-selected-currencies__button"
+                disabled="@(GetCurrencyIsConverted(walletStorage.SelectedSecondCurrency) ? false : true)"
+                @onclick="walletStorage.SwapCurrencies">
+            </button>
+        }
+    </div>
 </div>
 
 @code {
-  [Parameter]
-  public Currency SelectedCurrency { get; set; }
 
-  [Parameter]
-  public Baker SelectedBaker { get; set; }
+    [Parameter]
+    public CurrencyConfig SelectedCurrency { get; set; }
 
-  [Parameter]
-  public bool IsSecondCurrency { get; set; }
+    [Parameter]
+    public Baker SelectedBaker { get; set; }
 
-  [Parameter]
-  public string Label { get; set; } = "";
+    [Parameter]
+    public bool IsSecondCurrency { get; set; }
 
-  [Parameter]
-  public bool IsOpened { get; set; }
+    [Parameter]
+    public string Label { get; set; } = "";
 
-  [Parameter]
-  public EventCallback<int> HandleOpen { get; set; }
+    [Parameter]
+    public bool IsOpened { get; set; }
 
-  [Parameter]
-  public bool WithExchange { get; set; } = false;
+    [Parameter]
+    public EventCallback<int> HandleOpen { get; set; }
 
-  private bool GetCurrencyIsConverted(Currency currency)
-  {
-    return accountStorage.Symbols.SymbolByCurrencies(walletStorage.SelectedCurrency, currency) != null;
-  }
+    [Parameter]
+    public bool WithExchange { get; set; } = false;
 
-  private void OnCurrencyClick(Currency currency)
-  {
+    private bool GetCurrencyIsConverted(CurrencyConfig currency)
+    {
+        return accountStorage.Symbols.SymbolByCurrencies(walletStorage.SelectedCurrency, currency) != null;
+    }
+
+    private void OnCurrencyClick(CurrencyConfig currency)
+    {
     // IsOpened = !IsOpened;
-    OnDropdownClick();
-    if (IsSecondCurrency)
-    {
-      walletStorage.SelectedSecondCurrency = currency;
+        OnDropdownClick();
+        if (IsSecondCurrency)
+        {
+            walletStorage.SelectedSecondCurrency = currency;
+        }
+        else
+        {
+            walletStorage.SelectedCurrency = currency;
+        }
     }
-    else
-    {
-      walletStorage.SelectedCurrency = currency;
-    }
-  }
 
-  private void OnDropdownClick()
-  {
-    if (IsSecondCurrency)
+    private void OnDropdownClick()
     {
-      HandleOpen.InvokeAsync(2);
+        if (IsSecondCurrency)
+        {
+            HandleOpen.InvokeAsync(2);
+        }
+        else
+        {
+            HandleOpen.InvokeAsync(1);
+        }
     }
-    else
-    {
-      HandleOpen.InvokeAsync(1);
-    }
-  }
 
-  protected override void OnInitialized()
-  {
-    walletStorage.RefreshRequested += StateHasChanged;
-  }
+    protected override void OnInitialized()
+    {
+        walletStorage.RefreshRequested += StateHasChanged;
+    }
+
 }
