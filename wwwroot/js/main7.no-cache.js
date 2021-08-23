@@ -65,12 +65,16 @@ var dataTypes = [
 var dataStore = {};
 var currentWalletName = "";
 
-function divideData(data) {
-    const MAX_ARR_ELEMENTS = 100;
+function divideDataAndFillDatabase(data) {
+    const MAX_ARR_ELEMENTS = 500;
+    let dividedDataArrays = [];
     
-    if (data.length > MAX_ARR_ELEMENTS) {
-        
-    }
+    while (data.length > 0)
+        dividedDataArrays.push(data.splice(0, MAX_ARR_ELEMENTS));
+    
+    dividedDataArrays.forEach(arr => {
+        dotNetObject.invokeMethodAsync('AddADRData', JSON.stringify(arr));
+    });
 }
 
 async function getData(walletName, dotNetObject) {
@@ -103,7 +107,9 @@ async function getData(walletName, dotNetObject) {
 
     currentWalletName = walletName;
     window.dotNetObject = dotNetObject;
-    dotNetObject.invokeMethodAsync('LoadWallet', JSON.stringify(result), dbVersion);
+
+    divideDataAndFillDatabase(result);
+    dotNetObject.invokeMethodAsync('LoadWallet', dbVersion);
 }
 
 function getIsMobile() {

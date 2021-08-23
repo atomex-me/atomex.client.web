@@ -230,12 +230,23 @@ namespace atomex_frontend.Storages
       {
         Console.WriteLine($"Wallet {WalletName} founded on FS");
       }
+      
       InitializeAtomexConfigs();
+      
+      ADR = new AccountDataRepository(Currencies);
+      ADR.SaveDataCallback += SaveDataCallback;
+      
       await jSRuntime.InvokeVoidAsync("getData", WalletName, DotNetObjectReference.Create(this));
     }
 
+    [JSInvokableAttribute("AddADRData")]
+    public void AddADRData(string data)
+    {
+      ADR.AddData(data);
+    }
+
     [JSInvokableAttribute("LoadWallet")]
-    public async void LoadWallet(string data, int dbVersion)
+    public async void LoadWallet(int dbVersion)
     {
       Console.WriteLine($"Loading wallet with db version {dbVersion}");
 
@@ -276,11 +287,7 @@ namespace atomex_frontend.Storages
         .Build();
 
       Currencies = currenciesProvider.GetCurrencies(CurrentNetwork);
-
       var symbolsProvider = new SymbolsProvider(symbolsConfiguration);
-
-      ADR = new AccountDataRepository(Currencies, initialData: data);
-      ADR.SaveDataCallback += SaveDataCallback;
 
       try
       {
@@ -344,7 +351,7 @@ namespace atomex_frontend.Storages
       AtomexApp.Terminal.ServiceConnected += OnTerminalServiceStateChangedEventHandler;
       AtomexApp.Terminal.ServiceDisconnected += OnTerminalServiceStateChangedEventHandler;
 
-      Console.WriteLine($"Starting Atomex app with {CurrentWalletName} wallet with data {data.Length}");
+      Console.WriteLine($"Starting Atomex app with {CurrentWalletName}");
       CallInitialize(IsRestarting: false);
       AtomexApp.Start();
     }

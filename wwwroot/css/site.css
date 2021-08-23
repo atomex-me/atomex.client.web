@@ -470,7 +470,7 @@ button:hover {
 }
 
 .navigate-button:hover {
-    background-color: var(--dark-blue);
+    background-color: var(--dark-blue) !important;
 }
 
 .navigate-button[disabled] {
@@ -2570,6 +2570,10 @@ iframe {
     background-color: var(--dark-input-dark-blue);
 }
 
+.contract-content-container .token-row-container:nth-child(2n) button {
+    background-color: var(--dark-gradient-color);
+}
+
 button {
     transition: background 400ms;
 }
@@ -2654,7 +2658,7 @@ button {
 }
 
 .token-right-content > button {
-    margin-right: 15px;
+    margin-left: 15px;
 }
 
 .updating-tez-tokens__text {
@@ -2663,4 +2667,8 @@ button {
     line-height: 24px;
     text-align: center;
     margin: 0 !important;
+}
+
+.ipfs-link {
+    display: flex;
 }

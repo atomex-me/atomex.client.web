@@ -38,7 +38,7 @@
             <div class="token loading-container">
                 @if (_tezTokenStrg.IsBalanceUpdating)
                 {
-                    <Loader />
+                    <Loader/>
                     <div class="currency-card__selected-currency tezos-tokens active">
                         <div class="updating-tez-tokens__text">
                             Updating Tezos tokens...
@@ -78,7 +78,7 @@
                                 type="button"
                                 @onclick="@SendOpenCloseHandler">
                             Send
-                        </button>   
+                        </button>
                     }
                     <button class="navigate-button small"
                             type="button"
@@ -136,14 +136,9 @@
                                 </div>
                             </div>
                             <div class="token-right-content">
-                                <button class="navigate-button small"
-                                        type="button"
-                                        @onclick="@(() => SendFa2Click(token))">
-                                    Send
-                                </button>
                                 @if (token.IsIpfsAsset)
                                 {
-                                    <a href="@token.AssetUrl" target="_blank">
+                                    <a class="ipfs-link" href="@token.AssetUrl" target="_blank">
                                         <i class="icon asset-icon"/>
                                     </a>
                                 }
@@ -153,6 +148,11 @@
                                         @token.Balance
                                     </span>
                                 }
+                                <button class="navigate-button small"
+                                        type="button"
+                                        @onclick="@(() => SendFa2Click(token))">
+                                    Send
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -191,7 +191,7 @@
     private TezosTokenViewModel SendClickedToken { get; set; }
 
     private bool SendModalOpened { get; set; }
-    
+
     private void SendOpenCloseHandler()
     {
         SendModalOpened = !SendModalOpened;
@@ -210,8 +210,8 @@
     protected override async void OnInitialized()
     {
         _tezTokenStrg.UIRefresh += StateHasChanged;
-        
-        if (translations == null) 
+
+        if (translations == null)
             translations = await I18nText.GetTextTableAsync<Translations>(this);
     }
 
