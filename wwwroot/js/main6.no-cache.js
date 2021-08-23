@@ -65,6 +65,14 @@ var dataTypes = [
 var dataStore = {};
 var currentWalletName = "";
 
+function divideData(data) {
+    const MAX_ARR_ELEMENTS = 100;
+    
+    if (data.length > MAX_ARR_ELEMENTS) {
+        
+    }
+}
+
 async function getData(walletName, dotNetObject) {
     var dataObj = {};
 
@@ -84,6 +92,8 @@ async function getData(walletName, dotNetObject) {
             data: keyVal[1]
         }))]
     })
+    
+    
 
     var dbVersion = await idbKeyval.get(`${walletName}/${DB_VERSION_KEY}`);
     
