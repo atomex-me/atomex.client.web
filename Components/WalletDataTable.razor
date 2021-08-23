@@ -7,7 +7,8 @@
 
 <div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant == AvailableVariants.Addresses ? "no-js" : "")">
     @if (Variant == AvailableVariants.Transactions &&
-         (walletStorage.OpenedTx?.Currency == walletStorage.SelectedCurrency.Name) || walletStorage.OpenedTx is TezosTokenTransferViewModel)
+         Variant != AvailableVariants.Addresses &&
+         (walletStorage.OpenedTx?.Currency == walletStorage.SelectedCurrency.Name || walletStorage.OpenedTx is TezosTokenTransferViewModel))
     {
         <DetailTxInfo OpenedTx="@walletStorage.OpenedTx"
                       TransactionsData="@TransactionsData"
