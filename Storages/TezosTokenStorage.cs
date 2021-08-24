@@ -373,7 +373,7 @@ namespace atomex_frontend.Storages
 
                 Transfers = new ObservableCollection<TezosTokenTransferViewModel>((await tokenAccount
                         .DataRepository
-                        .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
+                        .GetTezosTokenTransfersAsync(tokenContract.Contract.Address, offset: 0, limit: int.MaxValue))
                     .OrderByDescending(t => t.CreationTime)
                     .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
 
@@ -390,7 +390,7 @@ namespace atomex_frontend.Storages
 
                 Transfers = new ObservableCollection<TezosTokenTransferViewModel>((await tezosAccount
                         .DataRepository
-                        .GetTezosTokenTransfersAsync(tokenContract.Contract.Address))
+                        .GetTezosTokenTransfersAsync(tokenContract.Contract.Address, offset: 0, limit: int.MaxValue))
                     .OrderByDescending(t => t.CreationTime)
                     .Select(t => new TezosTokenTransferViewModel(t, tezosConfig)));
                 
