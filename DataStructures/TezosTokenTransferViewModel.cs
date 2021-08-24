@@ -1,10 +1,8 @@
 using System;
-using System.Numerics;
 using Atomex;
-using atomex_frontend.Common;
-using atomex_frontend.Storages;
 using Atomex.Blockchain.Abstract;
 using Atomex.Blockchain.Tezos;
+using Atomex.Common;
 
 namespace atomex_frontend.atomex_data_structures
 {
@@ -46,14 +44,16 @@ namespace atomex_frontend.atomex_data_structures
         
         private static decimal GetAmount(TokenTransfer tx)
         {
-            if (!decimal.TryParse(tx.Amount, out var amount))
-                return 0;
+            if (tx.Amount.TryParseWithRound(tx.Token.Decimals, out var amount))
+            {
+                var sign = tx.Type.HasFlag(BlockchainTransactionType.Input)
+                    ? 1
+                    : -1;
 
-            var sign = tx.Type.HasFlag(BlockchainTransactionType.Input)
-                ? 1
-                : -1;
+                return sign * amount;
+            }
 
-            return sign * amount / (decimal)BigInteger.Pow(10, tx.Token.Decimals);
+            return 0;
         }
     }
 }
