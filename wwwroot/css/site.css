@@ -1494,10 +1494,6 @@ table>thead>tr>th:last-child {
     margin-bottom: 10px;
 }
 
-.exchange>*:last-child {
-    margin: 0;
-}
-
 .exchange-container {
     display: flex;
     justify-content: center;
@@ -1675,6 +1671,7 @@ table>thead>tr>th:last-child {
 }
 
 .exchange-button__container {
+    margin: 10px 0 0 0;
     display: flex;
     justify-content: center;
 }
