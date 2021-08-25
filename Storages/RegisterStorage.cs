@@ -414,15 +414,15 @@ namespace atomex_frontend.Storages
       {
         return PasswordErrors.Mismatch;
       }
-      else if (strongness < PassStrongness.Medium)
-      {
-        if (PassType == PassTypes.Derived && (DerivedKeyPassword1.Length == 0 && DerivedKeyPassword2.Length == 0))
-        {
-          return PasswordErrors.None;
-        }
-        return PasswordErrors.Weak;
-      }
-      else return PasswordErrors.None;
+      // else if (strongness < PassStrongness.Medium)
+      // {
+      //   if (PassType == PassTypes.Derived && (DerivedKeyPassword1.Length == 0 && DerivedKeyPassword2.Length == 0))
+      //   {
+      //     return PasswordErrors.None;
+      //   }
+      //   return PasswordErrors.Weak;
+      // }
+      return PasswordErrors.None;
     }
 
     public void ResetData()
