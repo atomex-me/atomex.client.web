@@ -397,12 +397,14 @@ namespace atomex_frontend.Storages
 
                 Tokens = new ObservableCollection<TezosTokenViewModel>(tokenAddresses
                     .Where(a => a.Balance != 0)
+                    .OrderBy(token => token.Id)
                     .Select(a => new TezosTokenViewModel
                     {
                         TokenBalance  = a.TokenBalance,
                         PreviewLoaded = CallUIRefresh,
                         Address       = a.Address,
-                    }));
+                    })
+                );
             }
             
             if (IsFa12)

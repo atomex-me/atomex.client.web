@@ -68,8 +68,7 @@
             Description="From address:"
             OnAddressChange="@(address => _sendVM.From = address)"
             Addresses="@_sendVM.FromAddresses.ToList()"
-            SelectedAddress="@_sendVM.From"
-            Disabled="@_tezTokenStrg.TokenContract.IsFa2"/>
+            SelectedAddress="@_sendVM.From" />
         
         <Input
             Description="Token contract:"
