@@ -542,7 +542,7 @@ namespace atomex_frontend.Storages
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
       
-      CurrenciesToUpdate = new[] {TezosConfig.Xtz, "BTC"};
+      CurrenciesToUpdate = new[] {TezosConfig.Xtz};
       
       Console.WriteLine($"setting CurrenciesToUpdate to {CurrenciesToUpdate}");
       _ = ConnectToWallet(CurrentWalletName, _password);
