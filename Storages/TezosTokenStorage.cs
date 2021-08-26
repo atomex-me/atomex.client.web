@@ -21,17 +21,11 @@ namespace atomex_frontend.Storages
 {
     public class TezosTokenViewModel
     {
-        private bool _isPreviewDownloading = false;
-
+        private bool _isPreviewDownloading;
         public TokenBalance TokenBalance { get; set; }
-        
         public string Address { get; set; }
-
         public Action PreviewLoaded;
-
         private string _tokenPreview;
-        
-
         public string TokenPreview
         {
             get
@@ -41,7 +35,8 @@ namespace atomex_frontend.Storages
 
                 if (_tokenPreview != null)
                     return _tokenPreview;
-
+                
+                _isPreviewDownloading = true;
                 _ = Task.Run(async () =>
                 {
                     await LoadPreview().ConfigureAwait(false);
@@ -56,7 +51,6 @@ namespace atomex_frontend.Storages
 
         private async Task LoadPreview()
         {
-            _isPreviewDownloading = true;
             foreach (var url in GetTokenPreviewUrls())
             {
                 await FromUrlAsync(url).ConfigureAwait(false);

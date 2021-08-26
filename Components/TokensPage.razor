@@ -125,7 +125,7 @@
                 @foreach (var token in _tezTokenStrg.Tokens)
                 {
                     <div class="token-row-container">
-                        <img src="@token.TokenPreview" class="token-preview-img" alt="">
+                        <img src="@GetTokenImage(token)" class="token-preview-img @(token.TokenPreview == null ? "loading" : "")" alt="">
                         <div class="token-row-container__description">
                             <div>
                                 <div class="trunc-text">
@@ -178,6 +178,12 @@
 
 @code
 {
+    private string GetTokenImage(TezosTokenViewModel tezosTokenViewModel)
+    {
+        if (tezosTokenViewModel.TokenPreview != null) return tezosTokenViewModel.TokenPreview;
+        return "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+PHN2ZyB4bWxuczpzdmc9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB2ZXJzaW9uPSIxLjAiIHdpZHRoPSI0OHB4IiBoZWlnaHQ9IjQ4cHgiIHZpZXdCb3g9IjAgMCAxMjggMTI4IiB4bWw6c3BhY2U9InByZXNlcnZlIj48Zz48Y2lyY2xlIGN4PSIxNiIgY3k9IjY0IiByPSIxNiIgZmlsbD0iIzAwMDAwMCIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iNjQiIHI9IjE2IiBmaWxsPSIjNTU1NTU1IiB0cmFuc2Zvcm09InJvdGF0ZSg0NSw2NCw2NCkiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjY0IiByPSIxNiIgZmlsbD0iIzk0OTQ5NCIgdHJhbnNmb3JtPSJyb3RhdGUoOTAsNjQsNjQpIi8+PGNpcmNsZSBjeD0iMTYiIGN5PSI2NCIgcj0iMTYiIGZpbGw9IiNjY2NjY2MiIHRyYW5zZm9ybT0icm90YXRlKDEzNSw2NCw2NCkiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjY0IiByPSIxNiIgZmlsbD0iI2UxZTFlMSIgdHJhbnNmb3JtPSJyb3RhdGUoMTgwLDY0LDY0KSIvPjxjaXJjbGUgY3g9IjE2IiBjeT0iNjQiIHI9IjE2IiBmaWxsPSIjZTFlMWUxIiB0cmFuc2Zvcm09InJvdGF0ZSgyMjUsNjQsNjQpIi8+PGNpcmNsZSBjeD0iMTYiIGN5PSI2NCIgcj0iMTYiIGZpbGw9IiNlMWUxZTEiIHRyYW5zZm9ybT0icm90YXRlKDI3MCw2NCw2NCkiLz48Y2lyY2xlIGN4PSIxNiIgY3k9IjY0IiByPSIxNiIgZmlsbD0iI2UxZTFlMSIgdHJhbnNmb3JtPSJyb3RhdGUoMzE1LDY0LDY0KSIvPjxhbmltYXRlVHJhbnNmb3JtIGF0dHJpYnV0ZU5hbWU9InRyYW5zZm9ybSIgdHlwZT0icm90YXRlIiB2YWx1ZXM9IjAgNjQgNjQ7MzE1IDY0IDY0OzI3MCA2NCA2NDsyMjUgNjQgNjQ7MTgwIDY0IDY0OzEzNSA2NCA2NDs5MCA2NCA2NDs0NSA2NCA2NCIgY2FsY01vZGU9ImRpc2NyZXRlIiBkdXI9IjcyMG1zIiByZXBlYXRDb3VudD0iaW5kZWZpbml0ZSI+PC9hbmltYXRlVHJhbnNmb3JtPjwvZz48L3N2Zz4=";
+    }
+    
     [Parameter]
     public EventCallback OnReceiveClick { get; set; }
 
