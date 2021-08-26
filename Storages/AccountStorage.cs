@@ -53,8 +53,18 @@ namespace atomex_frontend.Storages
 
     public bool LoadFromRestore = false;
 
-    private bool _updateAllCurrencies;
+    private string[] _currenciesToUpdate;
 
+    public string[] CurrenciesToUpdate
+    {
+      get => _currenciesToUpdate;
+      set
+      {
+        if (!_updateAllCurrencies) _currenciesToUpdate = value;
+      }
+    }
+
+    private bool _updateAllCurrencies;
     public bool UpdateAllCurrencies
     {
       get => _updateAllCurrencies;
@@ -256,19 +266,19 @@ namespace atomex_frontend.Storages
         return;
       }
 
-      if (dbVersion == 1 && CurrentNetwork == Network.MainNet)
+      if (dbVersion == 1)
       {
         await MigrateFrom_1_to_2();
         return;
       }
 
-      if (dbVersion == 2 && CurrentNetwork == Network.MainNet)
+      if (dbVersion == 2)
       {
         await MigrateFrom_2_to_3();
         return;
       }
       
-      if (dbVersion == 3 && CurrentNetwork == Network.MainNet)
+      if (dbVersion == 3)
       {
         await MigrateFrom_3_to_4();
         return;
@@ -372,7 +382,7 @@ namespace atomex_frontend.Storages
       // subscribe to symbols updates
       if (args.Service == TerminalService.MarketData && IsMarketDataConnected)
       {
-        Console.WriteLine("SUBSCRIBING TO WEBSOCKET MASRKET DATA");
+        Console.WriteLine("SUBSCRIBING TO WEBSOCKET MARKET DATA");
         terminal.SubscribeToMarketData(SubscriptionType.TopOfBook);
         terminal.SubscribeToMarketData(SubscriptionType.DepthTwenty);
       }
@@ -485,7 +495,7 @@ namespace atomex_frontend.Storages
     private async Task MigrateFrom_0_to_1()
     {
       int TARGET_VER = 1;
-      Console.WriteLine($"Applying migration database to verson {1}.");
+      Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
 
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
       await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
@@ -531,7 +541,10 @@ namespace atomex_frontend.Storages
       await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
       Console.WriteLine("Migration applied, DB version saved, restarting.");
-      UpdateAllCurrencies = true;
+      
+      CurrenciesToUpdate = new[] {TezosConfig.Xtz, "BTC"};
+      
+      Console.WriteLine($"setting CurrenciesToUpdate to {CurrenciesToUpdate}");
       _ = ConnectToWallet(CurrentWalletName, _password);
     }
   }

@@ -136,6 +136,7 @@ namespace atomex_frontend.Storages
                 {
                     _isTezosTokensSelected = value;
                     OpenedTx = null;
+                    CallCloseModals();
                     CallUIRefresh();
                 }
             }
@@ -440,9 +441,10 @@ namespace atomex_frontend.Storages
                     }
                     else
                     {
-                        _selectedCurrency = accountStorage.Account.Currencies.Get<CurrencyConfig>(lastSwapFromCurrencyName);
+                        _selectedCurrency =
+                            accountStorage.Account.Currencies.Get<CurrencyConfig>(lastSwapFromCurrencyName);
                     }
-                    
+
                     CheckForSimilarCurrencies();
                     CallMarketRefresh();
                 }
@@ -531,7 +533,7 @@ namespace atomex_frontend.Storages
                 var tezosConfig = accountStorage.Account
                     .Currencies
                     .GetByName(TezosConfig.Xtz);
-                
+
                 TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
 
                 await bakerStorage.LoadBakerList();
@@ -540,9 +542,9 @@ namespace atomex_frontend.Storages
                 _selectedCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("BTC");
                 _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("XTZ");
 
-                if (accountStorage.UpdateAllCurrencies && !accountStorage.LoadFromRestore)
+                if ((accountStorage.UpdateAllCurrencies || accountStorage.CurrenciesToUpdate?.Length > 0) && !accountStorage.LoadFromRestore)
                 {
-                    await ScanAllCurrencies();
+                    await ScanAllCurrencies(accountStorage.CurrenciesToUpdate);
                     accountStorage.UpdateAllCurrencies = false;
                 }
 
@@ -681,32 +683,45 @@ namespace atomex_frontend.Storages
             }
         }
 
-        public async Task ScanAllCurrencies()
+        public async Task ScanAllCurrencies(string[] currenciesArr = null)
         {
             AllPortfolioUpdating = true;
             var currencies = accountStorage.Account.Currencies.ToList();
             try
             {
-                await Task.WhenAll(currencies.Select(currency => ScanCurrencyAsync(currency, scanningAll: true)));
-                var tezosAccount = accountStorage.Account
-                    .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz);
-
-                var tezosTokensScanner = new TezosTokensScanner(tezosAccount);
-
-                await tezosTokensScanner.ScanAsync(
-                    skipUsed: false,
-                    cancellationToken: default);
-
-                // reload balances for all tezos tokens account
-                foreach (var currency in accountStorage.Account.Currencies)
+                if (currenciesArr != null)
                 {
-                    if (Currencies.IsTezosToken(currency.Name))
-                        accountStorage.Account
-                            .GetCurrencyAccount<TezosTokenAccount>(currency.Name)
-                            .ReloadBalances();
+                    currencies = currencies
+                        .Where(curr => currenciesArr.Contains(curr.Name)).ToList();
                 }
 
-                Console.WriteLine("Tokens balance updating finished!");
+                await Task.WhenAll(
+                    currencies
+                        .Where(c => c.Name != TezosConfig.Xtz)
+                        .Select(currency => ScanCurrencyAsync(currency, scanningAll: true))
+                );
+
+                if (currenciesArr == null || Array.IndexOf(currenciesArr, TezosConfig.Xtz) != -1)
+                {
+                    var tezosAccount = accountStorage.Account
+                        .GetCurrencyAccount<TezosAccount>(TezosConfig.Xtz);
+
+                    var tezosTokensScanner = new TezosTokensScanner(tezosAccount);
+                    await tezosTokensScanner.ScanAsync(
+                        skipUsed: false,
+                        cancellationToken: default);
+
+                    // reload balances for all tezos tokens account
+                    foreach (var currency in accountStorage.Account.Currencies)
+                    {
+                        if (Currencies.IsTezosToken(currency.Name))
+                            accountStorage.Account
+                                .GetCurrencyAccount<TezosTokenAccount>(currency.Name)
+                                .ReloadBalances();
+                    }
+
+                    Console.WriteLine("Tokens balance updating finished!");
+                }
             }
             catch (OperationCanceledException)
             {
@@ -717,6 +732,7 @@ namespace atomex_frontend.Storages
                 Log.Error(e, "Exception during update TezosTokens");
                 // todo: message to user!?
             }
+
             AllPortfolioUpdating = false;
         }
 
@@ -900,7 +916,7 @@ namespace atomex_frontend.Storages
                         .SortList((t1, t2) => t2.Time.CompareTo(t1.Time))
                         .ToList()
                 );
-                
+
                 foreach (var tx in transfersList)
                 {
                     TezosTokenTransferViewModel oldTx;

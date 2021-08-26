@@ -41,13 +41,17 @@
           <Loader />
         }
         <div class="wallets-list__unlock-container @(AccountStorage.WalletLoading ? "loading" : "")">
-          @if (!AccountStorage.UpdateAllCurrencies)
+          @if (!AccountStorage.UpdateAllCurrencies && AccountStorage.CurrenciesToUpdate == null)
           {
             <p>Please enter password to unlock "@AvailableWallets[SelectedWalletIndex]"</p>
           }
+          else if (AccountStorage.CurrenciesToUpdate != null)
+          {
+            <p>Updating @(string.Join(", ", AccountStorage.CurrenciesToUpdate)) data, please wait...</p>
+          }
           else
           {
-            <p>Updating application, please wait...</p>
+            <p>Updating wallet data, please wait...</p>
           }
           <Input InputType="password" InputName="storagePassword" Value="@WalletPassword" OnChange="@OnWalletPasswordChange"
             InputPlaceholder="@Translations.EnterPasswordPlaceholder" Error="@(WalletPasswordError.Length > 0)"
