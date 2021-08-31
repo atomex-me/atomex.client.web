@@ -605,6 +605,10 @@ namespace atomex_frontend.Storages
                             addressUsagePolicy: AddressUsagePolicy.UseMinimalBalanceFirst,
                             transactionType: BlockchainTransactionType.SwapPayment))
                     .ToList();
+                
+                foreach (var fromWallet in fromWallets)
+                    if (fromWallet.Currency != FromCurrency.Name)
+                        fromWallet.Currency = FromCurrency.Name;
 
                 if (Amount == 0)
                     return new Error(Errors.SwapError, Translations.CvZeroAmount);

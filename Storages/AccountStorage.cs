@@ -77,7 +77,7 @@ namespace atomex_frontend.Storages
             }
         }
 
-        public AccountDataRepository ADR;
+        public WebAccountDataRepository ADR;
         public IAccount Account { get; set; }
         public IAtomexApp AtomexApp { get; set; }
         public IAtomexClient Terminal { get; set; }
@@ -270,7 +270,7 @@ namespace atomex_frontend.Storages
 
             InitializeAtomexConfigs();
 
-            ADR = new AccountDataRepository(Currencies);
+            ADR = new WebAccountDataRepository(Currencies);
             ADR.SaveDataCallback += SaveDataCallback;
 
             await jSRuntime.InvokeVoidAsync("getData", WalletName, DotNetObjectReference.Create(this));
@@ -404,7 +404,7 @@ namespace atomex_frontend.Storages
             AtomexApp.Start();
         }
 
-        private void SaveDataCallback(AccountDataRepository.AvailableDataType type, string key, string value)
+        private void SaveDataCallback(WebAccountDataRepository.AvailableDataType type, string key, string value)
         {
             jSRuntime.InvokeAsync<string>("saveData", new[] {type.ToName(), CurrentWalletName, key, value});
         }
@@ -538,9 +538,9 @@ namespace atomex_frontend.Storages
             Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
 
             await jSRuntime.InvokeAsync<string>("deleteData",
-                AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
+                WebAccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
             await jSRuntime.InvokeAsync<string>("deleteData",
-                AccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
+                WebAccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
             await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
             Console.WriteLine("Migration applied, DB version saved, restarting.");
@@ -553,8 +553,8 @@ namespace atomex_frontend.Storages
             Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
 
             await jSRuntime.InvokeAsync<string>("deleteData",
-                AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
-            await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Output.ToName(),
+                WebAccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
+            await jSRuntime.InvokeAsync<string>("deleteData", WebAccountDataRepository.AvailableDataType.Output.ToName(),
                 CurrentWalletName);
             await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
@@ -568,8 +568,8 @@ namespace atomex_frontend.Storages
             Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
 
             await jSRuntime.InvokeAsync<string>("deleteData",
-                AccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
-            await jSRuntime.InvokeAsync<string>("deleteData", AccountDataRepository.AvailableDataType.Output.ToName(),
+                WebAccountDataRepository.AvailableDataType.Transaction.ToName(), CurrentWalletName);
+            await jSRuntime.InvokeAsync<string>("deleteData", WebAccountDataRepository.AvailableDataType.Output.ToName(),
                 CurrentWalletName);
             await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
@@ -584,7 +584,7 @@ namespace atomex_frontend.Storages
             Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
 
             await jSRuntime.InvokeAsync<string>("deleteData",
-                AccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
+                WebAccountDataRepository.AvailableDataType.WalletAddress.ToName(), CurrentWalletName);
             await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
 
             Console.WriteLine("Migration applied, DB version saved, restarting.");
