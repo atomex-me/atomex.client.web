@@ -119,7 +119,8 @@ namespace atomex_frontend.Storages
         public string IconUrl => $"https://services.tzkt.io/v1/avatars/{Contract.Address}";
         public bool IsFa12 => Contract.GetContractType() == "FA12";
         public bool IsFa2 => Contract.GetContractType() == "FA2";
-
+        
+        private bool _isTriedToGetFromTzkt;
         private string _name;
         public string Name
         {
@@ -128,7 +129,11 @@ namespace atomex_frontend.Storages
                 if (_name != null)
                     return _name;
 
-                _ = TryGetAliasAsync();
+                if (!_isTriedToGetFromTzkt)
+                {
+                    _isTriedToGetFromTzkt = true;
+                    _ = TryGetAliasAsync();
+                }
 
                 _name = Contract.Name;
                 return _name;

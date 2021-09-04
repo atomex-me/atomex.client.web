@@ -13,11 +13,13 @@ using Atomex.MarketData.Abstract;
 using Atomex.Services;
 using Atomex.Swaps.Helpers;
 using Atomex.Swaps;
+using Atomex.Wallet.Abstract;
+using Atomex.ViewModels;
+
 using Serilog;
 using Microsoft.JSInterop;
 using atomex_frontend.Common;
 using atomex_frontend.I18nText;
-using Atomex.Wallet.Abstract;
 
 namespace atomex_frontend.Storages
 {
@@ -469,7 +471,7 @@ namespace atomex_frontend.Storages
                         atomexClient: App.Terminal,
                         symbolsProvider: App.SymbolsProvider);
 
-                _amount = Math.Min(swapParams.Amount, EstimatedMaxAmount);
+                _amount = Math.Min(swapParams.Amount.TruncateByFormat(CurrencyFormat), EstimatedMaxAmount);
                 _ = UpdateAmountAsync(_amount, updateUi: true);
             }
             catch (Exception e)
@@ -609,6 +611,15 @@ namespace atomex_frontend.Storages
                 foreach (var fromWallet in fromWallets)
                     if (fromWallet.Currency != FromCurrency.Name)
                         fromWallet.Currency = FromCurrency.Name;
+                
+                // check balances
+                
+                Console.WriteLine($"Starting to check balance");
+                var errors = await BalanceChecker.CheckBalancesAsync(App.Account, fromWallets);
+                Console.WriteLine($"Ended checking balance");
+
+                if (errors.Any())
+                    return new Error(Errors.SwapError, GetErrorsDescription(errors));
 
                 if (Amount == 0)
                     return new Error(Errors.SwapError, Translations.CvZeroAmount);
@@ -699,6 +710,18 @@ namespace atomex_frontend.Storages
 
                 return new Error(Errors.SwapError, Translations.CvConversionError);
             }
+        }
+        
+        private string GetErrorsDescription(IEnumerable<BalanceError> errors)
+        {
+            var descriptions = errors.Select(e => e.Type switch
+            {
+                BalanceErrorType.FailedToGet      => $"Balance check for address {e.Address} failed",
+                BalanceErrorType.LessThanExpected => $"Balance for address {e.Address} is {e.ActualBalance.ToString(CultureInfo.InvariantCulture)} and less than local {e.LocalBalance.ToString(CultureInfo.InvariantCulture)}",
+                _                                 => $"Balance for address {e.Address} has changed and needs to be updated"
+            });
+
+            return string.Join(". ", descriptions) + ". Please update your balance and try again!";
         }
 
         public string NotReadyConvertMessage
