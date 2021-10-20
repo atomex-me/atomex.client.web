@@ -48,6 +48,24 @@ a:hover {
     color: white;
 }
 
+.update-to-avalonia {
+    max-width: 1150px;
+    margin: 0 50px;
+    text-align: center;
+}
+
+.update-to-avalonia > div:last-child {
+    margin-top: 15px;
+}
+
+.update-to-avalonia > div > .navigate-button {
+    display: block;
+    width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+}
+
 app {
     position: relative;
     display: flex;
