@@ -526,3 +526,8 @@ function renderWertWidget(currency, address, network, click_id) {
         click_id
     });
 }
+
+function isElectron() {
+    let userAgent = navigator.userAgent.toLowerCase();
+    return userAgent.indexOf(' electron/') > -1;
+}

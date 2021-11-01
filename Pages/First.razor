@@ -9,66 +9,93 @@
 @inject IJSRuntime JS;
 
 <div class="atomex__page light-background">
-  <div class="first-page__container">
-    <i class="atomex-logo"></i>
-    <div class="first-page__controls">
-      @if (isMobile)
-      {
-        <a href="https://apps.apple.com/us/app/atomex-wallet-dex/id1534717828">
-          <svg class="download-app-image-start download-apple" loading="lazy" alt="Download app store"
-            rel="noopener"></svg>
-        </a>
-        <a href="https://play.google.com/store/apps/details?id=com.atomex.android">
-          <svg class="download-app-image-start download-play" loading="lazy" alt="Download google play"
-            rel="noopener"></svg>
-        </a>
-      }
-      else
-      {
-        <NavigateButton Variant="full" To="/wallets-list" TriggeredByEnter>
-          <span class="uppercase">My wallets</span>
-        </NavigateButton>
-        <NavigateButton Variant="full" To="/create">
-          <span class="uppercase">Create new wallet</span>
-        </NavigateButton>
-        <NavLink href="/restore">
-          I want to restore my wallet
-        </NavLink>
-      }
-        <a target="_blank" class="terms-link" href="https://atomex.me/terms">Terms of use</a>
-      </div>
+    <div class="first-page__container">
+        <i class="atomex-logo"></i>
+        <div class="first-page__controls">
+            @if (IsElectron && !UseOldApp)
+            {
+                <div class="update-to-avalonia">
+                    @AvaloniaUpdateMessage
+                    <div>
+                        <NavigateButton Variant="center" To="https://atomex.me/#download" TriggeredByEnter>
+                            <span class="uppercase">Download new OSX app</span>
+                        </NavigateButton>
+                        <a href="/" @onclick="@(() => UseOldApp = true)">Continue using old app</a>
+                    </div>
+                </div>
+            }
+            else if (IsMobile)
+            {
+                <a href="https://apps.apple.com/us/app/atomex-wallet-dex/id1534717828">
+                    <svg class="download-app-image-start download-apple" loading="lazy" alt="Download app store"
+                         rel="noopener">
+                    </svg>
+                </a>
+                <a href="https://play.google.com/store/apps/details?id=com.atomex.android">
+                    <svg class="download-app-image-start download-play" loading="lazy" alt="Download google play"
+                         rel="noopener">
+                    </svg>
+                </a>
+            }
+            else
+            {
+                <NavigateButton Variant="full" To="/wallets-list" TriggeredByEnter>
+                    <span class="uppercase">My wallets</span>
+                </NavigateButton>
+                <NavigateButton Variant="full" To="/create">
+                    <span class="uppercase">Create new wallet</span>
+                </NavigateButton>
+                <NavLink href="/restore">
+                    I want to restore my wallet
+                </NavLink>
+            }
+
+            <a target="_blank" class="terms-link" href="https://atomex.me/terms">Terms of use</a>
+        </div>
     </div>
-  </div>
+
+</div>
 
 
-  @code {
-  private bool isMobile { get; set; } = false;
+@code {
+    private bool IsMobile { get; set; }
+    private bool IsElectron { get; set; }
+    private bool UseOldApp { get; set; }
 
-  protected override async Task OnInitializedAsync()
-  {
-    isMobile = await JS.InvokeAsync<bool>("getIsMobile");
-    var userId = await localStorage.GetItemAsync<string>($"uid");
-    if (userId == null)
+    private static string AvaloniaUpdateMessage => @"The Atomex team has prepared a big update for the OSX app which is much faster, more responsive and user friendly. 
+                                            This old app will no longer be supported so we highly recommend installing the new Atomex app for OSX. 
+                                            To do this you need to uninstall your current app, go to Atomex website to download the installer for MacOS app and install it. 
+                                            You will be able to restore your wallets with the seed phrase (and derived password, if used) as usual, make sure you do not forget them.";
+
+
+    protected override async Task OnInitializedAsync()
     {
-      userId = Guid.NewGuid().ToString();
-      await localStorage.SetItemAsync("uid", userId);
+        IsMobile = await JS.InvokeAsync<bool>("getIsMobile");
+        var userId = await localStorage.GetItemAsync<string>($"uid");
+        if (userId == null)
+        {
+            userId = Guid.NewGuid().ToString();
+            await localStorage.SetItemAsync("uid", userId);
+        }
+
+        SelfLog.Enable(m => Log.Error(m));
+
+        Log.Logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .MinimumLevel.Debug()
+            .WriteTo.Sentry(o =>
+            {
+                o.Dsn = new Dsn("https://e97df826880c468ca338e1f33a644031@sentry.baking-bad.org/4");
+                o.MinimumEventLevel = LogEventLevel.Error;
+                o.MinimumBreadcrumbLevel = LogEventLevel.Error;
+                o.AttachStacktrace = true;
+                o.SendDefaultPii = true;
+                o.ServerName = userId;
+            })
+    //.WriteTo.BrowserConsole()
+            .CreateLogger();
+
+        IsElectron = await JS.InvokeAsync<bool>("isElectron");
     }
 
-    SelfLog.Enable(m => Log.Error(m));
-
-    Log.Logger = new LoggerConfiguration()
-      .Enrich.FromLogContext()
-    .MinimumLevel.Debug()
-    .WriteTo.Sentry(o =>
-    {
-      o.Dsn = new Dsn("https://e97df826880c468ca338e1f33a644031@sentry.baking-bad.org/4");
-      o.MinimumEventLevel = LogEventLevel.Error;
-      o.MinimumBreadcrumbLevel = LogEventLevel.Error;
-      o.AttachStacktrace = true;
-      o.SendDefaultPii = true;
-      o.ServerName = userId;
-    })
-    //.WriteTo.BrowserConsole()
-    .CreateLogger();
-  }
 }
