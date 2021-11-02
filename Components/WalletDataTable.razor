@@ -5,7 +5,7 @@
 @using atomex_frontend.Common;
 @using System.Collections.ObjectModel
 
-<div class="tableFixHead @(Variant.ToName().ToLower()) @(Variant == AvailableVariants.Addresses ? "no-js" : "")">
+<div class="tableFixHead @(Variant.ToName().ToLower()) @(SwapDetailingOpened ? "with-detailing" : "") @(Variant == AvailableVariants.Addresses ? "no-js" : "")">
     @if (Variant == AvailableVariants.Transactions &&
          Variant != AvailableVariants.Addresses &&
          (walletStorage.OpenedTx?.Currency == walletStorage.SelectedCurrency.Name || walletStorage.OpenedTx is TezosTokenTransferViewModel))
@@ -105,7 +105,7 @@
             <tbody>
             @foreach (Swap swap in SwapsData)
             {
-                <tr>
+                <tr class="swaps" @onclick="@(() => OnSwapClick.InvokeAsync(swap.Id))">
                     <td class="transaction-desc">
                         Convert
                         <span class="@(swap.SoldCurrency.ToLower())-brush">
@@ -217,7 +217,13 @@
     public EventCallback<string> OnUpdateAddress { get; set; }
 
     [Parameter]
+    public EventCallback<long> OnSwapClick { get; set; }
+
+    [Parameter]
     public string UpdatingAddress { get; set; }
+
+    [Parameter]
+    public bool SwapDetailingOpened { get; set; }
 
 
     private CurrencyConfig getCurrency(string Currency)

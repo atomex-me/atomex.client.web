@@ -52,7 +52,7 @@
         </div>
         <div class="wallet-page__container">
             <Modal IsOpen="@(WalletStorage.userMessage != null)" NoClose>
-                <UserMessageModal />
+                <UserMessageModal/>
             </Modal>
 
 
@@ -76,7 +76,7 @@
                         <TokensPage
                             OnReceiveClick="@ReceiveOpenCloseHandler"
                             OnAddressesClick="@OnAddressesOpenCloseHandler"
-                            OnConvertClick="@OnConvertHandler" />
+                            OnConvertClick="@OnConvertHandler"/>
                     }
                     else
                     {
@@ -126,7 +126,7 @@
             }
             @if (WalletStorage.CurrentWalletSection == WalletSection.DEX)
             {
-                <div class="exchange">
+                <div class="exchange @(SwapDetailingOpened ? "with-detailing" : "")">
                     <CurrencyDropdown
                         SelectedCurrency="WalletStorage.SelectedCurrency"
                         Label="@Translations.From"
@@ -179,7 +179,15 @@
                 <WalletDataTable
                     Variant="@WalletDataTable.AvailableVariants.Swaps"
                     TransactionsData="@GetTxData"
+                    OnSwapClick="@OnSwapClick"
+                    SwapDetailingOpened="@SwapDetailingOpened"
                     SwapsData="@SwapStorage.Swaps"/>
+
+                @if (SwapDetailingOpened)
+                {
+                    <SwapDetailing
+                        OnClose="@(() => SwapDetailingOpened = false)"/>
+                }
             }
 
             @if (WalletStorage.CurrentWalletSection == WalletSection.Settings)
@@ -197,6 +205,14 @@
 </div>
 
 @code {
+    private bool SwapDetailingOpened { get; set; }
+
+    private void OnSwapClick(long swapId)
+    {
+        Console.WriteLine(swapId);
+        SwapDetailingOpened = true;
+    }
+
     private int OpenedDropdown = 0;
 
     private void OnOpenDropdownClick(int dropdown)

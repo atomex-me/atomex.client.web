@@ -1,0 +1,56 @@
+<div class="swaps-detailing__container">
+    <i class="swaps-detailing__close-icon" @onclick="@OnClose"></i>
+    <i class="swaps-detailing__main-progress-icon in-progress"></i>
+
+    <div class="swaps-detailing__title">Swap in Progress</div>
+    <div class="swaps-detailing__sub-title">Do not close the app until the swap is completed </div>
+
+    <div class="swaps-detailing__pair-container">
+        <div>
+            <i class="icon currency-icon bitcoin"></i>
+            <div class="swaps-detailing__pair-currency-name">XTZ</div>
+            <div class="swaps-detailing__pair-currency-amount">09128309123809</div>
+        </div>
+        <i class="swaps-detailing__arrows-icon"></i>
+        <div>
+            <i class="icon currency-icon tezos"></i>
+            <div class="swaps-detailing__pair-currency-name">ETH</div>
+            <div class="swaps-detailing__pair-currency-amount">947747474747</div>
+        </div>
+    </div>
+
+
+    <div class="swaps-detailing__buttons">
+        <button class="swaps-detailing__button @(_currentTab == DetailType.Progress ? "active" : "")"
+                @onclick="@(() => _currentTab = DetailType.Progress)">
+            @DetailType.Progress.ToName()
+        </button>
+        <button class="swaps-detailing__button @(_currentTab == DetailType.Details ? "active" : "")"
+                @onclick="@(() => _currentTab = DetailType.Details)">
+            @DetailType.Details.ToName()
+        </button>
+    </div>
+
+    <div class="swaps-detailing__steps-container">
+        <div class="swaps-detailing__step">
+            <div class="icons__container">
+                <i class="detailing-icon completed"></i>
+                <i class="detailing-line completed"></i>
+            </div>
+            <div class="step-text__container"></div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private enum DetailType
+    {
+        Progress,
+        Details
+    }
+
+    private DetailType _currentTab = DetailType.Progress;
+}
