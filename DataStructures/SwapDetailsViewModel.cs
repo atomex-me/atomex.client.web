@@ -28,7 +28,7 @@ namespace atomex_frontend.atomex_data_structures
         public string FromCurrencyCode => FromCurrency.Name;
         public string ToCurrencyCode => ToCurrency.Name;
         public IEnumerable<Atomex.ViewModels.Helpers.SwapDetailingInfo> DetailingInfo { get; set; }
-        
+
 
         public string SwapCompactStateTitle => CompactState switch
         {
@@ -52,32 +52,43 @@ namespace atomex_frontend.atomex_data_structures
 
         public string? InitializationFirstStepDescription =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Initialization, 0)?.Description;
+
         public string? InitializationSecondStepDescription =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Initialization, 1)?.Description;
+
         public string? ExchangingFirstStepDescription =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Exchanging, 0)?.Description;
+
         public string? ExchangingSecondStepDescription =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Exchanging, 1)?.Description;
+
         public string? CompletionFirstStepDescription =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Completion, 0)?.Description;
+
         public string? CompletionSecondStepDescription =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Completion, 1)?.Description;
 
         public string? ExchangingFirstStepLinkText =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Exchanging, 0)?.ExplorerLink?.Text;
+
         public string? ExchangingSecondStepLinkText =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Exchanging, 1)?.ExplorerLink?.Text;
+
         public string? CompletionFirstStepLinkText =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Completion, 0)?.ExplorerLink?.Text;
+
         public string? CompletionSecondStepLinkText =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Completion, 1)?.ExplorerLink?.Text;
-        
+
         public string? ExchangingFirstStepLinkUrl =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Exchanging, 0)?.ExplorerLink?.Url;
+
         public string? ExchangingSecondStepLinkUrl =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Exchanging, 1)?.ExplorerLink?.Url;
+
         public string? CompletionFirstStepLinkUrl =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Completion, 0)?.ExplorerLink?.Url;
+
         public string? CompletionSecondStepLinkUrl =>
             GetStatusDescription(Atomex.ViewModels.Helpers.SwapDetailingStatus.Completion, 1)?.ExplorerLink?.Url;
 
@@ -94,8 +105,10 @@ namespace atomex_frontend.atomex_data_structures
 
         public SwapDetailedStepState InitializationStepStatus =>
             GetSwapDetailedStepState(Atomex.ViewModels.Helpers.SwapDetailingStatus.Initialization);
+
         public SwapDetailedStepState ExchangingStepStatus =>
             GetSwapDetailedStepState(Atomex.ViewModels.Helpers.SwapDetailingStatus.Exchanging);
+
         public SwapDetailedStepState CompletionStepStatus =>
             GetSwapDetailedStepState(Atomex.ViewModels.Helpers.SwapDetailingStatus.Completion);
 
@@ -124,8 +137,11 @@ namespace atomex_frontend.atomex_data_structures
                 ? SwapDetailedStepState.InProgress
                 : SwapDetailedStepState.ToBeDone;
 
-            if (result is SwapDetailedStepState.InProgress or SwapDetailedStepState.ToBeDone &&
-                CompactState is SwapCompactState.Canceled or SwapCompactState.Unsettled or SwapCompactState.Refunded)
+            if ((result is SwapDetailedStepState.InProgress || result is SwapDetailedStepState.ToBeDone) &&
+                CompactState is SwapCompactState.Canceled ||
+                CompactState is SwapCompactState.Unsettled ||
+                CompactState is SwapCompactState.Refunded)
+                
                 result = SwapDetailedStepState.Failed;
 
             return result;
