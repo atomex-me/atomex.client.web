@@ -105,7 +105,7 @@
             <tbody>
             @foreach (Swap swap in SwapsData)
             {
-                <tr class="swaps" @onclick="@(() => OnSwapClick.InvokeAsync(swap.Id))">
+                <tr class="swaps" @onclick="@(() => OnSwapClick.InvokeAsync(swap))">
                     <td class="transaction-desc">
                         Convert
                         <span class="@(swap.SoldCurrency.ToLower())-brush">
@@ -217,7 +217,7 @@
     public EventCallback<string> OnUpdateAddress { get; set; }
 
     [Parameter]
-    public EventCallback<long> OnSwapClick { get; set; }
+    public EventCallback<Swap> OnSwapClick { get; set; }
 
     [Parameter]
     public string UpdatingAddress { get; set; }

@@ -15,7 +15,7 @@ using Atomex.Swaps.Helpers;
 using Atomex.Swaps;
 using Atomex.Wallet.Abstract;
 using Atomex.ViewModels;
-
+using atomex_frontend.atomex_data_structures;
 using Serilog;
 using Microsoft.JSInterop;
 using atomex_frontend.Common;
@@ -302,6 +302,8 @@ namespace atomex_frontend.Storages
         private static TimeSpan SwapCheckInterval = TimeSpan.FromSeconds(3);
         public IEnumerable<Swap> Swaps { get; set; } = new List<Swap>();
 
+        public SwapDetailsViewModel SwapDetailsViewModel { get; set; }
+
         private void SubscribeToServices(bool IsRestarting)
         {
             if (!IsRestarting)
@@ -317,7 +319,7 @@ namespace atomex_frontend.Storages
                         OnBaseQuotesUpdatedEventHandler(sender, args);
                         this.CallUIRefresh();
                     };
-                
+
                 Console.WriteLine("Subscribed to swap events in start");
             }
 
@@ -338,6 +340,31 @@ namespace atomex_frontend.Storages
         //     }
         //   }
         // }
+
+        public void CreateDetailsViewModel(Swap swap)
+        {
+            if (swap == null) return;
+
+            var soldCurrency = AccountStorage.Currencies.GetByName(swap.SoldCurrency);
+            var purchasedCurrency = AccountStorage.Currencies.GetByName(swap.PurchasedCurrency);
+            var compactState = SwapStorage.CompactStateBySwap(swap);
+            var fromAmount = AmountHelper.QtyToAmount(swap.Side, swap.Qty, swap.Price, soldCurrency.DigitsMultiplier);
+            var toAmount = AmountHelper.QtyToAmount(swap.Side.Opposite(), swap.Qty, swap.Price,
+                purchasedCurrency.DigitsMultiplier);
+
+            SwapDetailsViewModel = new SwapDetailsViewModel
+            {
+                DetailingInfo = Helpers.GetSwapDetailingInfo(swap, accountStorage.Account),
+                CompactState = compactState,
+                SwapId = swap.Id.ToString(),
+                Price = swap.Price,
+                TimeStamp = swap.TimeStamp.ToLocalTime(),
+                FromCurrency = soldCurrency,
+                ToCurrency = purchasedCurrency,
+                FromAmount = fromAmount,
+                ToAmount = toAmount,
+            };
+        }
 
         private void OnAtomexClientChanged(object sender, AtomexClientChangedEventArgs args)
         {
@@ -420,12 +447,21 @@ namespace atomex_frontend.Storages
         {
             try
             {
+                var oldSwapsCount = Swaps.Count();
+                
                 Swaps = (await App.Account
                         .GetSwapsAsync())
                     .ToList()
                     .OrderByDescending(sw => sw.TimeStamp.ToUniversalTime());
 
                 Console.WriteLine($"Finded {Swaps.Count()} swaps");
+
+                if (oldSwapsCount < Swaps.Count()) CreateDetailsViewModel(args?.Swap);
+                
+                if (SwapDetailsViewModel != null && oldSwapsCount == Swaps.Count())
+                    CreateDetailsViewModel(Swaps
+                        .ToList()
+                        .Find(s => s.Id.ToString() == SwapDetailsViewModel.SwapId));
 
                 if (args != null)
                 {
@@ -449,7 +485,7 @@ namespace atomex_frontend.Storages
             }
             catch (Exception e)
             {
-                Log.Error($"Swaps update error {e.ToString()}");
+                Log.Error($"Swaps update error {e}");
             }
         }
 
@@ -607,13 +643,13 @@ namespace atomex_frontend.Storages
                             addressUsagePolicy: AddressUsagePolicy.UseMinimalBalanceFirst,
                             transactionType: BlockchainTransactionType.SwapPayment))
                     .ToList();
-                
+
                 foreach (var fromWallet in fromWallets)
                     if (fromWallet.Currency != FromCurrency.Name)
                         fromWallet.Currency = FromCurrency.Name;
-                
+
                 // check balances
-                
+
                 Console.WriteLine($"Starting to check balance");
                 var errors = await BalanceChecker.CheckBalancesAsync(App.Account, fromWallets);
                 Console.WriteLine($"Ended checking balance");
@@ -711,14 +747,15 @@ namespace atomex_frontend.Storages
                 return new Error(Errors.SwapError, Translations.CvConversionError);
             }
         }
-        
+
         private string GetErrorsDescription(IEnumerable<BalanceError> errors)
         {
             var descriptions = errors.Select(e => e.Type switch
             {
-                BalanceErrorType.FailedToGet      => $"Balance check for address {e.Address} failed",
-                BalanceErrorType.LessThanExpected => $"Balance for address {e.Address} is {e.ActualBalance.ToString(CultureInfo.InvariantCulture)} and less than local {e.LocalBalance.ToString(CultureInfo.InvariantCulture)}",
-                _                                 => $"Balance for address {e.Address} has changed and needs to be updated"
+                BalanceErrorType.FailedToGet => $"Balance check for address {e.Address} failed",
+                BalanceErrorType.LessThanExpected =>
+                    $"Balance for address {e.Address} is {e.ActualBalance.ToString(CultureInfo.InvariantCulture)} and less than local {e.LocalBalance.ToString(CultureInfo.InvariantCulture)}",
+                _ => $"Balance for address {e.Address} has changed and needs to be updated"
             });
 
             return string.Join(". ", descriptions) + ". Please update your balance and try again!";
@@ -771,6 +808,20 @@ namespace atomex_frontend.Storages
 
                 return null;
             }
+        }
+
+        public static SwapCompactState CompactStateBySwap(Swap swap)
+        {
+            if (swap.IsComplete)
+                return SwapCompactState.Completed;
+
+            if (swap.IsCanceled)
+                return SwapCompactState.Canceled;
+
+            if (swap.IsUnsettled)
+                return SwapCompactState.Unsettled;
+
+            return swap.IsRefunded ? SwapCompactState.Refunded : SwapCompactState.InProgress;
         }
     }
 }
