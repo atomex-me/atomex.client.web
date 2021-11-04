@@ -52,7 +52,7 @@
         </div>
         <div class="wallet-page__container">
             <Modal IsOpen="@(WalletStorage.userMessage != null)" NoClose>
-                <UserMessageModal />
+                <UserMessageModal/>
             </Modal>
 
 
@@ -76,7 +76,7 @@
                         <TokensPage
                             OnReceiveClick="@ReceiveOpenCloseHandler"
                             OnAddressesClick="@OnAddressesOpenCloseHandler"
-                            OnConvertClick="@OnConvertHandler" />
+                            OnConvertClick="@OnConvertHandler"/>
                     }
                     else
                     {
@@ -126,11 +126,11 @@
             }
             @if (WalletStorage.CurrentWalletSection == WalletSection.DEX)
             {
-                <div class="exchange">
+                <div class="exchange @(SwapDetailingOpened ? "with-detailing" : "")">
                     <CurrencyDropdown
                         SelectedCurrency="WalletStorage.SelectedCurrency"
                         Label="@Translations.From"
-                        IsOpened="@(OpenedDropdown == 1)"
+                        IsOpened="@(_openedDropdown == 1)"
                         HandleOpen="@OnOpenDropdownClick"
                         WithExchange/>
 
@@ -138,7 +138,7 @@
                         SelectedCurrency="WalletStorage.SelectedSecondCurrency"
                         Label="@Translations.To"
                         IsSecondCurrency="@true"
-                        IsOpened="@(OpenedDropdown == 2)"
+                        IsOpened="@(_openedDropdown == 2)"
                         HandleOpen="@OnOpenDropdownClick"/>
 
                     <AmountBadge
@@ -179,7 +179,15 @@
                 <WalletDataTable
                     Variant="@WalletDataTable.AvailableVariants.Swaps"
                     TransactionsData="@GetTxData"
+                    OnSwapClick="@OnSwapClick"
+                    SwapDetailingOpened="@SwapDetailingOpened"
                     SwapsData="@SwapStorage.Swaps"/>
+
+                @if (SwapDetailingOpened)
+                {
+                    <SwapDetailing SwapDetailsViewModel="@SwapStorage.SwapDetailsViewModel"
+                                   OnClose="@(() => SwapStorage.SwapDetailsViewModel = null)"/>
+                }
             }
 
             @if (WalletStorage.CurrentWalletSection == WalletSection.Settings)
@@ -197,34 +205,34 @@
 </div>
 
 @code {
-    private int OpenedDropdown = 0;
+    private bool SwapDetailingOpened => SwapStorage.SwapDetailsViewModel != null;
+
+    private void OnSwapClick(Swap swap)
+    {
+        SwapStorage.CreateDetailsViewModel(swap);
+    }
+
+    private int _openedDropdown = 0;
 
     private void OnOpenDropdownClick(int dropdown)
     {
-        if (OpenedDropdown > 0)
-        {
-            OpenedDropdown = 0;
-        }
-        else
-        {
-            OpenedDropdown = dropdown;
-        }
+        _openedDropdown = _openedDropdown > 0 ? 0 : dropdown;
     }
 
-    private Timer debounceInputAmount;
-    private decimal Amount = 0m;
+    private Timer _debounceInputAmount;
+    private decimal _amount = 0m;
 
     protected void OnAmountChange(decimal amount)
     {
-        debounceInputAmount.Stop();
-        debounceInputAmount.Start();
+        _debounceInputAmount.Stop();
+        _debounceInputAmount.Start();
 
-        Amount = amount;
+        _amount = amount;
     }
 
     private void OnUserFinishAmount(Object source, ElapsedEventArgs e)
     {
-        InvokeAsync(() => { SwapStorage.Amount = Amount; });
+        InvokeAsync(() => { SwapStorage.Amount = _amount; });
     }
 
     protected List<Transaction> Transactions { get; set; } = new List<Transaction>();
@@ -303,9 +311,9 @@
         WalletStorage.RefreshRequested += StateHasChanged;
         SwapStorage.RefreshRequested += StateHasChanged;
 
-        debounceInputAmount = new System.Timers.Timer(850);
-        debounceInputAmount.Elapsed += OnUserFinishAmount;
-        debounceInputAmount.AutoReset = false;
+        _debounceInputAmount = new System.Timers.Timer(850);
+        _debounceInputAmount.Elapsed += OnUserFinishAmount;
+        _debounceInputAmount.AutoReset = false;
 
         await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
     }
