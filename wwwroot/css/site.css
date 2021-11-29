@@ -142,7 +142,7 @@ app {
     --currencies-row-height: 100px;
     --footer-height: 28px;
     --tokens-contaier-mt: 10px;
-    --swaps-detailing-container-width: 400px;
+    --swaps-detailing-container-width: 410px;
 }
 
 @font-face {
@@ -754,7 +754,6 @@ button:hover {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    position: relative;
 }
 
 .wallet-page__left-nav {
@@ -2843,12 +2842,12 @@ button {
 }
 
 .swaps-detailing__step .icons__container {
-    width: 48px;
+    width: 40px;
 }
 
 .swaps-detailing__step .step-text__container {
     margin-left: 18px;
-    max-width: calc(100% - 18px - 48px);
+    max-width: calc(100% - 18px - 40px);
 }
 
 .step-text__container a {
