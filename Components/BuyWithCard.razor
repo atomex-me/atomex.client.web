@@ -1,24 +1,26 @@
-@inject IJSRuntime JSRuntime;
-@inject WalletStorage walletStorage;
-@inject AccountStorage accountStorage;
+@using Atomex.ViewModels
+@inject IJSRuntime _jsRuntime;
+@inject WalletStorage _walletStorage;
+@inject AccountStorage _accountStorage;
 
 <div id="wert-widget"></div>
 
 @code {
-  
-  
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender)
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-      var _receiveVM = new ReceiveViewModel(accountStorage.AtomexApp, walletStorage.SelectedCurrency);
-      
-      await JSRuntime.InvokeVoidAsync(
-        "renderWertWidget",
-        walletStorage.SelectedCurrency.Name,
-        _receiveVM.SelectedAddress, accountStorage.CurrentNetwork.ToString(),
-        $"user:{accountStorage.GetUserId()}/network:{accountStorage.CurrentNetwork}"
-      );
+        if (firstRender)
+        {
+            var receiveVm = new ReceiveViewModel(_accountStorage.AtomexApp, _walletStorage.SelectedCurrency);
+
+            await _jsRuntime.InvokeVoidAsync(
+                "renderWertWidget",
+                _walletStorage.SelectedCurrency.Name,
+                receiveVm.SelectedAddress, _accountStorage.CurrentNetwork.ToString(),
+                $"user:{Helpers.GetUserId(_accountStorage.Account)}/network:{_accountStorage.CurrentNetwork}"
+                );
+        }
     }
-  }
+
 }

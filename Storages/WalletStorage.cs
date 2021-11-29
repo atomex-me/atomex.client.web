@@ -21,6 +21,7 @@ using atomex_frontend.Common;
 using Microsoft.AspNetCore.Components;
 using System.Timers;
 using System.Globalization;
+using Atomex.ViewModels;
 using Atomex.Wallet.Abstract;
 using Atomex.Wallet.Tezos;
 using Newtonsoft.Json;
@@ -475,142 +476,138 @@ namespace atomex_frontend.Storages
 
         public Transaction OpenedTx { get; set; }
 
-        public UserMessage userMessage { get; set; } = null;
+        private Helpers.UserMessage _userMessage;
 
-        public async void Initialize(bool IsRestarting)
+        public Helpers.UserMessage UserMessage
         {
-            if (accountStorage.AtomexApp != null)
+            get => _userMessage;
+            set
             {
-                if (accountStorage.AtomexApp.HasQuotesProvider && !IsRestarting)
-                {
-                    accountStorage.AtomexApp.QuotesProvider.QuotesUpdated +=
-                        async (object sender, EventArgs args) => await UpdatedQuotes();
-                }
-
-                accountStorage.AtomexApp.Account.BalanceUpdated += async (sender, args) =>
-                {
-                    if (args.Currency == TezosConfig.Xtz)
-                    {
-                        _ = bakerStorage.LoadDelegationInfoAsync();
-                        var tezosConfig = accountStorage.Account
-                            .Currencies
-                            .GetByName(TezosConfig.Xtz);
-                        TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
-                    }
-
-                    await BalanceUpdatedHandler(args.Currency);
-                };
-
-                accountStorage.AtomexApp.CurrenciesProvider.Updated += (sender, args) =>
-                {
-                    if (SelectedCurrency != null)
-                    {
-                        _selectedCurrency =
-                            accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedCurrency.Name);
-                    }
-
-                    if (_selectedSecondCurrency != null)
-                    {
-                        _selectedSecondCurrency =
-                            accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedSecondCurrency.Name);
-                    }
-                };
-
-                accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded +=
-                    OnUnconfirmedTransactionAddedEventHandler;
-
-                List<CurrencyConfig> currenciesList = accountStorage.Account.Currencies.ToList();
-                Transactions = new Dictionary<string, Transaction>();
-                PortfolioData = new Dictionary<string, CurrencyData>();
-
-
-                foreach (CurrencyConfig currencyConfig in currenciesList)
-                {
-                    CurrencyData initialCurrencyData = new CurrencyData(currencyConfig, 0, 0, 0.0m);
-                    PortfolioData.Add(currencyConfig.Name, initialCurrencyData);
-                }
-
-                var tezosConfig = accountStorage.Account
-                    .Currencies
-                    .GetByName(TezosConfig.Xtz);
-
-                TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
-
-                await bakerStorage.LoadBakerList();
-                await UpdatePortfolioAtStart();
-
-                _selectedCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("BTC");
-                _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("XTZ");
-
-                if ((accountStorage.UpdateAllCurrencies || accountStorage.CurrenciesToUpdate?.Length > 0) && !accountStorage.LoadFromRestore)
-                {
-                    await ScanAllCurrencies(accountStorage.CurrenciesToUpdate);
-                    accountStorage.UpdateAllCurrencies = false;
-                }
-
-                URIHelper.NavigateTo("/wallet");
-                accountStorage.WalletLoading = false;
-                CurrentWalletSection = WalletSection.Portfolio;
-                try
-                {
-                    int idleForWallet = await accountStorage
-                        .localStorage
-                        .GetItemAsync<int>($"idle_timeout_{accountStorage.CurrentWalletName}");
-
-                    if (idleForWallet != 0)
-                    {
-                        accountStorage.IdleTimeoutToLogout = idleForWallet;
-                    }
-
-                    await jSRuntime.InvokeVoidAsync("walletLoaded", accountStorage.IdleTimeoutToLogout);
-
-                    var userId = accountStorage.GetUserId();
-                    var userMsg = await GetUserMessageFromServer(userId);
-                    if (userMsg.Count > 0 && !userMsg[0].isReaded)
-                    {
-                        userMessage = userMsg[0];
-                        this.CallUIRefresh();
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"walletStorage Initialize error {e.ToString()}");
-                }
-
-                if (accountStorage.LoadFromRestore)
-                {
-                    await ScanAllCurrencies();
-                }
+                if (_userMessage == null) CallCloseModals();
+                _userMessage = value;
+                CallUIRefresh();
             }
         }
 
-
-        private async Task<List<UserMessage>> GetUserMessageFromServer(string userId)
+        private async void Initialize(bool IsRestarting)
         {
-            var result = await HttpHelper.GetAsync(
-                    baseUri: "https://test.atomex.me/",
-                    requestUri: $"usermessages/get_user_messages/?uid={userId}&format=json",
-                    responseHandler: response =>
-                        JsonConvert.DeserializeObject<List<UserMessage>>(response.Content.ReadAsStringAsync()
-                            .WaitForResult()),
-                    cancellationToken: new CancellationTokenSource().Token)
-                .ConfigureAwait(false);
+            if (accountStorage.AtomexApp == null) return;
+            
+            if (accountStorage.AtomexApp.HasQuotesProvider && !IsRestarting)
+            {
+                accountStorage.AtomexApp.QuotesProvider.QuotesUpdated +=
+                    async (object sender, EventArgs args) => await UpdatedQuotes();
+            }
 
-            return result;
+            accountStorage.AtomexApp.Account.BalanceUpdated += async (sender, args) =>
+            {
+                if (args.Currency == TezosConfig.Xtz)
+                {
+                    _ = bakerStorage.LoadDelegationInfoAsync();
+                    var tezosConfig = accountStorage.Account
+                        .Currencies
+                        .GetByName(TezosConfig.Xtz);
+                    TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
+                }
+
+                await BalanceUpdatedHandler(args.Currency);
+            };
+
+            accountStorage.AtomexApp.CurrenciesProvider.Updated += (sender, args) =>
+            {
+                if (SelectedCurrency != null)
+                {
+                    _selectedCurrency =
+                        accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedCurrency.Name);
+                }
+
+                if (_selectedSecondCurrency != null)
+                {
+                    _selectedSecondCurrency =
+                        accountStorage.Account.Currencies.Get<CurrencyConfig>(SelectedSecondCurrency.Name);
+                }
+            };
+
+            accountStorage.AtomexApp.Account.UnconfirmedTransactionAdded +=
+                OnUnconfirmedTransactionAddedEventHandler;
+
+            List<CurrencyConfig> currenciesList = accountStorage.Account.Currencies.ToList();
+            Transactions = new Dictionary<string, Transaction>();
+            PortfolioData = new Dictionary<string, CurrencyData>();
+
+
+            foreach (CurrencyConfig currencyConfig in currenciesList)
+            {
+                CurrencyData initialCurrencyData = new CurrencyData(currencyConfig, 0, 0, 0.0m);
+                PortfolioData.Add(currencyConfig.Name, initialCurrencyData);
+            }
+
+            var tezosConfig = accountStorage.Account
+                .Currencies
+                .GetByName(TezosConfig.Xtz);
+
+            TezosReceiveVM = new ReceiveViewModel(accountStorage.AtomexApp, tezosConfig);
+
+            await bakerStorage.LoadBakerList();
+            await UpdatePortfolioAtStart();
+
+            _selectedCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("BTC");
+            _selectedSecondCurrency = this.accountStorage.Account.Currencies.Get<CurrencyConfig>("XTZ");
+
+            if ((accountStorage.UpdateAllCurrencies || accountStorage.CurrenciesToUpdate?.Length > 0) && !accountStorage.LoadFromRestore)
+            {
+                await ScanAllCurrencies(accountStorage.CurrenciesToUpdate);
+                accountStorage.UpdateAllCurrencies = false;
+            }
+
+            URIHelper.NavigateTo("/wallet");
+            accountStorage.WalletLoading = false;
+            CurrentWalletSection = WalletSection.Portfolio;
+            try
+            {
+                var idleForWallet = await accountStorage
+                    .localStorage
+                    .GetItemAsync<int>($"idle_timeout_{accountStorage.CurrentWalletName}");
+
+                if (idleForWallet != 0)
+                {
+                    accountStorage.IdleTimeoutToLogout = idleForWallet;
+                }
+
+                await jSRuntime.InvokeVoidAsync("walletLoaded", accountStorage.IdleTimeoutToLogout);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"walletStorage Initialize error {e.ToString()}");
+            }
+
+            if (accountStorage.LoadFromRestore)
+            {
+                await ScanAllCurrencies();
+            }
+            
+            StartLookingForUserMessages(TimeSpan.FromSeconds(45));
         }
 
-        public async Task MarkUserMsgReaded(int id)
+        private void StartLookingForUserMessages(TimeSpan delayInterval)
         {
-            var result = await HttpHelper.PostAsync(
-                    baseUri: "https://test.atomex.me/",
-                    content: null,
-                    requestUri: $"usermessages/get_user_messages/{id}/mark_read/",
-                    responseHandler: response => response,
-                    cancellationToken: new CancellationTokenSource().Token)
-                .ConfigureAwait(false);
+            var userId = Helpers.GetUserId(accountStorage.Account);
+            _ = Task.Run(async () =>
+            {
+                while (accountStorage.AtomexApp.Terminal != null)
+                {
+                    if (AllPortfolioUpdating) continue;
+                    
+                    var messages = await Helpers.GetUserMessages(userId);
+                    foreach (var message in messages.Where(message => !message.IsReaded))
+                    {
+                        UserMessage = message;
+                        break;
+                    }
 
-            userMessage = null;
-            this.CallUIRefresh();
+                    await Task.Delay(delayInterval);
+                }
+            });
         }
 
         private void OnUnconfirmedTransactionAddedEventHandler(object sender, TransactionEventArgs e)
@@ -683,7 +680,7 @@ namespace atomex_frontend.Storages
             }
         }
 
-        public async Task ScanAllCurrencies(string[] currenciesArr = null)
+        private async Task ScanAllCurrencies(string[] currenciesArr = null)
         {
             AllPortfolioUpdating = true;
             var currencies = accountStorage.Account.Currencies.ToList();
