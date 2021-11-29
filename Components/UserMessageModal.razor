@@ -1,35 +1,38 @@
-@inject IJSRuntime JSRuntime;
-@inject RegisterStorage regStorage;
-@inject WalletStorage walletStorage;
+@using Atomex.ViewModels
+@inject IJSRuntime _jsRuntime;
+@inject RegisterStorage _regStorage;
+@inject WalletStorage _walletStorage;
 
 <div class="modal__container">
-  <div class="dark-background__no-grad modal-title">
-    @Translations.InfoMsg
-  </div>
+    <div class="dark-background__no-grad modal-title">
+        @_translations.InfoMsg
+    </div>
 
-  <div class="modal-subtitle">
-    @walletStorage.userMessage.message
-  </div>
+    <div class="modal-subtitle">
+        @_walletStorage.UserMessage.Message
+    </div>
 
-  <div class="buttons-container">
-    <NavigateButton Variant="center" OnClick="OnOkClick">
-      @Translations.SvOk
-    </NavigateButton>
-  </div>
+    <div class="buttons-container">
+        <NavigateButton Variant="center" OnClick="OnOkClick">
+            @_translations.SvOk
+        </NavigateButton>
+    </div>
 </div>
+
 @code {
-  // [Parameter]
-  // public EventCallback OnCancelClick { get; set; }
 
-  private async void OnOkClick()
-  {
-    await walletStorage.MarkUserMsgReaded(walletStorage.userMessage.id);
-    // await OnCancelClick.InvokeAsync(null);
-  }
+    private async void OnOkClick()
+    {
+        await Helpers.MarkUserMessageReaded(_walletStorage.UserMessage.Id);
+        _walletStorage.UserMessage = null;
+    }
 
-  I18nText.Translations Translations = new I18nText.Translations();
-  protected override async Task OnInitializedAsync()
-  {
-    Translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
-  }
+    I18nText.Translations _translations = new I18nText.Translations();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+        _walletStorage.RefreshRequested += StateHasChanged;
+    }
+
 }

@@ -24,6 +24,7 @@ using Atomex.Services.Abstract;
 using Atomex.MarketData;
 using Atomex.Common;
 using Atomex.Cryptography;
+using Atomex.ViewModels;
 using Atomex.Wallet.Abstract;
 
 namespace atomex_frontend.Storages
@@ -188,14 +189,6 @@ namespace atomex_frontend.Storages
                 this._isMarketDataConnected = value;
                 CallRefreshUI();
             }
-        }
-
-        public string GetUserId()
-        {
-            using var servicePublicKey =
-                Account.Wallet.GetServicePublicKey(Account.UserSettings.AuthenticationKeyIndex);
-            using var publicKey = servicePublicKey.ToUnsecuredBytes();
-            return Sha256.Compute(Sha256.Compute(publicKey)).ToHexString();
         }
 
         public async Task<IList<string>> GetAvailableWallets()
