@@ -1092,6 +1092,10 @@ tr.swaps {
     outline: none !important;
 }
 
+a.wallet-menu__button:hover {
+    text-decoration: none;
+}
+
 .wallet-menu__button.contract {
     padding: 6px 15px;
 }
