@@ -682,19 +682,24 @@ namespace atomex_frontend.Storages
                 await tezosAccount.AddressLocker
                     .LockAsync(SelectedAddress.Address);
 
+                // temporary fix: check operation sequence
+                await TezosOperationsSequencer
+                    .WaitAsync(SelectedAddress.Address, tezosAccount)
+                    .ConfigureAwait(false);
+
                 var tx = new TezosTransaction
                 {
                     StorageLimit = Currency.StorageLimit,
-                    GasLimit = Currency.GasLimit,
-                    From = SelectedAddress.Address,
-                    To = _address,
-                    Fee = Fee.ToMicroTez(),
-                    Currency = _tezosConfig.Name,
+                    GasLimit     = Currency.GasLimit,
+                    From         = SelectedAddress.Address,
+                    To           = _address,
+                    Fee          = Fee.ToMicroTez(),
+                    Currency     = _tezosConfig.Name,
                     CreationTime = DateTime.UtcNow,
 
-                    UseRun = true,
+                    UseRun            = true,
                     UseOfflineCounter = true,
-                    OperationType = OperationType.Delegation
+                    OperationType     = OperationType.Delegation
                 };
 
                 var walletAddress = App.Account
