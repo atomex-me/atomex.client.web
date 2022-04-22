@@ -63,9 +63,9 @@
     private bool UseOldApp { get; set; }
 
     private static string AvaloniaUpdateMessage => @"The Atomex team has prepared a big update for the MacOS and Linux app which is much faster, more responsive and user friendly. 
-                                            This old app will no longer be supported so we highly recommend installing the new Atomex app for MacOS and Linux. 
-                                            To do this you need to go to Atomex website, download the installer for MacOS or Linux app and install new application.
-                                            You will be able to restore your wallets with the seed phrase (and derived password, if used) as usual, make sure you do not forget them.";
+                                        This old app will no longer be supported so we highly recommend installing the new Atomex app for MacOS and Linux. 
+                                        To do this you need to go to Atomex website, download the installer for MacOS or Linux app and install new application.
+                                        You will be able to restore your wallets with the seed phrase (and derived password, if used) as usual, make sure you do not forget them.";
 
 
     protected override async Task OnInitializedAsync()
@@ -85,14 +85,14 @@
             .MinimumLevel.Debug()
             .WriteTo.Sentry(o =>
             {
-                o.Dsn = new Dsn("https://e97df826880c468ca338e1f33a644031@sentry.baking-bad.org/4");
+                o.Dsn = "https://655a876da6fa4248a53f0d10b6488d59@newsentry.baking-bad.org/7";
                 o.MinimumEventLevel = LogEventLevel.Error;
                 o.MinimumBreadcrumbLevel = LogEventLevel.Error;
                 o.AttachStacktrace = true;
                 o.SendDefaultPii = true;
                 o.ServerName = userId;
             })
-    //.WriteTo.BrowserConsole()
+            //.WriteTo.BrowserConsole()
             .CreateLogger();
 
         IsElectron = await JS.InvokeAsync<bool>("isElectron");
