@@ -20,11 +20,11 @@ namespace atomex_frontend.atomex_data_structures
         public string ToExplorerUri => $"{_tezosConfig.AddressExplorerUri}{To}";
         
         public TezosTokenTransferViewModel(TokenTransfer tx, TezosConfig tezosConfig) :
-            base(tezosConfig, tx.Id, tx.State, tx.Type, tx.CreationTime, tx.IsConfirmed, 0, alias: tx.Alias)
+            base(tezosConfig, tx.Id, tx.State, tx.Type, tx.CreationTime, tx.IsConfirmed, 0, alias: tx.GetAlias())
         {
             _tezosConfig = tezosConfig;
             Transaction  = tx ?? throw new ArgumentNullException(nameof(tx));
-            Id           = tx.Hash;
+            //Id           = tx.Hash;
             State        = Transaction.State;
             Type         = Transaction.Type;
             From         = tx.From;

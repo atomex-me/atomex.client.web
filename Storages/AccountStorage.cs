@@ -1,30 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
-using Atomex.Services;
-using Atomex.Wallet;
-using Microsoft.AspNetCore.Components;
+using System.Reflection;
+using System.Security;
+using System.Threading.Tasks;
+
 using Blazored.LocalStorage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
-using System.IO;
-using System.Reflection;
-using Atomex.Common.Configuration;
-using Atomex;
-using Atomex.MarketData.Bitfinex;
-using Atomex.MarketData.Abstract;
-using Atomex.Core;
-using System.Security;
 using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Atomex.Blockchain;
+
+using Atomex;
 using Atomex.Abstract;
-using Atomex.Services.Abstract;
-using Atomex.MarketData;
+using Atomex.Blockchain;
 using Atomex.Common;
-using Atomex.Cryptography;
-using Atomex.ViewModels;
+using Atomex.Common.Configuration;
+using Atomex.Core;
+using Atomex.MarketData;
+using Atomex.MarketData.Abstract;
+using Atomex.MarketData.Bitfinex;
+using Atomex.Services;
+using Atomex.Services.Abstract;
+using Atomex.Wallet;
 using Atomex.Wallet.Abstract;
 
 namespace atomex_frontend.Storages
@@ -107,9 +106,9 @@ namespace atomex_frontend.Storages
 
         public CurrenciesProvider currenciesProvider;
         private Assembly coreAssembly;
-        private IConfiguration currenciesConfiguration;
-        private IConfiguration symbolsConfiguration;
-        private HttpClient httpClient;
+        //private IConfiguration currenciesConfiguration;
+        //private IConfiguration symbolsConfiguration;
+        private readonly HttpClient httpClient;
         public ILocalStorageService localStorage;
         public IJSRuntime jSRuntime;
         public string CurrentWalletName;
@@ -118,7 +117,7 @@ namespace atomex_frontend.Storages
 
         public Network CurrentNetwork
         {
-            get => !String.IsNullOrEmpty(CurrentWalletName) && !CurrentWalletName.Contains("[test]")
+            get => !string.IsNullOrEmpty(CurrentWalletName) && !CurrentWalletName.Contains("[test]")
                 ? Network.MainNet
                 : Network.TestNet;
         }
@@ -305,6 +304,12 @@ namespace atomex_frontend.Storages
                 return;
             }
 
+            if (dbVersion == 4 && !newOrRestored)
+            {
+                await MigrateFrom_4_to_5();
+                return;
+            }
+
             // todo: this is temporary for db migration == 3 in main.js
             if (dbVersion == 3 && newOrRestored)
             {
@@ -468,7 +473,7 @@ namespace atomex_frontend.Storages
             }
             catch (Exception e)
             {
-                Console.Write($"Sign Out error {e.ToString()}");
+                Console.Write($"Sign Out error {e}");
             }
         }
 
@@ -501,13 +506,13 @@ namespace atomex_frontend.Storages
                 .GetAssemblies()
                 .FirstOrDefault(a => a.GetName().Name == "Atomex.Client.Core");
 
-            currenciesConfiguration = new ConfigurationBuilder()
-                .AddEmbeddedJsonFile(coreAssembly, "currencies.json")
-                .Build();
+            //currenciesConfiguration = new ConfigurationBuilder()
+            //    .AddEmbeddedJsonFile(coreAssembly, "currencies.json")
+            //    .Build();
 
-            symbolsConfiguration = new ConfigurationBuilder()
-                .AddEmbeddedJsonFile(coreAssembly, "symbols.json")
-                .Build();
+            //symbolsConfiguration = new ConfigurationBuilder()
+            //    .AddEmbeddedJsonFile(coreAssembly, "symbols.json")
+            //    .Build();
 
             currenciesProvider = new CurrenciesProvider(CurrenciesConfigurationJson(coreAssembly));
 
@@ -583,6 +588,25 @@ namespace atomex_frontend.Storages
             Console.WriteLine("Migration applied, DB version saved, restarting.");
 
             CurrenciesToUpdate = new[] {TezosConfig.Xtz};
+            _ = ConnectToWallet(CurrentWalletName, _password);
+        }
+
+        private async Task MigrateFrom_4_to_5()
+        {
+            int TARGET_VER = 5;
+            Console.WriteLine($"Applying migration database to verson {TARGET_VER}.");
+
+            await jSRuntime.InvokeAsync<string>("deleteData",
+                WebAccountDataRepository.AvailableDataType.TezosTokenAddress.ToName(), CurrentWalletName);
+            await jSRuntime.InvokeAsync<string>("deleteData",
+                WebAccountDataRepository.AvailableDataType.TezosTokenContract.ToName(), CurrentWalletName);
+            await jSRuntime.InvokeAsync<string>("deleteData",
+                WebAccountDataRepository.AvailableDataType.TezosTokenTransfer.ToName(), CurrentWalletName);
+            await jSRuntime.InvokeAsync<string>("saveDBVersion", CurrentWalletName, TARGET_VER);
+
+            Console.WriteLine("Migration applied, DB version saved, restarting.");
+
+            CurrenciesToUpdate = new[] { TezosConfig.Xtz };
             _ = ConnectToWallet(CurrentWalletName, _password);
         }
     }

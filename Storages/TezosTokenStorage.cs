@@ -1,10 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Serilog;
+
 using Atomex;
 using atomex_frontend.atomex_data_structures;
 using Atomex.Blockchain.Tezos;
@@ -13,19 +17,18 @@ using Atomex.Services;
 using Atomex.TezosTokens;
 using Atomex.Wallet;
 using Atomex.Wallet.Tezos;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Serilog;
 
 namespace atomex_frontend.Storages
 {
     public class TezosTokenViewModel
     {
         private bool _isPreviewDownloading;
+        public TezosConfig TezosConfig { get; set; }
         public TokenBalance TokenBalance { get; set; }
         public string Address { get; set; }
         public Action PreviewLoaded;
         private string _tokenPreview;
+
         public string TokenPreview
         {
             get
@@ -37,9 +40,11 @@ namespace atomex_frontend.Storages
                     return _tokenPreview;
                 
                 _isPreviewDownloading = true;
+
                 _ = Task.Run(async () =>
                 {
-                    await LoadPreview().ConfigureAwait(false);
+                    await LoadPreview()
+                        .ConfigureAwait(false);
 
                     if (_tokenPreview != null)
                         PreviewLoaded?.Invoke();
@@ -51,11 +56,24 @@ namespace atomex_frontend.Storages
 
         private async Task LoadPreview()
         {
-            foreach (var url in GetTokenPreviewUrls())
+            var thumbsApiSettings = new ThumbsApiSettings
             {
-                await FromUrlAsync(url).ConfigureAwait(false);
-                if (_tokenPreview != null) break;
+                ThumbsApiUri   = TezosConfig.ThumbsApiUri,
+                IpfsGatewayUri = TezosConfig.IpfsGatewayUri,
+                CatavaApiUri   = TezosConfig.CatavaApiUri
+            };
+
+            var thumbsApi = new ThumbsApi(thumbsApiSettings);
+
+            foreach (var url in thumbsApi.GetTokenPreviewUrls(TokenBalance.Contract, TokenBalance.ThumbnailUri, TokenBalance.DisplayUri))
+            {
+                await FromUrlAsync(url)
+                    .ConfigureAwait(false);
+
+                if (_tokenPreview != null)
+                    break;
             }
+
             _isPreviewDownloading = false;
         }
 
@@ -63,10 +81,10 @@ namespace atomex_frontend.Storages
             ? $"{TokenBalance.GetTokenBalance().ToString(CultureInfo.InvariantCulture)}  {TokenBalance.Symbol}"
             : "";
 
-        public bool IsIpfsAsset => TokenBalance.ArtifactUri != null && HasIpfsPrefix(TokenBalance.ArtifactUri);
+        public bool IsIpfsAsset => TokenBalance.ArtifactUri != null && ThumbsApi.HasIpfsPrefix(TokenBalance.ArtifactUri);
 
         public string AssetUrl => IsIpfsAsset
-            ? $"http://ipfs.io/ipfs/{RemoveIpfsPrefix(TokenBalance.ArtifactUri)}"
+            ? $"http://ipfs.io/ipfs/{ThumbsApi.RemoveIpfsPrefix(TokenBalance.ArtifactUri)}"
             : null;
 
         private async Task FromUrlAsync(string url)
@@ -91,25 +109,6 @@ namespace atomex_frontend.Storages
                 // ignored
             }
         }
-
-        public IEnumerable<string> GetTokenPreviewUrls()
-        {
-            yield return $"https://test.atomex.me/nft-static-asset/{TokenBalance.Contract}/{TokenBalance.TokenId}.png";
-
-            if (TokenBalance.ArtifactUri != null && HasIpfsPrefix(TokenBalance.ArtifactUri))
-                yield return $"https://api.dipdup.net/thumbnail/{RemoveIpfsPrefix(TokenBalance.ArtifactUri)}";
-
-            yield return $"https://services.tzkt.io/v1/avatars/{TokenBalance.Contract}";
-        }
-
-        public static string RemovePrefix(string s, string prefix) =>
-            s.StartsWith(prefix) ? s.Substring(prefix.Length) : s;
-
-        public static string RemoveIpfsPrefix(string url) =>
-            RemovePrefix(url, "ipfs://");
-
-        public static bool HasIpfsPrefix(string url) =>
-            url?.StartsWith("ipfs://") ?? false;
     }
 
     public class TezosTokenContractViewModel
@@ -244,7 +243,7 @@ namespace atomex_frontend.Storages
             CurrentVariant = variant;
         }
 
-        private WalletStorage _ws;
+        private readonly WalletStorage _ws;
 
         public TezosTokenStorage(AccountStorage accountStorage, WalletStorage ws)
         {
@@ -398,6 +397,7 @@ namespace atomex_frontend.Storages
                     .Where(a => a.Balance != 0)
                     .Select(a => new TezosTokenViewModel
                     {
+                        TezosConfig   = tezosConfig,
                         TokenBalance  = a.TokenBalance,
                         PreviewLoaded = CallUIRefresh,
                         Address       = a.Address,
