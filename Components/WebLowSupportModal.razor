@@ -1,0 +1,23 @@
+<div class="modal__container">
+    <div class="dark-background__no-grad modal-title">
+        @_translations.Warning
+    </div>
+
+    <div class="modal-subtitle" style="margin-bottom: 30px">
+        Atomex Web app currently in low support mode.<br>
+
+        We highly recommend to use native apps for Windows / MacOS / Ubuntu or mobile apps for iOS / Android to get access for complete set of Atomex features.<br>
+
+        <div>You can download apps <a href="https://atomex.me/downloads" target="_blank">in official Atomex site</a></div>
+    </div>
+</div>
+
+@code {
+    I18nText.Translations _translations = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _translations = await I18nText.GetTextTableAsync<I18nText.Translations>(this);
+    }
+
+}

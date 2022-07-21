@@ -55,6 +55,9 @@
                 <UserMessageModal/>
             </Modal>
 
+            <Modal IsOpen="@WebLowSupportModalOpened" OnClose="@WebLowSupportModalOpenCloseHandler">
+                <WebLowSupportModal/>
+            </Modal>
 
             @if (WalletStorage.CurrentWalletSection == WalletSection.Portfolio)
             {
@@ -273,6 +276,12 @@
         ReceiveModalOpened = !ReceiveModalOpened;
     }
 
+    private void WebLowSupportModalOpenCloseHandler()
+    {
+        if (!WebLowSupportModalOpened) CloseModals();
+        WebLowSupportModalOpened = !WebLowSupportModalOpened;
+    }
+
     private void OnAddressesOpenCloseHandler()
     {
         if (!AddressesModalOpened) CloseModals();
@@ -281,6 +290,7 @@
 
     private bool SendModalOpened { get; set; } = false;
     private bool ReceiveModalOpened { get; set; } = false;
+    private bool WebLowSupportModalOpened { get; set; } = false;
     private bool ConvertModalOpened { get; set; } = false;
     private bool AddressesModalOpened { get; set; } = false;
 
@@ -288,6 +298,7 @@
     {
         if (SendModalOpened) SendModalOpened = false;
         if (ReceiveModalOpened) ReceiveModalOpened = false;
+        if (WebLowSupportModalOpened) WebLowSupportModalOpened = false;
         if (AddressesModalOpened) AddressesModalOpened = false;
         if (ConvertModalOpened) ConvertModalOpened = false;
     }
@@ -316,6 +327,8 @@
         _debounceInputAmount.AutoReset = false;
 
         await JSRuntime.InvokeVoidAsync("getUIdataSyncElement");
+
+        WebLowSupportModalOpened = true;
     }
 
 }
